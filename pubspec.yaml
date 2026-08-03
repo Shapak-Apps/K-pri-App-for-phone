@@ -1,0 +1,48 @@
+name: kopri
+description: Köpri — dilleriň arasyndaky köpri. Переводчик.
+publish_to: 'none'
+version: 1.0.1+1
+
+environment:
+  sdk: ^3.12.0
+
+dependency_overrides:
+  flutter_tesseract_ocr:
+    path: plugins/flutter_tesseract_ocr
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_fonts: ^8.2.1
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  http: ^1.6.0
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.2.0
+  share_plus: ^13.3.0
+  url_launcher: ^6.3.2
+  google_mlkit_translation: ^0.14.0
+  google_mlkit_language_id: ^0.13.1
+  camera: ^0.12.0+2
+  path_provider: ^2.1.6
+  permission_handler: ^13.0.0
+  flutter_tesseract_ocr: ^0.4.31
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icon/
+    - assets/tessdata/
+    - assets/tessdata_config.json

@@ -1,0 +1,186 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'offline_translator.dart';
+
+class TranslationResult {
+  final String text;
+  final String? detected;
+  const TranslationResult({required this.text, this.detected});
+}
+
+class TranslationFailedException implements Exception {
+  final String message;
+  const TranslationFailedException(this.message);
+  @override
+  String toString() => message;
+}
+
+abstract interface class TranslatorService {
+  Future<TranslationResult> translate(
+    String text, {
+    required String from,
+    required String to,
+  });
+}
+
+class OnlineTranslator implements TranslatorService {
+  final Duration timeout;
+  final http.Client _client;
+
+  OnlineTranslator({
+    this.timeout = const Duration(seconds: 10),
+    http.Client? client,
+  }) : _client = client ?? http.Client();
+
+  static const _headers = {
+    'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+    'Accept': 'application/json',
+  };
+
+  static const _lingvaHosts = [
+    'lingva.thedaviddelta.com',
+    'translate.plausibility.cloud',
+    'lingva.lunar.icu',
+  ];
+
+  @override
+  Future<TranslationResult> translate(
+    String text, {
+    required String from,
+    required String to,
+  }) async {
+    final src = text.trim();
+    if (src.isEmpty) return const TranslationResult(text: '');
+    if (from == to && from != 'auto') return TranslationResult(text: src);
+
+    // ── 0) ОФФЛАЙН (ML Kit) — для поддерживаемых языков, кроме tk ──
+    // Возвращает null, если пара не поддерживается или модель недоступна,
+    // тогда управление тихо уходит в онлайн-провайдеры ниже.
+    try {
+      final off = await OfflineTranslator.instance
+          .translate(src, from: from, to: to)
+          .timeout(timeout);
+      if (off != null && off.text.isNotEmpty) return off;
+    } catch (_) {
+    }
+
+    final errors = <String>[];
+
+    // 1) Google (умеет auto)
+    try {
+      final r = await _googleGtx(src, from, to).timeout(timeout);
+      if (r.text.isNotEmpty) return r;
+    } catch (e) {
+      errors.add('google:$e');
+    }
+
+    // 2) Lingva-зеркала (умеют auto)
+    for (final host in _lingvaHosts) {
+      try {
+        final r = await _lingva(host, src, from, to).timeout(timeout);
+        if (r.text.isNotEmpty) return r;
+      } catch (e) {
+        errors.add('lingva($host):$e');
+      }
+    }
+
+    // 3) MyMemory (НЕ умеет auto → определяем язык сами)
+    try {
+      final srcLang = from == 'auto' ? _detectLang(src, to) : from;
+      final r = await _myMemory(src, srcLang, to).timeout(timeout);
+      if (r.text.isNotEmpty) {
+        return TranslationResult(
+          text: r.text,
+          detected: from == 'auto' ? srcLang : null,
+        );
+      }
+    } catch (e) {
+      errors.add('mymemory:$e');
+    }
+
+    throw const TranslationFailedException(
+      'Terjime başa barmady. Interneti barlaň.',
+    );
+  }
+
+  /// Простой определитель языка по письменности — для провайдеров без auto.
+  String _detectLang(String text, String target) {
+    if (text.runes.any((r) => r >= 0x0400 && r <= 0x04FF)) return 'ru'; // кириллица
+    if (RegExp(r'[äçžňöşüýÄÇŽŇÖŞÜÝ]').hasMatch(text)) return 'tk'; // туркменские буквы
+    if (text.runes.any((r) => r >= 0x0600 && r <= 0x06FF)) return 'ar'; // арабская
+    if (text.runes.any((r) => r >= 0x4E00 && r <= 0x9FFF)) return 'zh'; // иероглифы
+    return target == 'en' ? 'ru' : 'en'; // латиница
+  }
+
+  Future<TranslationResult> _googleGtx(
+    String text,
+    String from,
+    String to,
+  ) async {
+    final uri = Uri.https('translate.googleapis.com', '/translate_a/single', {
+      'client': 'gtx',
+      'sl': from,
+      'tl': to,
+      'dt': 't',
+      'q': text,
+    });
+    final res = await _client.get(uri, headers: _headers);
+    if (res.statusCode != 200) throw 'HTTP ${res.statusCode}';
+    final decoded = jsonDecode(res.body) as List<dynamic>;
+    final buf = StringBuffer();
+    for (final chunk in decoded.first as List<dynamic>) {
+      if (chunk is List<dynamic> && chunk.isNotEmpty && chunk.first is String) {
+        buf.write(chunk.first as String);
+      }
+    }
+    final detected =
+        (from == 'auto' && decoded.length > 2 && decoded[2] is String)
+        ? decoded[2] as String
+        : null;
+    final out = buf.toString().trim();
+    if (out.isEmpty) throw 'empty';
+    return TranslationResult(text: out, detected: detected);
+  }
+
+  Future<TranslationResult> _lingva(
+    String host,
+    String text,
+    String from,
+    String to,
+  ) async {
+    final uri = Uri.https(
+      host,
+      '/api/v1/$from/$to/${Uri.encodeComponent(text)}',
+    );
+    final res = await _client.get(uri, headers: _headers);
+    if (res.statusCode != 200) throw 'HTTP ${res.statusCode}';
+    final j = jsonDecode(res.body) as Map<String, dynamic>;
+    final tr = (j['translation'] ?? '').toString().trim();
+    final info = j['info'] as Map<String, dynamic>?;
+    final detected =
+        (from == 'auto' && info != null && info['detectedSource'] is String)
+        ? info['detectedSource'] as String
+        : null;
+    if (tr.isEmpty) throw 'empty';
+    return TranslationResult(text: tr, detected: detected);
+  }
+
+  Future<TranslationResult> _myMemory(
+    String text,
+    String from,
+    String to,
+  ) async {
+    final uri = Uri.https('api.mymemory.translated.net', '/get', {
+      'q': text,
+      'langpair': '$from|$to',
+    });
+    final res = await _client.get(uri, headers: _headers);
+    if (res.statusCode != 200) throw 'HTTP ${res.statusCode}';
+    final j = jsonDecode(res.body) as Map<String, dynamic>;
+    final data = j['responseData'] as Map<String, dynamic>?;
+    final translated = (data?['translatedText'] ?? '').toString().trim();
+    if (translated.isEmpty) throw 'empty';
+    return TranslationResult(text: translated);
+  }
+}
