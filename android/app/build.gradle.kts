@@ -14,7 +14,7 @@ plugins {
 
 android {
     namespace = "com.kopri.translator"
-    compileSdkExtension = null 
+    compileSdkExtension = null
     compileSdkPreview = null
     compileSdk = 37
 
@@ -25,9 +25,9 @@ android {
 
     defaultConfig {
         applicationId = "com.kopri.translator"
-        
+
         minSdk = flutter.minSdkVersion
-        
+
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -45,6 +45,12 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 

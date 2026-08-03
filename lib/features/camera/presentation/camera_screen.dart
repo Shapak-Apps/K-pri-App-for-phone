@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../core/controllers/app_settings_controller.dart';
@@ -21,25 +22,10 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
-  final _tr = OnlineTranslator();
-  final _ocr = OcrService();
-
-  // режимы: idle (главный) / cam (съёмка) / shot (снимок + обработка)
-  String _mode = 'idle';
-  CameraController? _controller;
-  String? _lastPath;
-  bool _processing = false;
-
   @override
   void initState() {
     super.initState();
     CameraRepository.instance.ensureInit();
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
   }
 
   void _snack(String t, {bool warn = false}) {
@@ -52,146 +38,21 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 
-  // ── открыть камеру ─────────────────────────────────────────────
   Future<void> _openCamera() async {
     final status = await Permission.camera.request();
     if (!status.isGranted) {
       _snack(context.l10n.t('camera_permission'), warn: true);
       return;
     }
-    try {
-      final cams = await availableCameras();
-      if (cams.isEmpty) {
-        _snack(context.l10n.t('camera_permission'), warn: true);
-        return;
-      }
-      final back = cams.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
-        orElse: () => cams.first,
-      );
-      final ctrl = CameraController(
-        back,
-        ResolutionPreset.high,
-        enableAudio: false,
-      );
-      await ctrl.initialize();
-      if (!mounted) {
-        await ctrl.dispose();
-        return;
-      }
-      setState(() {
-        _controller = ctrl;
-        _mode = 'cam';
-      });
-    } catch (e) {
-      debugPrint('[cam] open error: $e');
-      _snack(context.l10n.t('camera_permission'), warn: true);
-    }
-  }
-
-  Future<void> _closeCamera() async {
-    await _controller?.dispose();
     if (!mounted) return;
-    setState(() {
-      _controller = null;
-      _mode = 'idle';
-    });
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => const _CameraPage(),
+      ),
+    );
   }
 
-  // ── снимок ─────────────────────────────────────────────────────
-  Future<void> _capture() async {
-    final ctrl = _controller;
-    if (ctrl == null || !ctrl.value.isInitialized || _processing) return;
-    try {
-      setState(() => _processing = true);
-      final shot = await ctrl.takePicture();
-      await ctrl.dispose();
-      final repo = CameraRepository.instance;
-      final id = DateTime.now().microsecondsSinceEpoch.toString();
-      final dest = '${repo.photosDir}/$id.jpg';
-      await File(shot.path).copy(dest);
-      if (!mounted) return;
-      setState(() {
-        _controller = null;
-        _lastPath = dest;
-        _mode = 'shot';
-        _processing = false;
-      });
-      _pickLangAndProcess(dest);
-    } catch (e) {
-      debugPrint('[cam] capture error: $e');
-      if (!mounted) return;
-      setState(() => _processing = false);
-      _snack(e.toString(), warn: true);
-    }
-  }
-
-  // ── выбор языка → OCR → перевод → сохранить ────────────────────
-  Future<void> _pickLangAndProcess(String path) async {
-    try {
-      final to = await showLanguagePicker(
-        context,
-        opts: AppLanguages.all,
-        current: context.settings.defaultTo,
-      );
-      if (!mounted) return;
-      if (to == null) {
-        setState(() {
-          _mode = 'idle';
-          _lastPath = null;
-          _processing = false;
-        });
-        return;
-      }
-
-      setState(() => _processing = true);
-      final original = await _ocr.recognize(path);
-      if (!mounted) return;
-
-      String translated = '';
-      if (original.isNotEmpty) {
-        try {
-          final res = await _tr.translate(original, from: 'auto', to: to);
-          translated = res.text;
-        } catch (e) {
-          debugPrint('[cam] translate error: $e');
-        }
-      }
-      if (!mounted) return;
-
-      final photo = CameraPhoto(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        path: path,
-        originalText: original,
-        translations: translated.isNotEmpty ? {to: translated} : const {},
-        timestamp: DateTime.now(),
-      );
-      await CameraRepository.instance.add(photo);
-      if (!mounted) return;
-
-      if (original.isEmpty) {
-        _snack(context.l10n.t('camera_no_text'), warn: true);
-      }
-
-      setState(() {
-        _processing = false;
-        _mode = 'idle';
-        _lastPath = null;
-      });
-    } catch (e) {
-      // ЛЮБАЯ ошибка (OCR / ML Kit / копирование) гасится здесь —
-      // никакого жёлтого debug-оверлея, экран возвращается в исходное.
-      debugPrint('[cam] process error: $e');
-      if (!mounted) return;
-      setState(() {
-        _processing = false;
-        _mode = 'idle';
-        _lastPath = null;
-      });
-    }
-  }
-
-  // ── галерея прошлых фото ───────────────────────────────────────
   Future<void> _openGallery() async {
     final c = context.c;
     final l10n = context.l10n;
@@ -313,7 +174,6 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 
-  // ── просмотр одного фото ───────────────────────────────────────
   Future<void> _viewPhoto(CameraPhoto p) async {
     final c = context.c;
     final l10n = context.l10n;
@@ -399,140 +259,11 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 
-  // ── build ──────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final c = context.c;
     final l10n = context.l10n;
 
-    if (_mode == 'cam') {
-      final ctrl = _controller;
-      final ready = ctrl != null && ctrl.value.isInitialized;
-      final camAspect = ready ? ctrl.value.aspectRatio : 1.0;
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          // ── полноэкранный превью (cover, без полос и искажений) ──
-          ColoredBox(color: Colors.black),
-          if (ready)
-            Positioned.fill(
-              child: FittedBox(
-                fit: BoxFit.cover,
-                clipBehavior: Clip.hardEdge,
-                child: SizedBox(
-                  width: camAspect * 1000,
-                  height: 1000,
-                  child: CameraPreview(ctrl),
-                ),
-              ),
-            ),
-          // лёгкое затемнение снизу, чтобы затвор читался на любом фоне
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 160,
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.45),
-                      Colors.black.withValues(alpha: 0.0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // верх: назад
-          Positioned(
-            top: 12,
-            left: 12,
-            child: _roundBtn(c, Icons.arrow_back_rounded, _closeCamera),
-          ),
-          // низ: затвор (белая круглая кнопка — как просил, без изменений)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 34,
-            child: Center(
-              child: GestureDetector(
-                onTap: _processing ? null : _capture,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 160),
-                  width: 78,
-                  height: 78,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    border: Border.all(color: c.accent, width: 4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.35),
-                        blurRadius: 18,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: _processing
-                      ? SizedBox(
-                          width: 26,
-                          height: 26,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            color: c.accent,
-                          ),
-                        )
-                      : Icon(
-                          Icons.camera_alt_rounded,
-                          color: c.accent,
-                          size: 34,
-                        ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (_mode == 'shot') {
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          ColoredBox(color: c.bg),
-          if (_lastPath != null)
-            Center(
-              child: Image.file(
-                File(_lastPath!),
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) =>
-                    Icon(Icons.broken_image_rounded, color: c.faint, size: 48),
-              ),
-            ),
-          if (_processing)
-            Positioned(
-              left: 24,
-              right: 24,
-              bottom: 40,
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: c.surface.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: c.line),
-                ),
-                child: AnalyzingWave(label: l10n.t('camera_translating')),
-              ),
-            ),
-        ],
-      );
-    }
-
-    // ── idle: главный экран ──
     return ListenableBuilder(
       listenable: CameraRepository.instance,
       builder: (context, _) {
@@ -545,7 +276,6 @@ class _CameraScreenState extends State<CameraScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                 children: [
                   const SizedBox(height: 8),
-                  // заголовок «приукрашенный»
                   Row(
                     children: [
                       Container(
@@ -565,18 +295,9 @@ class _CameraScreenState extends State<CameraScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: l10n.t('camera_title'),
-                                    style: AppTheme.display(
-                                      size: 19,
-                                      color: c.text,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            Text(
+                              l10n.t('camera_title'),
+                              style: AppTheme.display(size: 19, color: c.text),
                             ),
                             const SizedBox(height: 3),
                             Text(
@@ -589,7 +310,6 @@ class _CameraScreenState extends State<CameraScreen> {
                     ],
                   ),
                   const SizedBox(height: 28),
-                  // белая круглая кнопка «открыть камеру»
                   Center(
                     child: GestureDetector(
                       onTap: _openCamera,
@@ -635,7 +355,6 @@ class _CameraScreenState extends State<CameraScreen> {
                 ],
               ),
             ),
-            // ── низ: стопка-веер прошлых фото (= кнопка галереи) ──
             _BottomStack(
               c: c,
               all: all,
@@ -646,6 +365,413 @@ class _CameraScreenState extends State<CameraScreen> {
           ],
         );
       },
+    );
+  }
+}
+
+class _CameraPage extends StatefulWidget {
+  const _CameraPage();
+  @override
+  State<_CameraPage> createState() => _CameraPageState();
+}
+
+class _CameraPageState extends State<_CameraPage> {
+  final _tr = OnlineTranslator();
+  final _ocr = OcrService();
+
+  CameraController? _controller;
+  String? _shotPath;
+  bool _processing = false;
+  bool _initError = false;
+
+  // ── ЗУМ ──────────────────────────────────────────────────────
+  double _zoomLevel = 1.0;
+  double _minZoom = 1.0;
+  double _maxZoom = 1.0;
+  bool _showZoomIndicator = false;
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.immersiveSticky,
+      overlays: [],
+    );
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    _init();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+      overlays: SystemUiOverlay.values,
+    );
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    super.dispose();
+  }
+
+  Future<void> _init() async {
+    try {
+      final cams = await availableCameras();
+      if (cams.isEmpty) throw Exception('no cameras');
+      final back = cams.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => cams.first,
+      );
+      final ctrl = CameraController(
+        back,
+        ResolutionPreset.high,
+        enableAudio: false,
+      );
+      await ctrl.initialize();
+      if (!mounted) {
+        await ctrl.dispose();
+        return;
+      }
+      try {
+        _minZoom = await ctrl.getMinZoomLevel();
+        _maxZoom = await ctrl.getMaxZoomLevel();
+        _zoomLevel = _minZoom;
+      } catch (e) {
+        debugPrint('[cam] zoom query error: $e');
+        _minZoom = 1.0;
+        _maxZoom = 5.0; // разумный фолбэк
+      }
+      setState(() => _controller = ctrl);
+    } catch (e) {
+      debugPrint('[cam] init error: $e');
+      if (mounted) setState(() => _initError = true);
+    }
+  }
+
+  void _snack(String t, {bool warn = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(t),
+        backgroundColor: warn ? context.c.warn : context.c.accent,
+      ),
+    );
+  }
+
+  Future<void> _setZoom(double level) async {
+    final ctrl = _controller;
+    if (ctrl == null || !ctrl.value.isInitialized) return;
+    final clamped = level.clamp(_minZoom, _maxZoom);
+    try {
+      await ctrl.setZoomLevel(clamped);
+      if (mounted) {
+        setState(() {
+          _zoomLevel = clamped;
+          _showZoomIndicator = true;
+        });
+        Future.delayed(const Duration(milliseconds: 1200), () {
+          if (mounted) setState(() => _showZoomIndicator = false);
+        });
+      }
+    } catch (e) {
+      debugPrint('[cam] setZoom error: $e');
+    }
+  }
+
+  Future<void> _capture() async {
+    final ctrl = _controller;
+    if (ctrl == null || !ctrl.value.isInitialized || _processing) return;
+    try {
+      final shot = await ctrl.takePicture();
+      final repo = CameraRepository.instance;
+      final id = DateTime.now().microsecondsSinceEpoch.toString();
+      final dest = '${repo.photosDir}/$id.jpg';
+      await File(shot.path).copy(dest);
+      if (!mounted) {
+        try {
+          await ctrl.dispose();
+        } catch (_) {}
+        return;
+      }
+
+      setState(() {
+        _controller = null;
+        _shotPath = dest;
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          await ctrl.dispose();
+        } catch (_) {}
+      });
+
+      await _process(dest, id);
+    } catch (e) {
+      debugPrint('[cam] capture error: $e');
+      if (mounted) _snack(e.toString(), warn: true);
+    }
+  }
+
+  Future<void> _process(String path, String id) async {
+    try {
+      final to = await showLanguagePicker(
+        context,
+        opts: AppLanguages.all,
+        current: context.settings.defaultTo,
+      );
+      if (!mounted) return;
+      if (to == null) {
+        try {
+          final f = File(path);
+          if (await f.exists()) await f.delete();
+        } catch (_) {}
+        Navigator.of(context).pop();
+        return;
+      }
+
+      setState(() => _processing = true);
+      final original = await _ocr.recognize(path);
+      if (!mounted) return;
+
+      String translated = '';
+      if (original.isNotEmpty) {
+        try {
+          final res = await _tr.translate(original, from: 'auto', to: to);
+          translated = res.text;
+        } catch (e) {
+          debugPrint('[cam] translate error: $e');
+        }
+      }
+      if (!mounted) return;
+
+      await CameraRepository.instance.add(
+        CameraPhoto(
+          id: id,
+          path: path,
+          originalText: original,
+          translations: translated.isNotEmpty ? {to: translated} : const {},
+          timestamp: DateTime.now(),
+        ),
+      );
+      if (!mounted) return;
+
+      if (original.isEmpty)
+        _snack(context.l10n.t('camera_no_text'), warn: true);
+      Navigator.of(context).pop();
+    } catch (e) {
+      debugPrint('[cam] process error: $e');
+      if (mounted) {
+        setState(() => _processing = false);
+        _snack(e.toString(), warn: true);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final ctrl = _controller;
+    final ready = ctrl != null && ctrl.value.isInitialized;
+    final shot = _shotPath;
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (ready)
+            Positioned.fill(
+              child: GestureDetector(
+                // pinch-to-zoom
+                onScaleStart: (_) {},
+                onScaleUpdate: (details) {
+                  if (details.scale != 1.0) {
+                    final newZoom = _zoomLevel * details.scale;
+                    _setZoom(newZoom);
+                  }
+                },
+                onDoubleTap: () => _setZoom(_minZoom),
+                child: _CoverPreview(controller: ctrl),
+              ),
+            )
+          else if (shot != null)
+            Positioned.fill(
+              child: Center(
+                child: Image.file(
+                  File(shot),
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Icon(
+                    Icons.broken_image_rounded,
+                    color: Colors.white54,
+                    size: 48,
+                  ),
+                ),
+              ),
+            )
+          else
+            const ColoredBox(color: Colors.black),
+
+          if (!ready && shot == null && !_initError)
+            Center(child: CircularProgressIndicator(color: c.accent)),
+          if (_initError && shot == null)
+            Center(
+              child: Icon(
+                Icons.no_photography_rounded,
+                color: Colors.white54,
+                size: 48,
+              ),
+            ),
+
+          if (ready && _showZoomIndicator)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 60,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: AnimatedOpacity(
+                  opacity: _showZoomIndicator ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${_zoomLevel.toStringAsFixed(1)}x',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          if (ready)
+            Positioned(
+              right: 20,
+              top: MediaQuery.of(context).padding.top + 120,
+              bottom: MediaQuery.of(context).padding.bottom + 160,
+              child: _ZoomSlider(
+                c: c,
+                min: _minZoom,
+                max: _maxZoom,
+                value: _zoomLevel,
+                onChanged: _setZoom,
+              ),
+            ),
+
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: 120,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.45),
+                      Colors.black.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // затемнение снизу
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 160,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.45),
+                      Colors.black.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // верх: назад
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 12,
+            child: _roundBtn(
+              c,
+              Icons.arrow_back_rounded,
+              () => Navigator.of(context).pop(),
+            ),
+          ),
+
+          // низ: затвор — ТОЛЬКО пока живая камера
+          if (ready)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: MediaQuery.of(context).padding.bottom + 34,
+              child: Center(
+                child: GestureDetector(
+                  onTap: _capture,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    width: 78,
+                    height: 78,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      border: Border.all(color: c.accent, width: 4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 18,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.camera_alt_rounded,
+                      color: c.accent,
+                      size: 34,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // индикатор обработки поверх фото
+          if (_processing)
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: MediaQuery.of(context).padding.bottom + 40,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: c.surface.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: c.line),
+                ),
+                child: AnalyzingWave(
+                  label: context.l10n.t('camera_translating'),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -664,7 +790,156 @@ class _CameraScreenState extends State<CameraScreen> {
   );
 }
 
-// ───────────────────────── галерея-карточка ─────────────────────────
+class _ZoomSlider extends StatelessWidget {
+  final AppColors c;
+  final double min;
+  final double max;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  const _ZoomSlider({
+    required this.c,
+    required this.min,
+    required this.max,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final range = max - min;
+    final normalized = range <= 0
+        ? 0.0
+        : ((value - min) / range).clamp(0.0, 1.0);
+
+    return SizedBox(
+      width: 56,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // кнопка "+"
+          _zoomBtn(Icons.add_rounded, () {
+            onChanged((value + 0.5).clamp(min, max));
+          }),
+          const SizedBox(height: 8),
+          Expanded(
+            child: RotatedBox(
+              quarterTurns: 3,
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  trackHeight: 3,
+                  activeTrackColor: c.accent,
+                  inactiveTrackColor: Colors.white.withValues(alpha: 0.25),
+                  thumbColor: Colors.white,
+                  thumbShape: const RoundSliderThumbShape(
+                    enabledThumbRadius: 9,
+                  ),
+                  overlayColor: c.accent.withValues(alpha: 0.2),
+                ),
+                child: Slider(
+                  min: 0.0,
+                  max: 1.0,
+                  value: normalized,
+                  onChanged: (v) {
+                    onChanged(min + v * range);
+                  },
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          _zoomBtn(Icons.remove_rounded, () {
+            onChanged((value - 0.5).clamp(min, max));
+          }),
+          const SizedBox(height: 12),
+          // быстрая кнопка сброса к 1x
+          if (value != min)
+            GestureDetector(
+              onTap: () => onChanged(min),
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withValues(alpha: 0.55),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    '${min.toStringAsFixed(0)}x',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _zoomBtn(IconData icon, VoidCallback onTap) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.black.withValues(alpha: 0.45),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+      ),
+      child: Icon(icon, color: Colors.white, size: 22),
+    ),
+  );
+}
+
+class _CoverPreview extends StatelessWidget {
+  final CameraController controller;
+  const _CoverPreview({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final ps = controller.value.previewSize;
+    final upright = (ps != null && ps.longestSide > 0)
+        ? ps.shortestSide / ps.longestSide
+        : 9 / 16;
+
+    return LayoutBuilder(
+      builder: (context, cons) {
+        final w = cons.maxWidth;
+        final h = cons.maxHeight;
+        final screenAspect = w / h;
+
+        double pw, ph;
+        if (upright > screenAspect) {
+          ph = h;
+          pw = h * upright;
+        } else {
+          pw = w;
+          ph = w / upright;
+        }
+
+        return ClipRect(
+          child: OverflowBox(
+            alignment: Alignment.center,
+            maxWidth: pw,
+            maxHeight: ph,
+            child: SizedBox(
+              width: pw,
+              height: ph,
+              child: CameraPreview(controller),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
 
 class _GalleryCard extends StatelessWidget {
   final CameraPhoto photo;
@@ -727,8 +1002,6 @@ class _GalleryCard extends StatelessWidget {
   }
 }
 
-// ───────────────────────── стопка-веер (как карты в дураке) ─────────
-
 class _BottomStack extends StatelessWidget {
   final AppColors c;
   final List<CameraPhoto> all;
@@ -751,7 +1024,6 @@ class _BottomStack extends StatelessWidget {
     const stackH = 132.0;
 
     final vis = all.length > 3 ? all.sublist(all.length - 3) : all.toList();
-    // vis: старый -> новый; новый рисуется последним = сверху
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
@@ -761,7 +1033,6 @@ class _BottomStack extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // стопка-веер = кнопка галереи
           GestureDetector(
             onTap: onTap,
             child: SizedBox(
@@ -829,10 +1100,10 @@ class _BottomStack extends StatelessWidget {
     double stackW,
     double stackH,
   ) {
-    final t = n == 1 ? 0.5 : i / (n - 1); // 0..1
-    final angle = -14.0 + 28.0 * t; // градусы
+    final t = n == 1 ? 0.5 : i / (n - 1);
+    final angle = -14.0 + 28.0 * t;
     final dx = -28.0 + 56.0 * t;
-    final dy = 12.0 * ((t - 0.5).abs() * 2); // края ниже — дуга веера
+    final dy = 12.0 * ((t - 0.5).abs() * 2);
     final left = stackW / 2 - cardW / 2 + dx;
     final top = stackH / 2 - cardH / 2 + dy;
 
@@ -848,7 +1119,6 @@ class _BottomStack extends StatelessWidget {
   }
 }
 
-/// Одна карта веера: поворот анимируется, появление — пружина.
 class _FanCard extends StatefulWidget {
   final CameraPhoto photo;
   final double angleDeg;

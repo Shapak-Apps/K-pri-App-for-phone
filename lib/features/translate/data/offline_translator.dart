@@ -14,10 +14,61 @@ class OfflineTranslator {
   /// Языки, которые ML Kit умеет переводить оффлайн (BCP-коды).
   /// Туркменского (tk) здесь НЕТ — он всегда идёт в онлайн.
   static const Set<String> supported = {
-    'af','sq','ar','be','bn','bg','ca','zh','hr','cs','da','nl','en','et',
-    'fi','fr','gl','de','el','gu','he','hi','hu','is','id','ga','it','ja',
-    'kn','ko','lv','lt','mk','ms','mt','mr','no','fa','pl','pt','ro','ru',
-    'sk','sl','es','sw','sv','ta','te','th','tr','uk','ur','vi','cy',
+    'af',
+    'sq',
+    'ar',
+    'be',
+    'bn',
+    'bg',
+    'ca',
+    'zh',
+    'hr',
+    'cs',
+    'da',
+    'nl',
+    'en',
+    'et',
+    'fi',
+    'fr',
+    'gl',
+    'de',
+    'el',
+    'gu',
+    'he',
+    'hi',
+    'hu',
+    'is',
+    'id',
+    'ga',
+    'it',
+    'ja',
+    'kn',
+    'ko',
+    'lv',
+    'lt',
+    'mk',
+    'ms',
+    'mt',
+    'mr',
+    'no',
+    'fa',
+    'pl',
+    'pt',
+    'ro',
+    'ru',
+    'sk',
+    'sl',
+    'es',
+    'sw',
+    'sv',
+    'ta',
+    'te',
+    'th',
+    'tr',
+    'uk',
+    'ur',
+    'vi',
+    'cy',
   };
 
   static final _tkChars = RegExp(r'[äçžňöşüýÄÇŽŇÖŞÜÝ]');
@@ -39,25 +90,32 @@ class OfflineTranslator {
     }
   }
 
-  // ───────────────────────── МОДЕЛИ: загрузка ─────────────────────────
-
-  /// Гарантирует наличие моделей. Требует интернет ОДИН раз для скачивания.
-  /// НЕ зависит от возвращаемого типа downloadModel (void / bool).
   Future<bool> _ensureModels(String from, String to) async {
     try {
       for (final code in [from, to]) {
-        if (await _models.isModelDownloaded(code)) continue;
-        await _models.downloadModel(code, isWifiRequired: false);
-        if (!await _models.isModelDownloaded(code)) return false;
+        if (await _models.isModelDownloaded(code)) {
+          debugPrint('[offline] model already present: $code');
+          continue;
+        }
+        debugPrint('[offline] downloading model: $code');
+        final task = _models.downloadModel(code, isWifiRequired: false);
+        await task;
+
+        final ok = await _models.isModelDownloaded(code);
+        if (!ok) {
+          debugPrint('[offline] model NOT downloaded after task: $code');
+          return false;
+        }
+        debugPrint('[offline] model downloaded: $code');
       }
       return true;
-    } catch (e) {
+    } catch (e, st) {
       debugPrint('[offline] ensureModels error: $e');
+      debugPrint('[offline] stack: $st');
       return false;
     }
   }
 
-  // ───────────────────────── МОДЕЛИ: список / удаление (для настроек) ──
   Future<List<String>> downloadedModels() async {
     try {
       final results = await Future.wait(
@@ -79,7 +137,9 @@ class OfflineTranslator {
       await _models.deleteModel(code);
       final stillThere = await _models.isModelDownloaded(code);
       if (stillThere) {
-        debugPrint('[offline] deleteModel($code) -> still present (system pack?)');
+        debugPrint(
+          '[offline] deleteModel($code) -> still present (system pack?)',
+        );
         return false;
       }
       debugPrint('[offline] model deleted: $code');
@@ -100,7 +160,6 @@ class OfflineTranslator {
     return n;
   }
 
-  // ───────────────────────── ПЕРЕВОД ─────────────────────────
   Future<TranslationResult?> translate(
     String text, {
     required String from,
@@ -125,7 +184,7 @@ class OfflineTranslator {
       targetLanguage: _lang(to),
     );
     try {
-      final out = (await translator.translateText(text)).trim();  
+      final out = (await translator.translateText(text)).trim();
       if (out.isEmpty) return null;
       return TranslationResult(text: out, detected: detected);
     } catch (e) {
@@ -137,9 +196,9 @@ class OfflineTranslator {
   }
 
   TranslateLanguage _lang(String code) => TranslateLanguage.values.firstWhere(
-        (l) => l.bcpCode == code,
-        orElse: () => TranslateLanguage.english,
-      );
+    (l) => l.bcpCode == code,
+    orElse: () => TranslateLanguage.english,
+  );
 
   Future<void> dispose() => _langId.close();
 }
