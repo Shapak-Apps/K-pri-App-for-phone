@@ -5,7 +5,6 @@ allprojects {
     }
 }
 
-// 1) Runtime: единая версия concurrent-futures во всех модулях
 subprojects {
     configurations.configureEach {
         resolutionStrategy {
@@ -14,10 +13,6 @@ subprojects {
     }
 }
 
-// 2) Compile: javac (JDK 25) при чтении аннотаций camera-core требует
-//    класс androidx.concurrent.futures.CallbackToFutureAdapter на classpath.
-//    compileOnly = только на время компиляции, в APK не попадает.
-//    Это чинит :camera_android_camerax:compileReleaseJavaWithJavac.
 subprojects {
     plugins.withId("com.android.library") {
         dependencies.add("compileOnly", "androidx.concurrent:concurrent-futures:1.2.0")
