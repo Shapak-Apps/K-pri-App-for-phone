@@ -112,6 +112,7 @@ class SettingsScreen extends StatelessWidget {
                         17,
                         (v) => s.setTranslateDelayMs(v.round()),
                       ),
+                    const ClipboardSwitchRow(),
                   ]),
                   const SizedBox(height: 14),
                   // ── НОВЫЙ БЛОК: оффлайн-модели ──
@@ -576,9 +577,6 @@ class SettingsScreen extends StatelessWidget {
 
 // ───────────────────────── building blocks ─────────────────────────
 
-/// Блок управления оффлайн-моделями ML Kit.
-/// Сам грузит список скачанных моделей, сам удаляет. UI перевода не трогает.
-/// key: ValueKey(lang) снаружи гарантирует пересоздание при смене языка интерфейса.
 class _OfflineModelsSection extends StatefulWidget {
   const _OfflineModelsSection({super.key});
   @override
@@ -661,7 +659,6 @@ class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
     final loaded = _codes != null;
 
     final children = <Widget>[
-      // ── спокойное объяснение, чтобы пользователь не пугался ──
       Text(
         l10n.t('offline_models_desc'),
         style: AppTheme.caption(color: c.sub, size: 12),
@@ -1265,7 +1262,6 @@ class _AccentPicker extends StatelessWidget {
   );
 }
 
-/// Карточка-счётчик: сколько записей в истории и в избранном.
 class _DataCounter extends StatelessWidget {
   final AppColors c;
   final int history;
@@ -1314,4 +1310,90 @@ class _DataCounter extends StatelessWidget {
       Text(label, style: AppTheme.label(color: c.faint, size: 9)),
     ],
   );
+}
+
+/// Переключатель «Перевод из буфера» — управляет ClipboardService.
+class ClipboardSwitchRow extends StatefulWidget {
+  const ClipboardSwitchRow({super.key});
+  @override
+  State<ClipboardSwitchRow> createState() => _ClipboardSwitchRowState();
+}
+
+class _ClipboardSwitchRowState extends State<ClipboardSwitchRow> {
+  static const _ch = MethodChannel('kopri/apk');
+  bool _on = false;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ch.invokeMethod<bool>('isClipboardRunning').then((v) {
+      if (mounted) setState(() => _on = v == true);
+    });
+  }
+
+  String get _title => switch (context.settings.lang) {
+    AppLang.ru => 'Перевод из буфера',
+    AppLang.en => 'Clipboard translate',
+    AppLang.tk => 'Buferden terjime',
+  };
+
+  String get _desc => switch (context.settings.lang) {
+    AppLang.ru =>
+      'Копируй текст в любом приложении — Köpri покажет перевод поверх экрана',
+    AppLang.en => 'Copy text in any app — Köpri shows the translation on top',
+    AppLang.tk =>
+      'Islendik programmada tekst göçür — Köpri terjimäni ekranyň üstünde görkezer',
+  };
+
+  Future<void> _toggle(bool v) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      if (v) {
+        final can = await _ch.invokeMethod<bool>('canDrawOverlays') == true;
+        if (!can) {
+          await _ch.invokeMethod('openOverlaySettings');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(switch (context.settings.lang) {
+                  AppLang.ru =>
+                    'Разреши «Показ поверх окон», затем включи снова',
+                  AppLang.en =>
+                    'Allow "Display over other apps", then turn on again',
+                  AppLang.tk =>
+                    '"Beýleki programmalaryň üstünde" rugsadyny ber, soň ýene aç',
+                }),
+                backgroundColor: context.c.warn,
+              ),
+            );
+          }
+        } else {
+          final ok = await _ch.invokeMethod<bool>('startClipboard', {
+            'source': context.settings.defaultFrom,
+            'target': context.settings.defaultTo,
+          });
+          if (ok == true && mounted) setState(() => _on = true);
+        }
+      } else {
+        await _ch.invokeMethod('stopClipboard');
+        if (mounted) setState(() => _on = false);
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _SwitchRow(
+      context.c,
+      Icons.content_paste_rounded,
+      _title,
+      _desc,
+      _on,
+      _toggle,
+    );
+  }
 }

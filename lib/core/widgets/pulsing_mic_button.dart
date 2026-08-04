@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kopri/core/theme/app_colors.dart';
 
-/// Круглая кнопка микрофона. Выкл = серый круг (mic), запись = красный круг
-/// (stop) + круглые пульсирующие кольца. Анимация изолирована
-/// (RepaintBoundary + AnimationController) → 60/120fps, дерево не трогается.
 class PulsingMicButton extends StatefulWidget {
   final bool isListening;
   final VoidCallback onTap;

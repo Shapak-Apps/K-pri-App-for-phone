@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:home_widget/home_widget.dart';
 import 'package:flutter/material.dart';
+import '../../../../main.dart';
 import '../../../core/controllers/app_settings_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../conversation/data/tts_service.dart';
@@ -12,10 +14,16 @@ import 'widgets/language_selector.dart';
 import 'widgets/result_card.dart';
 import 'widgets/translate_bridge.dart';
 import '../../../core/widgets/analyzing_wave.dart';
+import 'package:flutter/foundation.dart';
 
 class TranslateScreen extends StatefulWidget {
   final HistoryRepository repo;
-  const TranslateScreen({super.key, required this.repo});
+  final ValueListenable<IncomingText?> incomingText;
+  const TranslateScreen({
+    super.key,
+    required this.repo,
+    required this.incomingText,
+  });
   @override
   State<TranslateScreen> createState() => _TranslateScreenState();
 }
@@ -36,11 +44,13 @@ class _TranslateScreenState extends State<TranslateScreen> {
   Timer? _debounce, _idleT;
   String _base = '';
 
-  // скрытый аккумулятор речи (во время записи в поле НЕ пишется)
   String _recogBuffer = '';
   String _recogPartial = '';
   bool _awaitingRecog = false;
   Completer<String?>? _recogCompleter;
+
+  // уникальный id последнего обработанного внешнего текста
+  int _lastIncomingId = -1;
 
   @override
   void initState() {
@@ -48,8 +58,11 @@ class _TranslateScreenState extends State<TranslateScreen> {
     _ctrl.addListener(_onInput);
     _speech.init();
     _tts.init();
+    widget.incomingText.addListener(_onIncomingText);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) FocusManager.instance.primaryFocus?.unfocus();
+      // обработать intent, если он пришёл до монтирования
+      _onIncomingText();
     });
   }
 
@@ -65,12 +78,31 @@ class _TranslateScreenState extends State<TranslateScreen> {
 
   @override
   void dispose() {
+    widget.incomingText.removeListener(_onIncomingText);
     _debounce?.cancel();
     _idleT?.cancel();
     _speech.cancel();
     _ctrl.dispose();
     _focus.dispose();
     super.dispose();
+  }
+
+  void _onIncomingText() {
+    final ev = widget.incomingText.value;
+    if (ev == null) return;
+    if (ev.id == _lastIncomingId) return;
+    _lastIncomingId = ev.id;
+    final text = ev.text.trim();
+    if (text.isEmpty) return;
+
+    // подставляем, сбрасываем предыдущий результат и сразу переводим
+    _suppress = true;
+    _ctrl.text = text;
+    _ctrl.selection = TextSelection.collapsed(offset: text.length);
+    _suppress = false;
+    setState(() => _state = const IdleState());
+    // небольшой отложенный запуск — чтобы setState успел отрисоваться
+    Future.microtask(_translate);
   }
 
   String _voiceText() {
@@ -124,7 +156,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
     });
   }
 
-  /// Ручной перевод введённого текста. Ошибка → чистая строка без «dart».
   Future<void> _translate() async {
     if (_voiceAnalyzing) return;
     final text = _ctrl.text.trim();
@@ -148,6 +179,17 @@ class _TranslateScreenState extends State<TranslateScreen> {
       if (context.settings.autoSaveHistory) {
         widget.repo.add(source: text, result: res.text, from: saved, to: _to);
       }
+      try {
+        await HomeWidget.saveWidgetData<String>('last_source', text);
+        await HomeWidget.saveWidgetData<String>('last_result', res.text);
+        await HomeWidget.saveWidgetData<String>('last_pair', '$saved → $_to');
+        await HomeWidget.updateWidget(
+          name: 'KopriWidgetProvider',
+          androidName: 'KopriWidgetProvider',
+        );
+      } catch (e) {
+        debugPrint('[widget] update error: $e');
+      }
       if (context.settings.autoSpeak) {
         _tts.speak(res.text, _to);
       }
@@ -161,9 +203,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
     }
   }
 
-  /// Голосовой финал: полоса крутится, пока ждём распознавание И перевод.
-  /// Текст + результат появляются разом в конце. При ошибке перевода —
-  /// НИКАКОГО красного: просто кладём сказанное в поле и гасим полосу.
   Future<void> _finalizeVoice() async {
     var text = _voiceText();
     if (text.isEmpty) {
@@ -176,7 +215,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
         : (text.isEmpty ? _base : '$_base $text');
 
     if (text.isEmpty) {
-      setState(() => _voiceAnalyzing = false); // нечего переводить — тихо
+      setState(() => _voiceAnalyzing = false);
       return;
     }
 
@@ -206,7 +245,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
     } catch (e) {
       debugPrint('[voice-translate] error: $e');
       if (!mounted) return;
-      // без красного: сохраняем сказанное в поле, результат не трогаем
       _suppress = true;
       _ctrl.text = combined;
       _ctrl.selection = TextSelection.collapsed(offset: combined.length);
@@ -215,7 +253,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
     }
   }
 
-  // ── микрофон (push-to-talk) ──────────────────────────────────────
   Future<void> _toggleMic() async {
     if (_listening) {
       setState(() {

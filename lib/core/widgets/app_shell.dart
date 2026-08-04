@@ -6,16 +6,19 @@ import '../../features/history/presentation/history_screen.dart';
 import '../../features/phrasebook/presentation/phrasebook_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/translate/presentation/translate_screen.dart';
+import '../../main.dart';
 import '../controllers/app_settings_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import 'ambient_background.dart';
 import 'app_route.dart';
 import 'neon_bottom_nav.dart';
+import 'package:flutter/foundation.dart';
 
 class AppShell extends StatefulWidget {
   final HistoryRepository repo;
-  const AppShell({super.key, required this.repo});
+  final ValueListenable<IncomingText?> incomingText;
+  const AppShell({super.key, required this.repo, required this.incomingText});
   @override
   State<AppShell> createState() => _AppShellState();
 }
@@ -29,7 +32,7 @@ class _AppShellState extends State<AppShell> {
     final l10n = context.l10n;
 
     final pages = <Widget>[
-      TranslateScreen(repo: widget.repo),
+      TranslateScreen(repo: widget.repo, incomingText: widget.incomingText),
       const CameraScreen(),
       const PhrasebookScreen(),
       FlashcardsScreen(repo: widget.repo),
@@ -52,30 +55,38 @@ class _AppShellState extends State<AppShell> {
           const AmbientBackground(),
           SafeArea(
             bottom: false,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _TopBar(
-                  c: c,
-                  onSettings: () => Navigator.of(context).push(
-                    appRoute(
-                      SettingsScreen(repo: widget.repo),
-                      animate: context.settings.animationsOn,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 86),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _TopBar(
+                    c: c,
+                    onSettings: () => Navigator.of(context).push(
+                      appRoute(
+                        SettingsScreen(repo: widget.repo),
+                        animate: context.settings.animationsOn,
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: IndexedStack(index: _i, children: pages),
-                ),
-              ],
+                  Expanded(
+                    child: IndexedStack(index: _i, children: pages),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: NeonBottomNav(
+              index: _i,
+              onTap: (v) => setState(() => _i = v),
+              items: items,
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: NeonBottomNav(
-        index: _i,
-        onTap: (v) => setState(() => _i = v),
-        items: items,
       ),
     );
   }

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="14dp"
+    android:background="@drawable/widget_bg"
+    android:id="@+id/widget_root">
+
+    <!-- заголовок -->
+    <LinearLayout
+        android:id="@+id/widget_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Köpri"
+            android:textColor="#FF6B6FE8"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_pair"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:textColor="#FF888888"
+            android:textSize="11sp"
+            android:gravity="end"
+            android:paddingStart="8dp" />
+    </LinearLayout>
+
+    <!-- оригинал -->
+    <TextView
+        android:id="@+id/widget_source"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/widget_header"
+        android:layout_marginTop="8dp"
+        android:text="Переведи что-нибудь..."
+        android:textColor="#FF222222"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:maxLines="2"
+        android:ellipsize="end" />
+
+    <!-- перевод -->
+    <TextView
+        android:id="@+id/widget_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/widget_source"
+        android:layout_marginTop="4dp"
+        android:layout_alignParentBottom="true"
+        android:text=""
+        android:textColor="#FF666666"
+        android:textSize="13sp"
+        android:maxLines="3"
+        android:ellipsize="end" />
+</RelativeLayout>

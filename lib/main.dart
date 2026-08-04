@@ -9,10 +9,41 @@ import 'core/widgets/splash_screen.dart';
 import 'features/conversation/data/tts_service.dart';
 import 'features/history/data/history_repository.dart';
 
+class IncomingText {
+  final String text;
+  final int id;
+  const IncomingText(this.text, this.id);
+}
+
+final incomingText = ValueNotifier<IncomingText?>(null);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  const intentChannel = MethodChannel('kopri/intent');
+  intentChannel.setMethodCallHandler((call) async {
+    if (call.method == 'onText' && call.arguments is Map) {
+      final m = Map<String, dynamic>.from(call.arguments as Map);
+      final text = (m['text'] as String?)?.trim() ?? '';
+      final id = (m['id'] as int?) ?? DateTime.now().millisecondsSinceEpoch;
+      if (text.isNotEmpty) incomingText.value = IncomingText(text, id);
+    }
+  });
+
+  intentChannel
+      .invokeMethod<String>('getPendingText')
+      .then((t) {
+        final text = t?.trim() ?? '';
+        if (text.isNotEmpty) {
+          incomingText.value = IncomingText(
+            text,
+            DateTime.now().millisecondsSinceEpoch,
+          );
+        }
+      })
+      .catchError((_) {});
 
   final repo = HistoryRepository();
   final settings = AppSettingsController();
@@ -64,7 +95,7 @@ class KopriApp extends StatelessWidget {
           ),
           home: SplashScreen(
             initTask: () async {},
-            next: (_) => AppShell(repo: repo),
+            next: (_) => AppShell(repo: repo, incomingText: incomingText),
           ),
         );
       },

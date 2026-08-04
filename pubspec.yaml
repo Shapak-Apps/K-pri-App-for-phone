@@ -27,6 +27,7 @@ dependencies:
   path_provider: ^2.1.6
   permission_handler: ^13.0.0
   flutter_tesseract_ocr: ^0.4.31
+  home_widget: ^0.9.3
 
 dev_dependencies:
   flutter_test:
