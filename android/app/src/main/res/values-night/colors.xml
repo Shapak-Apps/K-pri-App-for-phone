@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="widget_accent">#FF8A8DF0</color>
+    <color name="widget_badge_text">#FFB4B6F5</color>
+    <color name="widget_badge_bg">#298A8DF0</color>
     <color name="widget_text_primary">#FFFFFFFF</color>
     <color name="widget_text_secondary">#FFB0B0BA</color>
-    <color name="widget_divider">#1FFFFFFF</color>
-    <color name="widget_badge_bg">#298A8DF0</color>
-    <color name="widget_badge_text">#FFB4B6F5</color>
+    <color name="widget_bg_start">#FF252530</color>
+    <color name="widget_bg_center">#FF202028</color>
+    <color name="widget_bg_end">#FF1A1A22</color>
+    <color name="widget_border">#26FFFFFF</color>
+    <color name="widget_shadow">#66000000</color>
 </resources>
