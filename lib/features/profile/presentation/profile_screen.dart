@@ -22,6 +22,8 @@ import 'widgets/streak_card.dart';
 import 'widgets/weekly_chart.dart';
 import 'widgets/xp_level_bar.dart';
 
+const _apkChannel = MethodChannel('kopri/apk');
+
 class ProfileScreen extends StatefulWidget {
   final HistoryRepository repo;
   const ProfileScreen({super.key, required this.repo});
@@ -232,17 +234,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _share() {
+  Future<void> _share() async {
     final l10n = context.l10n;
     final p = ProfileRepository.instance;
     final s = _stats();
+
+    bool wasRunning = false;
+    try {
+      final running = await _apkChannel.invokeMethod<bool>('isClipboardRunning');
+      wasRunning = running == true;
+      if (wasRunning) {
+        await _apkChannel.invokeMethod('stopClipboard');
+      }
+    } catch (_) {}
+
     final text = 'Köpri — ${p.name.isEmpty ? l10n.t('profile_user_default') : p.name}\n'
         '${l10n.t('profile_translations')}: ${s.tr}\n'
         '${l10n.t('profile_favorites')}: ${s.fav}\n'
         '${l10n.t('profile_cards')}: ${s.cards}\n'
         '${l10n.t('profile_photos')}: ${s.cam}';
-    Clipboard.setData(ClipboardData(text: text));
+
+    await Clipboard.setData(ClipboardData(text: text));
     _snack(l10n.t('copied'));
+
+    if (wasRunning) {
+      await Future.delayed(const Duration(milliseconds: 800));
+      try {
+        await _apkChannel.invokeMethod('startClipboard', {
+          'source': context.settings.defaultFrom,
+          'target': context.settings.defaultTo,
+        });
+      } catch (_) {}
+    }
   }
 
   void _feedback() async {

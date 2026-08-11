@@ -40,7 +40,6 @@ class _ProfileHeaderState extends State<ProfileHeader> {
     if (mounted) setState(() => _editing = false);
   }
 
-  /// Выбор аватара: галерея / нативная камера / эмодзи
   Future<void> _pickAvatar() async {
     final c = context.c, l10n = context.l10n, p = ProfileRepository.instance;
     await showModalBottomSheet<void>(
@@ -116,7 +115,6 @@ class _ProfileHeaderState extends State<ProfileHeader> {
     );
   }
 
-  /// Кнопка в стиле темы
   Widget _themedBtn({
     required String label,
     IconData? icon,
@@ -191,7 +189,6 @@ class _ProfileHeaderState extends State<ProfileHeader> {
     final p = ProfileRepository.instance;
     final hasName = p.name.isNotEmpty;
 
-    // ── Правая часть: имя/поле + кнопка + био ──
     Widget rightSection;
 
     if (_editing) {
@@ -327,7 +324,9 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                   ? ClipOval(
                 child: Image.file(
                   p.avatarFile,
+                  key: ValueKey('avatar_${p.avatarVersion}'),
                   fit: BoxFit.cover,
+                  gaplessPlayback: true,
                   errorBuilder: (_, __, ___) => Icon(
                       Icons.person_rounded, color: c.accent, size: 48),
                 ),

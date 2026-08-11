@@ -50,6 +50,9 @@ class ClipboardService :
     private var target = "ru"
     private var debounce: Runnable? = null
 
+    // ── Флаг активности: если false, сервис не реагирует на буфер ──
+    private var isActive = true
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -62,8 +65,9 @@ class ClipboardService :
         val prefs = getSharedPreferences("kopri_prefs", MODE_PRIVATE)
         source = prefs.getString("clip_from", "auto") ?: "auto"
         target = prefs.getString("clip_to", "ru") ?: "ru"
+        isActive = prefs.getBoolean("clip_active", true)
 
-        Log.w(TAG, "service created, pair: $source → $target")
+        Log.w(TAG, "service created, pair: $source → $target, active: $isActive")
     }
 
     override fun onStartCommand(
@@ -73,6 +77,16 @@ class ClipboardService :
     ): Int {
         intent?.getStringExtra("source")?.let { source = it }
         intent?.getStringExtra("target")?.let { target = it }
+
+        val pause = intent?.getBooleanExtra("pause", false) ?: false
+        isActive = !pause
+
+        // Сохраняем состояние
+        getSharedPreferences("kopri_prefs", MODE_PRIVATE)
+            .edit()
+            .putBoolean("clip_active", isActive)
+            .apply()
+
         startForeground(NOTIF_ID, notification())
         handler.post { showCollapsed() }
         return START_NOT_STICKY
@@ -92,6 +106,11 @@ class ClipboardService :
 
     // ── буфер изменился ──────────────────────────────────────────
     private fun onCopy() {
+        if (!isActive) {
+            Log.d(TAG, "clipboard changed but service is paused, ignoring")
+            return
+        }
+
         if (skipNext) {
             skipNext = false
             return
@@ -134,7 +153,6 @@ class ClipboardService :
     }
 
     private fun showLastTranslation(text: String) {
-        // если есть сохранённый перевод — показываем
         val prefs = getSharedPreferences("kopri_clip_cache", MODE_PRIVATE)
         val cachedOriginal = prefs.getString("last_original", null)
         val cachedTranslated = prefs.getString("last_translated", null)

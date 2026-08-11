@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -40,29 +41,60 @@ class ProfileRepository extends ChangeNotifier {
     await ensureInit(); await _box!.put('favQuote', v); notifyListeners();
   }
 
-  // ── Аватар: фото или эмодзи ───────────────────────────
+  // ── Аватар ────────────────────────────────────────────
   File get avatarFile => File('$_dir/profile_avatar.jpg');
   bool get hasAvatar => avatarFile.existsSync() && avatarFile.lengthSync() > 0;
 
+  /// Версия аватара — меняется при каждом сохранении/удалении.
+  /// Используется как key в Image.file, чтобы Flutter не показывал старый кэш.
+  int get avatarVersion =>
+      (_box?.get('avatarVersion', defaultValue: 0) as int?) ?? 0;
+
   String? get avatarEmoji => _box?.get('avatarEmoji') as String?;
+
   Future<void> setAvatarEmoji(String? e) async {
     await ensureInit();
     await _box!.put('avatarEmoji', e);
     if (e != null && hasAvatar) { try { await avatarFile.delete(); } catch (_) {} }
+    await _box!.put('avatarVersion', avatarVersion + 1);
+    _evictAvatarCache();
     notifyListeners();
+  }
+
+  /// Ресайз в фоновом isolate — UI-поток не блокируется.
+  static String? _resizeInBackground(Map<String, String> args) {
+    return ProfileFFI().resizeAvatar(args['src']!, args['dst']!);
+  }
+
+  /// Выбиваем старый битмап из кэша Flutter (иначе будет старое фото).
+  void _evictAvatarCache() {
+    try {
+      PaintingBinding.instance.imageCache.evict(FileImage(avatarFile));
+    } catch (_) {}
   }
 
   Future<void> saveAvatarFromPath(String path) async {
     await ensureInit();
     final tmp = '$_dir/profile_avatar_tmp.jpg';
-    final resized = _ffi.resizeAvatar(path, tmp);
+
+    // тяжёлая работа (decode + resize + jpg) — НЕ в UI-потоке
+    String? resized;
+    try {
+      resized = await compute(_resizeInBackground, {'src': path, 'dst': tmp});
+    } catch (_) {
+      resized = null;
+    }
+
     if (resized != null) {
       await File(resized).copy(avatarFile.path);
       try { await File(resized).delete(); } catch (_) {}
     } else {
       await File(path).copy(avatarFile.path);
     }
+
     await _box!.put('avatarEmoji', null);
+    await _box!.put('avatarVersion', avatarVersion + 1);
+    _evictAvatarCache();
     notifyListeners();
   }
 
@@ -70,30 +102,29 @@ class ProfileRepository extends ChangeNotifier {
     await ensureInit();
     try { if (avatarFile.existsSync()) await avatarFile.delete(); } catch (_) {}
     await _box!.put('avatarEmoji', null);
+    await _box!.put('avatarVersion', avatarVersion + 1);
+    _evictAvatarCache();
     notifyListeners();
   }
 
-  // ── XP ───────────────────────────────────────────────
+  // ── XP / стрик / цель ─────────────────────────────────
   int get xp => (_box?.get('xp', defaultValue: 0) as int?) ?? 0;
 
-  // ── Стрик ─────────────────────────────────────────────
   int get streak => (_box?.get('streak', defaultValue: 0) as int?) ?? 0;
   int get bestStreak => (_box?.get('bestStreak', defaultValue: 0) as int?) ?? 0;
 
-  // ── Дневная цель ──────────────────────────────────────
   int get dailyGoal => (_box?.get('dailyGoal', defaultValue: 10) as int?) ?? 10;
-  int get todayProgress => (_box?.get('todayProgress', defaultValue: 0) as int?) ?? 0;
+  int get todayProgress =>
+      (_box?.get('todayProgress', defaultValue: 0) as int?) ?? 0;
 
   Future<void> setDailyGoal(int g) async {
     await ensureInit(); await _box!.put('dailyGoal', g); notifyListeners();
   }
 
-  /// Вызывать при каждом переводе: +1 к цели, +XP, стрик, лог активности
   Future<void> onTranslationDone() async {
     await ensureInit();
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
-    // цель
     if (_box!.get('lastGoalDate') != today) {
       await _box!.put('todayProgress', 1);
       await _box!.put('lastGoalDate', today);
@@ -101,7 +132,6 @@ class ProfileRepository extends ChangeNotifier {
       await _box!.put('todayProgress', todayProgress + 1);
     }
 
-    // стрик
     final last = _box!.get('lastActiveDate') as String?;
     if (last != today) {
       if (last == null) {
@@ -119,13 +149,12 @@ class ProfileRepository extends ChangeNotifier {
       await _box!.put('lastActiveDate', today);
     }
 
-    // xp + лог
     await _box!.put('xp', xp + 10);
     await logActivity('translation', 1);
     notifyListeners();
   }
 
-  // ── История активности (недельный график) ─────────────
+  // ── История активности ────────────────────────────────
   List<dynamic> get activityHistory =>
       (_box?.get('activityHistory', defaultValue: []) as List?) ?? [];
 
@@ -145,7 +174,6 @@ class ProfileRepository extends ChangeNotifier {
     await _box!.put('activityHistory', history);
   }
 
-  // ── ⚡ Пересчёт стрика через C++ (вызывать при старте экрана профиля) ──
   int _dateToInt(String iso) {
     final p = iso.split('-');
     if (p.length != 3) return 0;
@@ -184,7 +212,7 @@ class ProfileRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Даты бейджей ──────────────────────────────────────
+  // ── Бейджи ────────────────────────────────────────────
   Map<String, dynamic> get badgeDates =>
       Map<String, dynamic>.from(
           (_box?.get('badgeDates', defaultValue: {}) as Map?) ?? {});
@@ -204,6 +232,7 @@ class ProfileRepository extends ChangeNotifier {
     await ensureInit();
     await _box!.clear();
     try { if (avatarFile.existsSync()) await avatarFile.delete(); } catch (_) {}
+    _evictAvatarCache();
     notifyListeners();
   }
 }

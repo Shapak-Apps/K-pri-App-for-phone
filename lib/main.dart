@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'core/controllers/app_settings_controller.dart';
@@ -17,11 +18,13 @@ class IncomingText {
 
 final incomingText = ValueNotifier<IncomingText?>(null);
 
-// ← для ТЁПЛОГО старта (приложение уже открыто)
 final openScreen = ValueNotifier<int?>(null);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   await Hive.initFlutter();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 

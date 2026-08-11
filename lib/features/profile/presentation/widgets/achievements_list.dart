@@ -3,7 +3,6 @@ import '../../../../core/controllers/app_settings_controller.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/profile_repository.dart';
 
-/// Список достижений с редкостью, датами и скрытыми бейджами.
 class AchievementsList extends StatelessWidget {
   final ({int tr, int fav, int cards, int cam}) stats;
   const AchievementsList({super.key, required this.stats});
@@ -23,9 +22,13 @@ class AchievementsList extends StatelessWidget {
       {'id': 'card50', 'ok': s.cards >= 50, 'ic': Icons.psychology_rounded, 't': l10n.t('badge_learner'), 'r': 2},
       {'id': 'cam10', 'ok': s.cam >= 10, 'ic': Icons.photo_camera_rounded, 't': l10n.t('badge_photo'), 'r': 1},
     ];
+
     final rarColors = [c.sub, c.accent, const Color(0xFF9B7BFF), const Color(0xFFFB923C)];
     final rarNames = [
-      l10n.t('rar_common'), l10n.t('rar_rare'), l10n.t('rar_epic'), l10n.t('rar_legendary'),
+      l10n.t('rar_common'),
+      l10n.t('rar_rare'),
+      l10n.t('rar_epic'),
+      l10n.t('rar_legendary'),
     ];
 
     // Сохраняем даты ПОСЛЕ build (безопасно)
@@ -73,7 +76,7 @@ class AchievementsList extends StatelessWidget {
                               fontSize: 15)),
                       Text(
                           ok
-                              ? '${rarNames[b['r'] as int]}${date != null ? ' · $date' : ''}'
+                              ? '${rarNames[b['r'] as int]}${date != null ? ' · ${_formatDate(date)}' : ''}'
                               : l10n.t('profile_hidden'),
                           style: TextStyle(color: c.faint, fontSize: 11)),
                     ],
@@ -88,5 +91,15 @@ class AchievementsList extends StatelessWidget {
         );
       }).toList(),
     );
+  }
+
+  String _formatDate(String iso) {
+    try {
+      final parts = iso.split('-');
+      if (parts.length == 3) {
+        return '${parts[2]}.${parts[1]}.${parts[0]}'; // 15.01.2024
+      }
+    } catch (_) {}
+    return iso;
   }
 }

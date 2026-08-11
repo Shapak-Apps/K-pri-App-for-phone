@@ -1,22 +1,32 @@
-import 'dart:math' as math;
 import 'native/profile_ffi.dart';
 
 class ProfileXpService {
   static final _ffi = ProfileFFI();
-  static const int baseXpPerLevel = 100;
-  static const double xpGrowthFactor = 1.15;
 
   static int getLevel(int xp) => _ffi.getLevel(xp);
-
-  static int getXpForNextLevel(int currentXp) =>
-      _ffi.getXpForNextLevel(currentXp);
-
-  static int getXpForCurrentLevel(int currentXp) =>
-      _ffi.getXpForCurrentLevel(currentXp);
-
+  static int getXpForNextLevel(int xp) => _ffi.getXpForNextLevel(xp);
+  static int getXpForCurrentLevel(int xp) => _ffi.getXpForCurrentLevel(xp);
   static double getLevelProgress(int xp) => _ffi.getLevelProgress(xp);
 
-  // UI-методы остаются как были
-  static String getLevelTitle(int level) { /* как было */ return ''; }
-  static String getLevelEmoji(int level) { /* как было */ return ''; }
+  static String getLevelEmoji(int level) {
+    if (level >= 50) return '👑';
+    if (level >= 40) return '💎';
+    if (level >= 30) return '🏆';
+    if (level >= 20) return '🚀';
+    if (level >= 15) return '⭐';
+    if (level >= 10) return '🔥';
+    if (level >= 5) return '⚡';
+    return '🌱';
+  }
+
+  static String getLevelTitle(int level) {
+    if (level >= 50) return 'Легенда перевода';
+    if (level >= 40) return 'Мастер слов';
+    if (level >= 30) return 'Профессионал';
+    if (level >= 20) return 'Уверенный переводчик';
+    if (level >= 15) return 'Звезда';
+    if (level >= 10) return 'Практик';
+    if (level >= 5) return 'Ученик';
+    return 'Новичок';
+  }
 }
