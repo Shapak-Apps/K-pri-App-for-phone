@@ -28,6 +28,9 @@ dependencies:
   permission_handler: ^13.0.0
   flutter_tesseract_ocr: ^0.4.31
   home_widget: ^0.9.3
+  image_picker: ^1.2.3
+  google_mlkit_text_recognition: ^0.16.0
+  ffi: ^2.2.0
 
 dev_dependencies:
   flutter_test:
@@ -40,6 +43,8 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icon/app_icon.png"
   min_sdk_android: 21
+  adaptive_icon_background: "#050D1F"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
 
 flutter:
   uses-material-design: true

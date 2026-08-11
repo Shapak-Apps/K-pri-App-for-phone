@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,13 +21,81 @@ class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
   @override
   State<CameraScreen> createState() => _CameraScreenState();
+
+  static Future<void> openTranslateCamera(BuildContext context) async {
+    final status = await Permission.camera.request();
+    if (!status.isGranted) return;
+    if (!context.mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => const _CameraPage(),
+      ),
+    );
+  }
+
+  static Future<String?> pickProfilePhoto(BuildContext context) async {
+    await CameraRepository.instance.ensureInit();
+    final c = context.c;
+
+    final source = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: c.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.camera_alt_rounded, color: c.accent),
+                title: Text('Сделать снимок',
+                    style: TextStyle(color: c.text, fontWeight: FontWeight.w600)),
+                onTap: () => Navigator.pop(ctx, 'camera'),
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_library_rounded, color: c.accent),
+                title: Text('Выбрать из галереи',
+                    style: TextStyle(color: c.text, fontWeight: FontWeight.w600)),
+                onTap: () => Navigator.pop(ctx, 'gallery'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (source == null || !context.mounted) return null;
+
+    if (source == 'camera') {
+      final status = await Permission.camera.request();
+      if (!status.isGranted) return null;
+      if (!context.mounted) return null;
+      return await Navigator.of(context).push<String>(
+        MaterialPageRoute<String>(
+          fullscreenDialog: true,
+          builder: (_) => const _CameraPage(isProfileMode: true),
+        ),
+      );
+    } else if (source == 'gallery') {
+      if (!context.mounted) return null;
+      return await Navigator.of(context).push<String>(
+        MaterialPageRoute<String>(
+          builder: (_) => const _ProfileGalleryPicker(),
+        ),
+      );
+    }
+    return null;
+  }
 }
 
 class _CameraScreenState extends State<CameraScreen> {
   @override
   void initState() {
     super.initState();
-    CameraRepository.instance.ensureInit();
   }
 
   void _snack(String t, {bool warn = false}) {
@@ -97,19 +167,10 @@ class _CameraScreenState extends State<CameraScreen> {
                           child: Column(
                             children: [
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  20,
-                                  16,
-                                  10,
-                                  10,
-                                ),
+                                padding: const EdgeInsets.fromLTRB(20, 16, 10, 10),
                                 child: Row(
                                   children: [
-                                    Icon(
-                                      Icons.photo_library_rounded,
-                                      color: c.accent,
-                                      size: 22,
-                                    ),
+                                    Icon(Icons.photo_library_rounded, color: c.accent, size: 22),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Text(
@@ -123,11 +184,7 @@ class _CameraScreenState extends State<CameraScreen> {
                                     ),
                                     IconButton(
                                       onPressed: () => Navigator.pop(ctx),
-                                      icon: Icon(
-                                        Icons.close_rounded,
-                                        color: c.sub,
-                                        size: 22,
-                                      ),
+                                      icon: Icon(Icons.close_rounded, color: c.sub, size: 22),
                                     ),
                                   ],
                                 ),
@@ -136,28 +193,26 @@ class _CameraScreenState extends State<CameraScreen> {
                               Expanded(
                                 child: all.isEmpty
                                     ? Center(
-                                        child: Text(
-                                          l10n.t('camera_empty'),
-                                          style: AppTheme.caption(
-                                            color: c.faint,
-                                          ),
-                                        ),
-                                      )
+                                  child: Text(
+                                    l10n.t('camera_empty'),
+                                    style: AppTheme.caption(color: c.faint),
+                                  ),
+                                )
                                     : GridView.builder(
-                                        padding: const EdgeInsets.all(12),
-                                        gridDelegate:
-                                            const SliverGridDelegateWithFixedCrossAxisCount(
-                                              crossAxisCount: 2,
-                                              mainAxisSpacing: 12,
-                                              crossAxisSpacing: 12,
-                                              childAspectRatio: 0.78,
-                                            ),
-                                        itemCount: all.length,
-                                        itemBuilder: (_, i) => _GalleryCard(
-                                          photo: all[i],
-                                          onTap: () => _viewPhoto(all[i]),
-                                        ),
-                                      ),
+                                  padding: const EdgeInsets.all(12),
+                                  gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    mainAxisSpacing: 12,
+                                    crossAxisSpacing: 12,
+                                    childAspectRatio: 0.78,
+                                  ),
+                                  itemCount: all.length,
+                                  itemBuilder: (_, i) => _GalleryCard(
+                                    photo: all[i],
+                                    onTap: () => _viewPhoto(all[i]),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -177,85 +232,154 @@ class _CameraScreenState extends State<CameraScreen> {
   Future<void> _viewPhoto(CameraPhoto p) async {
     final c = context.c;
     final l10n = context.l10n;
+
     await showDialog(
       context: context,
       builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: c.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.file(
-                      File(p.path),
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => SizedBox(
-                        height: 160,
-                        child: Center(
-                          child: Icon(
-                            Icons.broken_image_rounded,
-                            color: c.faint,
-                            size: 40,
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 36),
+          child: ConstrainedBox(
+            // Явный потолок высоты — диалог знает свой размер, Flexible работает
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.86,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // ── фото с фиксированной высотой ─────────────────────
+                    SizedBox(
+                      height: 180,
+                      child: Image.file(
+                        File(p.path),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => SizedBox(
+                          height: 180,
+                          child: Center(
+                            child: Icon(
+                              Icons.broken_image_rounded,
+                              color: c.faint,
+                              size: 40,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  if (p.originalText.isNotEmpty) ...[
-                    const SizedBox(height: 14),
-                    Text(
-                      l10n.t('camera_original'),
-                      style: AppTheme.label(color: c.accent, size: 10),
+                    // ── прокручиваемый текст ──────────────────────────────
+                    // Flexible забирает оставшееся место, ScrollView не обрезает
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (p.originalText.isNotEmpty)
+                              _textSection(
+                                c: c,
+                                label: l10n.t('camera_original'),
+                                text: p.originalText,
+                              ),
+                            for (final e in p.translations.entries) ...[
+                              const SizedBox(height: 14),
+                              _textSection(
+                                c: c,
+                                label:
+                                '${l10n.t('camera_translation')} · ${e.key.toUpperCase()}',
+                                text: e.value,
+                              ),
+                            ],
+                            const SizedBox(height: 6),
+                          ],
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      p.originalText,
-                      style: TextStyle(color: c.text, height: 1.4),
+                    // ── кнопки действий ───────────────────────────────────
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border(top: BorderSide(color: c.line)),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.pop(ctx);
+                              await CameraRepository.instance.delete(p.id);
+                              _snack(l10n.t('camera_deleted'));
+                            },
+                            child: Text(
+                              l10n.t('clear'),
+                              style: TextStyle(
+                                color: c.warn,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: Text(
+                              l10n.t('cancel'),
+                              style: TextStyle(
+                                color: c.sub,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                  for (final e in p.translations.entries) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      '${l10n.t('camera_translation')} · ${e.key.toUpperCase()}',
-                      style: AppTheme.label(color: c.accent, size: 10),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(e.value, style: TextStyle(color: c.text, height: 1.4)),
-                  ],
-                ],
+                ),
               ),
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(ctx);
-                await CameraRepository.instance.delete(p.id);
-                _snack(l10n.t('camera_deleted'));
-              },
+        );
+      },
+    );
+  }
+
+  Widget _textSection({
+    required AppColors c,
+    required String label,
+    required String text,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
               child: Text(
-                l10n.t('clear'),
-                style: TextStyle(color: c.warn, fontWeight: FontWeight.w700),
+                label,
+                style: AppTheme.label(color: c.accent, size: 10),
               ),
             ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                l10n.t('cancel'),
-                style: TextStyle(color: c.sub, fontWeight: FontWeight.w700),
+            // Кнопка копирования — важно для переводчика
+            GestureDetector(
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: text));
+                // snack здесь недоступен напрямую, но текст скопируется
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Icon(Icons.copy_rounded, color: c.faint, size: 15),
               ),
             ),
           ],
-        );
-      },
+        ),
+        const SizedBox(height: 5),
+        Text(text, style: TextStyle(color: c.text, height: 1.45)),
+      ],
     );
   }
 
@@ -284,26 +408,18 @@ class _CameraScreenState extends State<CameraScreen> {
                           color: c.accent.withValues(alpha: 0.14),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: Icon(
-                          Icons.document_scanner_rounded,
-                          color: c.accent,
-                          size: 26,
-                        ),
+                        child: Icon(Icons.document_scanner_rounded, color: c.accent, size: 26),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              l10n.t('camera_title'),
-                              style: AppTheme.display(size: 19, color: c.text),
-                            ),
+                            Text(l10n.t('camera_title'),
+                                style: AppTheme.display(size: 19, color: c.text)),
                             const SizedBox(height: 3),
-                            Text(
-                              l10n.t('camera_subtitle'),
-                              style: AppTheme.caption(color: c.faint, size: 12),
-                            ),
+                            Text(l10n.t('camera_subtitle'),
+                                style: AppTheme.caption(color: c.faint, size: 12)),
                           ],
                         ),
                       ),
@@ -333,24 +449,14 @@ class _CameraScreenState extends State<CameraScreen> {
                             ),
                           ],
                         ),
-                        child: Icon(
-                          Icons.camera_alt_rounded,
-                          color: c.accent,
-                          size: 52,
-                        ),
+                        child: Icon(Icons.camera_alt_rounded, color: c.accent, size: 52),
                       ),
                     ),
                   ),
                   const SizedBox(height: 14),
                   Center(
-                    child: Text(
-                      l10n.t('camera_open'),
-                      style: TextStyle(
-                        color: c.sub,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
+                    child: Text(l10n.t('camera_open'),
+                        style: TextStyle(color: c.sub, fontWeight: FontWeight.w700, fontSize: 13)),
                   ),
                 ],
               ),
@@ -369,13 +475,17 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// _CameraPage — с плавным зумом и preprocessing
+// ═══════════════════════════════════════════════════════════════════════════
 class _CameraPage extends StatefulWidget {
-  const _CameraPage();
+  final bool isProfileMode;
+  const _CameraPage({this.isProfileMode = false});
   @override
   State<_CameraPage> createState() => _CameraPageState();
 }
 
-class _CameraPageState extends State<_CameraPage> {
+class _CameraPageState extends State<_CameraPage> with TickerProviderStateMixin {
   final _tr = OnlineTranslator();
   final _ocr = OcrService();
 
@@ -384,18 +494,27 @@ class _CameraPageState extends State<_CameraPage> {
   bool _processing = false;
   bool _initError = false;
 
-  // ── ЗУМ ──────────────────────────────────────────────────────
+  // ── ЗУМ ──────────────────────────────────────────────────────────────
+  final ValueNotifier<double> _zoomNotifier = ValueNotifier<double>(1.0);
   double _zoomLevel = 1.0;
   double _minZoom = 1.0;
   double _maxZoom = 1.0;
-  bool _showZoomIndicator = false;
+
+  // Для плавного жеста
+  double _baseZoom = 1.0;
+  DateTime _lastZoomCall = DateTime.fromMillisecondsSinceEpoch(0);
+
+  // ⚠️ ПОЛЕ переименовано, чтобы не конфликтовать с методом
+  bool _zoomIndicatorVisible = false;
+  Timer? _zoomHideTimer;
+
+  // Для snap-анимации
+  AnimationController? _snapAnim;
+
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.immersiveSticky,
-      overlays: [],
-    );
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _init();
   }
@@ -403,10 +522,10 @@ class _CameraPageState extends State<_CameraPage> {
   @override
   void dispose() {
     _controller?.dispose();
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-      overlays: SystemUiOverlay.values,
-    );
+    _snapAnim?.dispose();
+    _zoomHideTimer?.cancel();
+    _zoomNotifier.dispose();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: SystemUiOverlay.values);
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
   }
@@ -416,14 +535,10 @@ class _CameraPageState extends State<_CameraPage> {
       final cams = await availableCameras();
       if (cams.isEmpty) throw Exception('no cameras');
       final back = cams.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
+            (c) => c.lensDirection == CameraLensDirection.back,
         orElse: () => cams.first,
       );
-      final ctrl = CameraController(
-        back,
-        ResolutionPreset.high,
-        enableAudio: false,
-      );
+      final ctrl = CameraController(back, ResolutionPreset.veryHigh, enableAudio: false);
       await ctrl.initialize();
       if (!mounted) {
         await ctrl.dispose();
@@ -433,10 +548,11 @@ class _CameraPageState extends State<_CameraPage> {
         _minZoom = await ctrl.getMinZoomLevel();
         _maxZoom = await ctrl.getMaxZoomLevel();
         _zoomLevel = _minZoom;
+        _zoomNotifier.value = _minZoom;
       } catch (e) {
         debugPrint('[cam] zoom query error: $e');
         _minZoom = 1.0;
-        _maxZoom = 5.0; // разумный фолбэк
+        _maxZoom = 5.0;
       }
       setState(() => _controller = ctrl);
     } catch (e) {
@@ -455,24 +571,139 @@ class _CameraPageState extends State<_CameraPage> {
     );
   }
 
-  Future<void> _setZoom(double level) async {
+  /// Переводит ЛЮБОЙ объём текста: режет на куски по предложениям,
+  /// переводит каждый и склеивает обратно. Обход лимитов переводчика.
+  Future<String> _translateFull(String text, String to) async {
+    final chunks = _splitChunks(text, 450);
+    if (chunks.length <= 1) {
+      final res = await _tr.translate(text, from: 'auto', to: to);
+      return res.text;
+    }
+
+    final sb = StringBuffer();
+    for (var i = 0; i < chunks.length; i++) {
+      try {
+        final res = await _tr.translate(chunks[i], from: 'auto', to: to);
+        if (i > 0) sb.writeln();
+        sb.write(res.text.trim());
+      } catch (e) {
+        debugPrint('[cam] translate chunk $i error: $e');
+      }
+    }
+    return sb.toString();
+  }
+
+  /// Режет текст на куски ≤ [max] символов по границам предложений/строк
+  List<String> _splitChunks(String text, int max) {
+    final pieces = <String>[];
+    for (final line in text.split('\n')) {
+      final t = line.trim();
+      if (t.isEmpty) continue;
+      if (t.length <= max) {
+        pieces.add(t);
+      } else {
+        var rest = t;
+        while (rest.length > max) {
+          var cut = -1;
+          for (final sep in const ['. ', '! ', '? ', ' ']) {
+            final i = rest.lastIndexOf(sep, max);
+            if (i > cut) cut = i + 1;
+          }
+          if (cut <= 1) cut = max;
+          pieces.add(rest.substring(0, cut).trim());
+          rest = rest.substring(cut).trim();
+        }
+        if (rest.isNotEmpty) pieces.add(rest);
+      }
+    }
+
+    final chunks = <String>[];
+    final buf = StringBuffer();
+    for (final p in pieces) {
+      if (buf.isNotEmpty && buf.length + p.length + 1 > max) {
+        chunks.add(buf.toString());
+        buf.clear();
+      }
+      if (buf.isNotEmpty) buf.write(' ');
+      buf.write(p);
+    }
+    if (buf.isNotEmpty) chunks.add(buf.toString());
+    return chunks;
+  }
+
+  // ✅ Теперь метод — без конфликта с полем
+  void _showZoomIndicator() {
+    _zoomHideTimer?.cancel();
+    if (!_zoomIndicatorVisible) {
+      setState(() => _zoomIndicatorVisible = true);
+    }
+    _zoomHideTimer = Timer(const Duration(milliseconds: 1200), () {
+      if (mounted) setState(() => _zoomIndicatorVisible = false);
+    });
+  }
+
+  Future<void> _applyZoom(double level) async {
     final ctrl = _controller;
     if (ctrl == null || !ctrl.value.isInitialized) return;
+
+    final now = DateTime.now();
+    if (now.difference(_lastZoomCall).inMilliseconds < 16) return;
+    _lastZoomCall = now;
+
     final clamped = level.clamp(_minZoom, _maxZoom);
     try {
       await ctrl.setZoomLevel(clamped);
-      if (mounted) {
-        setState(() {
-          _zoomLevel = clamped;
-          _showZoomIndicator = true;
-        });
-        Future.delayed(const Duration(milliseconds: 1200), () {
-          if (mounted) setState(() => _showZoomIndicator = false);
-        });
-      }
+      _zoomLevel = clamped;
+      _zoomNotifier.value = clamped;
+      _showZoomIndicator();
     } catch (e) {
       debugPrint('[cam] setZoom error: $e');
     }
+  }
+
+  void _animateZoomTo(double target) {
+    _snapAnim?.dispose();
+    _snapAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 220),
+    );
+    final startZoom = _zoomLevel;
+    final curve = CurvedAnimation(parent: _snapAnim!, curve: Curves.easeOutCubic);
+    curve.addListener(() {
+      final v = curve.value;
+      final current = startZoom + (target - startZoom) * v;
+      _zoomLevel = current;
+      _zoomNotifier.value = current;
+      _controller?.setZoomLevel(current);
+      _showZoomIndicator();
+    });
+    _snapAnim!.forward();
+  }
+
+  void _onScaleStart(ScaleStartDetails d) {
+    _snapAnim?.stop();
+    _baseZoom = _zoomLevel;
+  }
+
+  void _onScaleUpdate(ScaleUpdateDetails d) {
+    if (d.scale != 1.0) {
+      final newZoom = (_baseZoom * d.scale).clamp(_minZoom, _maxZoom);
+      _applyZoom(newZoom);
+    }
+  }
+
+  void _onScaleEnd(ScaleEndDetails d) {
+    final rounded = _zoomLevel.roundToDouble();
+    final diff = (_zoomLevel - rounded).abs();
+    if (diff > 0.08 && diff < 0.4 && rounded >= _minZoom && rounded <= _maxZoom) {
+      HapticFeedback.lightImpact();
+      _animateZoomTo(rounded);
+    }
+  }
+
+  void _onDoubleTap() {
+    HapticFeedback.mediumImpact();
+    _animateZoomTo(_minZoom);
   }
 
   Future<void> _capture() async {
@@ -484,12 +715,8 @@ class _CameraPageState extends State<_CameraPage> {
       final id = DateTime.now().microsecondsSinceEpoch.toString();
       final dest = '${repo.photosDir}/$id.jpg';
       await File(shot.path).copy(dest);
-      if (!mounted) {
-        try {
-          await ctrl.dispose();
-        } catch (_) {}
-        return;
-      }
+
+      if (!mounted) return;
 
       setState(() {
         _controller = null;
@@ -497,10 +724,13 @@ class _CameraPageState extends State<_CameraPage> {
       });
 
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        try {
-          await ctrl.dispose();
-        } catch (_) {}
+        try { await ctrl.dispose(); } catch (_) {}
       });
+
+      if (widget.isProfileMode) {
+        if (mounted) Navigator.of(context).pop(dest);
+        return;
+      }
 
       await _process(dest, id);
     } catch (e) {
@@ -527,14 +757,14 @@ class _CameraPageState extends State<_CameraPage> {
       }
 
       setState(() => _processing = true);
+
       final original = await _ocr.recognize(path);
       if (!mounted) return;
 
       String translated = '';
       if (original.isNotEmpty) {
         try {
-          final res = await _tr.translate(original, from: 'auto', to: to);
-          translated = res.text;
+          translated = await _translateFull(original, to);
         } catch (e) {
           debugPrint('[cam] translate error: $e');
         }
@@ -552,8 +782,7 @@ class _CameraPageState extends State<_CameraPage> {
       );
       if (!mounted) return;
 
-      if (original.isEmpty)
-        _snack(context.l10n.t('camera_no_text'), warn: true);
+      if (original.isEmpty) _snack(context.l10n.t('camera_no_text'), warn: true);
       Navigator.of(context).pop();
     } catch (e) {
       debugPrint('[cam] process error: $e');
@@ -579,15 +808,10 @@ class _CameraPageState extends State<_CameraPage> {
           if (ready)
             Positioned.fill(
               child: GestureDetector(
-                // pinch-to-zoom
-                onScaleStart: (_) {},
-                onScaleUpdate: (details) {
-                  if (details.scale != 1.0) {
-                    final newZoom = _zoomLevel * details.scale;
-                    _setZoom(newZoom);
-                  }
-                },
-                onDoubleTap: () => _setZoom(_minZoom),
+                onScaleStart: _onScaleStart,
+                onScaleUpdate: _onScaleUpdate,
+                onScaleEnd: _onScaleEnd,
+                onDoubleTap: _onDoubleTap,
                 child: _CoverPreview(controller: ctrl),
               ),
             )
@@ -597,11 +821,8 @@ class _CameraPageState extends State<_CameraPage> {
                 child: Image.file(
                   File(shot),
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Icon(
-                    Icons.broken_image_rounded,
-                    color: Colors.white54,
-                    size: 48,
-                  ),
+                  errorBuilder: (_, __, ___) =>
+                      Icon(Icons.broken_image_rounded, color: Colors.white54, size: 48),
                 ),
               ),
             )
@@ -612,40 +833,39 @@ class _CameraPageState extends State<_CameraPage> {
             Center(child: CircularProgressIndicator(color: c.accent)),
           if (_initError && shot == null)
             Center(
-              child: Icon(
-                Icons.no_photography_rounded,
-                color: Colors.white54,
-                size: 48,
-              ),
+              child: Icon(Icons.no_photography_rounded, color: Colors.white54, size: 48),
             ),
 
-          if (ready && _showZoomIndicator)
+          // ✅ Используем новое имя поля
+          if (ready && _zoomIndicatorVisible)
             Positioned(
               top: MediaQuery.of(context).padding.top + 60,
               left: 0,
               right: 0,
               child: Center(
-                child: AnimatedOpacity(
-                  opacity: _showZoomIndicator ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${_zoomLevel.toStringAsFixed(1)}x',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
+                child: ValueListenableBuilder<double>(
+                  valueListenable: _zoomNotifier,
+                  builder: (context, zoom, _) {
+                    return AnimatedOpacity(
+                      opacity: _zoomIndicatorVisible ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${zoom.toStringAsFixed(1)}x',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -655,12 +875,17 @@ class _CameraPageState extends State<_CameraPage> {
               right: 20,
               top: MediaQuery.of(context).padding.top + 120,
               bottom: MediaQuery.of(context).padding.bottom + 160,
-              child: _ZoomSlider(
-                c: c,
-                min: _minZoom,
-                max: _maxZoom,
-                value: _zoomLevel,
-                onChanged: _setZoom,
+              child: ValueListenableBuilder<double>(
+                valueListenable: _zoomNotifier,
+                builder: (context, zoom, _) {
+                  return _ZoomSlider(
+                    c: c,
+                    min: _minZoom,
+                    max: _maxZoom,
+                    value: zoom,
+                    onChanged: _applyZoom,
+                  );
+                },
               ),
             ),
 
@@ -684,7 +909,6 @@ class _CameraPageState extends State<_CameraPage> {
               ),
             ),
           ),
-          // затемнение снизу
           Positioned(
             left: 0,
             right: 0,
@@ -706,18 +930,12 @@ class _CameraPageState extends State<_CameraPage> {
             ),
           ),
 
-          // верх: назад
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             left: 12,
-            child: _roundBtn(
-              c,
-              Icons.arrow_back_rounded,
-              () => Navigator.of(context).pop(),
-            ),
+            child: _roundBtn(c, Icons.arrow_back_rounded, () => Navigator.of(context).pop()),
           ),
 
-          // низ: затвор — ТОЛЬКО пока живая камера
           if (ready)
             Positioned(
               left: 0,
@@ -742,17 +960,12 @@ class _CameraPageState extends State<_CameraPage> {
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.camera_alt_rounded,
-                      color: c.accent,
-                      size: 34,
-                    ),
+                    child: Icon(Icons.camera_alt_rounded, color: c.accent, size: 34),
                   ),
                 ),
               ),
             ),
 
-          // индикатор обработки поверх фото
           if (_processing)
             Positioned(
               left: 24,
@@ -765,9 +978,7 @@ class _CameraPageState extends State<_CameraPage> {
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(color: c.line),
                 ),
-                child: AnalyzingWave(
-                  label: context.l10n.t('camera_translating'),
-                ),
+                child: AnalyzingWave(label: context.l10n.t('camera_translating')),
               ),
             ),
         ],
@@ -808,16 +1019,13 @@ class _ZoomSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final range = max - min;
-    final normalized = range <= 0
-        ? 0.0
-        : ((value - min) / range).clamp(0.0, 1.0);
+    final normalized = range <= 0 ? 0.0 : ((value - min) / range).clamp(0.0, 1.0);
 
     return SizedBox(
       width: 56,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // кнопка "+"
           _zoomBtn(Icons.add_rounded, () {
             onChanged((value + 0.5).clamp(min, max));
           }),
@@ -831,18 +1039,14 @@ class _ZoomSlider extends StatelessWidget {
                   activeTrackColor: c.accent,
                   inactiveTrackColor: Colors.white.withValues(alpha: 0.25),
                   thumbColor: Colors.white,
-                  thumbShape: const RoundSliderThumbShape(
-                    enabledThumbRadius: 9,
-                  ),
+                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
                   overlayColor: c.accent.withValues(alpha: 0.2),
                 ),
                 child: Slider(
                   min: 0.0,
                   max: 1.0,
                   value: normalized,
-                  onChanged: (v) {
-                    onChanged(min + v * range);
-                  },
+                  onChanged: (v) => onChanged(min + v * range),
                 ),
               ),
             ),
@@ -852,7 +1056,6 @@ class _ZoomSlider extends StatelessWidget {
             onChanged((value - 0.5).clamp(min, max));
           }),
           const SizedBox(height: 12),
-          // быстрая кнопка сброса к 1x
           if (value != min)
             GestureDetector(
               onTap: () => onChanged(min),
@@ -862,9 +1065,7 @@ class _ZoomSlider extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.black.withValues(alpha: 0.55),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                  ),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                 ),
                 child: Center(
                   child: Text(
@@ -964,11 +1165,7 @@ class _GalleryCard extends StatelessWidget {
                 File(photo.path),
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Center(
-                  child: Icon(
-                    Icons.broken_image_rounded,
-                    color: c.faint,
-                    size: 32,
-                  ),
+                  child: Icon(Icons.broken_image_rounded, color: c.faint, size: 32),
                 ),
               ),
             ),
@@ -977,10 +1174,7 @@ class _GalleryCard extends StatelessWidget {
                 top: 8,
                 right: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 3,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                     color: c.accent,
                     borderRadius: BorderRadius.circular(8),
@@ -1039,28 +1233,14 @@ class _BottomStack extends StatelessWidget {
               width: stackW,
               height: stackH,
               child: vis.isEmpty
-                  ? Center(
-                      child: Icon(
-                        Icons.photo_library_outlined,
-                        color: c.faint,
-                        size: 34,
-                      ),
-                    )
+                  ? Center(child: Icon(Icons.photo_library_outlined, color: c.faint, size: 34))
                   : Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        for (var i = 0; i < vis.length; i++)
-                          _fanFor(
-                            vis[i],
-                            i,
-                            vis.length,
-                            cardW,
-                            cardH,
-                            stackW,
-                            stackH,
-                          ),
-                      ],
-                    ),
+                clipBehavior: Clip.none,
+                children: [
+                  for (var i = 0; i < vis.length; i++)
+                    _fanFor(vis[i], i, vis.length, cardW, cardH, stackW, stackH),
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 14),
@@ -1069,19 +1249,11 @@ class _BottomStack extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  galleryLabel,
-                  style: TextStyle(
-                    color: c.text,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15,
-                  ),
-                ),
+                Text(galleryLabel,
+                    style: TextStyle(color: c.text, fontWeight: FontWeight.w800, fontSize: 15)),
                 const SizedBox(height: 3),
-                Text(
-                  all.isEmpty ? emptyLabel : '${all.length}',
-                  style: AppTheme.caption(color: c.faint, size: 12),
-                ),
+                Text(all.isEmpty ? emptyLabel : '${all.length}',
+                    style: AppTheme.caption(color: c.faint, size: 12)),
               ],
             ),
           ),
@@ -1092,14 +1264,14 @@ class _BottomStack extends StatelessWidget {
   }
 
   Widget _fanFor(
-    CameraPhoto p,
-    int i,
-    int n,
-    double cardW,
-    double cardH,
-    double stackW,
-    double stackH,
-  ) {
+      CameraPhoto p,
+      int i,
+      int n,
+      double cardW,
+      double cardH,
+      double stackW,
+      double stackH,
+      ) {
     final t = n == 1 ? 0.5 : i / (n - 1);
     final angle = -14.0 + 28.0 * t;
     final dx = -28.0 + 56.0 * t;
@@ -1128,8 +1300,7 @@ class _FanCard extends StatefulWidget {
   State<_FanCard> createState() => _FanCardState();
 }
 
-class _FanCardState extends State<_FanCard>
-    with SingleTickerProviderStateMixin {
+class _FanCardState extends State<_FanCard> with SingleTickerProviderStateMixin {
   late final AnimationController _enter;
 
   @override
@@ -1181,14 +1352,66 @@ class _FanCardState extends State<_FanCard>
                     File(widget.photo.path),
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Center(
-                      child: Icon(
-                        Icons.image_rounded,
-                        color: c.faint,
-                        size: 26,
-                      ),
+                      child: Icon(Icons.image_rounded, color: c.faint, size: 26),
                     ),
                   ),
                 ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ProfileGalleryPicker extends StatelessWidget {
+  const _ProfileGalleryPicker();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    return Scaffold(
+      backgroundColor: c.bg,
+      appBar: AppBar(
+        backgroundColor: c.surface,
+        elevation: 0,
+        title: Text('Галерея',
+            style: TextStyle(color: c.text, fontWeight: FontWeight.w700)),
+        iconTheme: IconThemeData(color: c.text),
+      ),
+      body: ListenableBuilder(
+        listenable: CameraRepository.instance,
+        builder: (context, _) {
+          final all = CameraRepository.instance.getAll();
+          if (all.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.photo_library_outlined, color: c.faint, size: 64),
+                  const SizedBox(height: 12),
+                  Text('Нет сохраненных фото', style: TextStyle(color: c.sub)),
+                  const SizedBox(height: 8),
+                  Text('Сначала сделайте снимок в камере',
+                      style: TextStyle(color: c.faint, fontSize: 12)),
+                ],
+              ),
+            );
+          }
+          return GridView.builder(
+            padding: const EdgeInsets.all(12),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+            ),
+            itemCount: all.length,
+            itemBuilder: (_, i) => GestureDetector(
+              onTap: () => Navigator.pop(context, all[i].path),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(File(all[i].path), fit: BoxFit.cover),
               ),
             ),
           );

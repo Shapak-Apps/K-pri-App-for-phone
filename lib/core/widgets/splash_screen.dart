@@ -208,56 +208,57 @@ class _SplashScreenState extends State<SplashScreen>
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: AnimatedBuilder(
-        animation: Listenable.merge([
-          _mainCtrl,
-          _orbitCtrl,
-          _particleCtrl,
-          _warpCtrl,
-        ]),
-        builder: (context, _) {
-          final size = MediaQuery.of(context).size;
-          final minDim = math.min(size.width, size.height);
-          final maxR = math.sqrt(
-            size.width * size.width + size.height * size.height,
-          );
-
-          final suck = _warping ? _suck.value : 0.0;
-          final holeR = (_warping ? _holeGrow.value : 0.0) * minDim * 0.18;
-          final zoom = _warping ? _zoom.value : 0.0;
-          final clipR =
-              holeR +
-              (maxR * 0.62 - holeR) * (_warping ? _clipGrow.value : 0.0);
-          final ringOpacity = _warping ? (1.0 - _ringFade.value) : 0.0;
-          final streakI = _warping
-              ? math.sin(math.pi * _streakBell.value)
-              : 0.0;
-          final warpT = _warpCtrl.value * (_warpDur.inMilliseconds / 1000.0);
-          final bgMix = _warping ? math.min(1.0, 0.35 + suck) : 0.0;
-
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
+      body: Stack(
+        alignment: Alignment.center,
+        children: [
+          // ── 1. Background Color ─────────────────────────────────────────
+          AnimatedBuilder(
+            animation: _warpCtrl,
+            builder: (context, _) {
+              final suck = _warping ? _suck.value : 0.0;
+              final bgMix = _warping ? math.min(1.0, 0.35 + suck) : 0.0;
+              return Container(
                 color: Color.lerp(c.bg, Colors.black, bgMix) ?? Colors.black,
-              ),
+              );
+            },
+          ),
 
-              // ── 1. Warp-стрики (гиперпрыжок) ───────────────────────────
-              if (streakI > 0.01)
-                RepaintBoundary(
+          // ── 2. Warp-стрики (гиперпрыжок) ────────────────────────────────
+          if (_warping)
+            AnimatedBuilder(
+              animation: _warpCtrl,
+              builder: (context, _) {
+                final streakI = math.sin(math.pi * _streakBell.value);
+                if (streakI <= 0.01) return const SizedBox.shrink();
+                final warpT = _warpCtrl.value * (_warpDur.inMilliseconds / 1000.0);
+                return RepaintBoundary(
                   child: CustomPaint(
-                    size: size,
+                    size: MediaQuery.of(context).size,
                     painter: _WarpStreaksPainter(
                       intensity: streakI,
                       time: warpT,
                       color: c.accent,
                     ),
                   ),
-                ),
+                );
+              },
+            ),
 
-              // ── 2. Портал: первый экран приближается из глубины ───────
-              if (_warping && _preview != null && zoom > 0.0 && clipR > 1.0)
-                ClipPath(
+          // ── 3. Портал: первый экран приближается из глубины ─────────────
+          if (_warping && _preview != null)
+            AnimatedBuilder(
+              animation: _warpCtrl,
+              builder: (context, _) {
+                final zoom = _zoom.value;
+                final size = MediaQuery.of(context).size;
+                final minDim = math.min(size.width, size.height);
+                final maxR = math.sqrt(size.width * size.width + size.height * size.height);
+                final holeR = _holeGrow.value * minDim * 0.18;
+                final clipR = holeR + (maxR * 0.62 - holeR) * _clipGrow.value;
+
+                if (zoom <= 0.0 || clipR <= 1.0) return const SizedBox.shrink();
+
+                return ClipPath(
                   clipper: _CircleClipper(clipR),
                   child: Transform.rotate(
                     angle: (1.0 - zoom) * -0.22,
@@ -272,43 +273,82 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                   ),
-                ),
+                );
+              },
+            ),
 
-              // ── 3. Контент сплэша — всасывается в дыру ────────────────
-              if (!_warping || suck < 0.999)
-                Opacity(
-                  opacity: 1.0 - suck,
-                  child: Transform.rotate(
-                    angle: suck * 2.5 * math.pi,
-                    child: Transform.scale(
-                      scale: math.max(0.001, 1.0 - suck),
-                      child: SizedBox.expand(
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            ..._buildGeometricPatterns(c),
-                            ..._buildOrbitalParticles(c, size),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildAnimatedIcon(c),
-                                const SizedBox(height: 28),
-                                _buildAnimatedTitle(c),
-                                const SizedBox(height: 12),
-                                _buildAnimatedWaveLine(c),
-                                const SizedBox(height: 14),
-                                _buildAnimatedSubtitle(c),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+          // ── 4. Контент сплэша (всасывается в дыру) ──────────────────────
+          AnimatedBuilder(
+            animation: _warpCtrl,
+            builder: (context, child) {
+              final suck = _warping ? _suck.value : 0.0;
+              if (_warping && suck >= 0.999) return const SizedBox.shrink();
+
+              return Opacity(
+                opacity: 1.0 - suck,
+                child: Transform.rotate(
+                  angle: suck * 2.5 * math.pi,
+                  child: Transform.scale(
+                    scale: math.max(0.001, 1.0 - suck),
+                    child: child,
                   ),
                 ),
+              );
+            },
+            child: SizedBox.expand(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Геометрические паттерны
+                  AnimatedBuilder(
+                    animation: Listenable.merge([_mainCtrl, _orbitCtrl]),
+                    builder: (context, _) => Stack(
+                      alignment: Alignment.center,
+                      children: _buildGeometricPatterns(c),
+                    ),
+                  ),
 
-              if (_warping && holeR > 0.5 && ringOpacity > 0.01)
-                RepaintBoundary(
+                  // Орбитальные частицы
+                  AnimatedBuilder(
+                    animation: _particleCtrl,
+                    builder: (context, _) => Stack(
+                      children: _buildOrbitalParticles(c, MediaQuery.of(context).size),
+                    ),
+                  ),
+
+                  // Основная колонка
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildAnimatedIcon(c),
+                      const SizedBox(height: 28),
+                      _buildAnimatedTitle(c),
+                      const SizedBox(height: 12),
+                      _buildAnimatedWaveLine(c),
+                      const SizedBox(height: 14),
+                      _buildAnimatedSubtitle(c),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── 5. Черная дыра ──────────────────────────────────────────────
+          if (_warping)
+            AnimatedBuilder(
+              animation: _warpCtrl,
+              builder: (context, _) {
+                final size = MediaQuery.of(context).size;
+                final minDim = math.min(size.width, size.height);
+                final maxR = math.sqrt(size.width * size.width + size.height * size.height);
+                final holeR = _holeGrow.value * minDim * 0.18;
+                final ringOpacity = 1.0 - _ringFade.value;
+                final warpT = _warpCtrl.value * (_warpDur.inMilliseconds / 1000.0);
+
+                if (holeR <= 0.5 || ringOpacity <= 0.01) return const SizedBox.shrink();
+
+                return RepaintBoundary(
                   child: CustomPaint(
                     size: size,
                     painter: _BlackHolePainter(
@@ -320,10 +360,10 @@ class _SplashScreenState extends State<SplashScreen>
                       accent: c.accent,
                     ),
                   ),
-                ),
-            ],
-          );
-        },
+                );
+              },
+            ),
+        ],
       ),
     );
   }
@@ -366,25 +406,34 @@ class _SplashScreenState extends State<SplashScreen>
       final y = 100 * math.sin(b * t * 2 * math.pi);
       final particleOpacity = (math.sin(t * 2 * math.pi + i) + 1) / 2;
       final pSize = 2.0 + 2.0 * math.sin(t * 4 * math.pi + i);
+
       particles.add(
         Positioned(
           left: size.width / 2 + x,
           top: size.height / 2 + y,
           child: Opacity(
             opacity: particleOpacity * 0.6,
-            child: Container(
-              width: pSize,
-              height: pSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: c.accent,
-                boxShadow: [
-                  BoxShadow(
-                    color: c.accent.withValues(alpha: 0.5),
-                    blurRadius: 4,
+            // Оптимизация: замена крайне дорогого BoxShadow на простые круги
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: pSize * 3.5,
+                  height: pSize * 3.5,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: c.accent.withValues(alpha: 0.25),
                   ),
-                ],
-              ),
+                ),
+                Container(
+                  width: pSize,
+                  height: pSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: c.accent,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -480,29 +529,40 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildAnimatedWaveLine(AppColors c) {
-    return CustomPaint(
-      size: Size(80 * _mainCtrl.value, 8),
-      painter: _WavePainter(
-        color: c.accent.withValues(alpha: 0.6),
-        phase: _wavePhase.value,
-        progress: _mainCtrl.value,
-      ),
+    return AnimatedBuilder(
+      animation: Listenable.merge([_mainCtrl, _wavePhase]),
+      builder: (context, _) {
+        return CustomPaint(
+          size: Size(80 * _mainCtrl.value, 8),
+          painter: _WavePainter(
+            color: c.accent.withValues(alpha: 0.6),
+            phase: _wavePhase.value,
+            progress: _mainCtrl.value,
+          ),
+        );
+      },
     );
   }
 
   Widget _buildAnimatedSubtitle(AppColors c) {
-    final p = CurvedAnimation(
-      parent: _mainCtrl,
-      curve: const Interval(0.6, 0.9, curve: Curves.easeOutCubic),
-    ).value;
-    return Transform.translate(
-      offset: Offset(0, 20 * (1 - p)),
-      child: Opacity(
-        opacity: p,
-        child: Text(
-          'Ähli dillerde terjimeçi',
-          style: AppTheme.caption(color: c.sub, size: 13),
-        ),
+    return AnimatedBuilder(
+      animation: _mainCtrl,
+      builder: (context, child) {
+        final p = CurvedAnimation(
+          parent: _mainCtrl,
+          curve: const Interval(0.6, 0.9, curve: Curves.easeOutCubic),
+        ).value;
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - p)),
+          child: Opacity(
+            opacity: p,
+            child: child,
+          ),
+        );
+      },
+      child: Text(
+        'Ähli dillerde terjimeçi',
+        style: AppTheme.caption(color: c.sub, size: 13),
       ),
     );
   }
@@ -572,6 +632,11 @@ class _BlackHolePainter extends CustomPainter {
     canvas.drawCircle(c, glowR, glow);
 
     const arms = 3;
+    final pathPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+
     for (var a = 0; a < arms; a++) {
       final path = Path();
       final rot = time * 2.4 + a * 2 * math.pi / arms;
@@ -587,14 +652,8 @@ class _BlackHolePainter extends CustomPainter {
           path.lineTo(p.dx, p.dy);
         }
       }
-      canvas.drawPath(
-        path,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.4
-          ..strokeCap = StrokeCap.round
-          ..color = accent.withValues(alpha: 0.30 * intensity),
-      );
+      pathPaint.color = accent.withValues(alpha: 0.30 * intensity);
+      canvas.drawPath(path, pathPaint);
     }
 
     canvas.drawCircle(
@@ -619,9 +678,9 @@ class _BlackHolePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _BlackHolePainter old) =>
       old.radius != radius ||
-      old.time != time ||
-      old.intensity != intensity ||
-      old.shock != shock;
+          old.time != time ||
+          old.intensity != intensity ||
+          old.shock != shock;
 }
 
 class _WarpStreaksPainter extends CustomPainter {
@@ -645,6 +704,12 @@ class _WarpStreaksPainter extends CustomPainter {
     final c = size.center(Offset.zero);
     final maxR = math.sqrt(c.dx * c.dx + c.dy * c.dy);
     const n = 80;
+
+    // Оптимизация: вынесли создание Paint из цикла
+    final paint = Paint()
+      ..strokeWidth = 1.3
+      ..strokeCap = StrokeCap.round;
+
     for (var i = 0; i < n; i++) {
       final ang = _h(i) * 2 * math.pi;
       final speed = 0.5 + _h(i + 1000) * 1.1;
@@ -654,15 +719,14 @@ class _WarpStreaksPainter extends CustomPainter {
       final len = (4 + 30 * prog) * intensity;
       final alpha = math.sin(math.pi * prog) * 0.65 * intensity;
       if (alpha <= 0.01) continue;
+
       final dir = Offset(math.cos(ang), math.sin(ang));
+      paint.color = (Color.lerp(Colors.white, color, _h(i + 3000)) ?? color).withValues(alpha: alpha);
+
       canvas.drawLine(
         c + dir * r,
         c + dir * (r + len),
-        Paint()
-          ..strokeWidth = 1.3
-          ..strokeCap = StrokeCap.round
-          ..color = (Color.lerp(Colors.white, color, _h(i + 3000)) ?? color)
-              .withValues(alpha: alpha),
+        paint,
       );
     }
   }
@@ -727,10 +791,10 @@ class _WavePainter extends CustomPainter {
       final nx = x / size.width;
       final y =
           size.height / 2 +
-          3 *
-              math.sin(2 * math.pi * nx * 2 + phase) *
-              math.sin(math.pi * nx) *
-              progress;
+              3 *
+                  math.sin(2 * math.pi * nx * 2 + phase) *
+                  math.sin(math.pi * nx) *
+                  progress;
       path.lineTo(x, y);
     }
     canvas.drawPath(path, paint);

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="shortcut_translate"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_translate"
+        android:shortcutShortLabel="@string/shortcut_translate"
+        android:shortcutLongLabel="@string/shortcut_translate_long">
+        <intent
+            android:action="kopri.OPEN_TRANSLATE"
+            android:targetPackage="com.kopri.translator"
+            android:targetClass="com.kopri.translator.MainActivity" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="shortcut_camera"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_camera"
+        android:shortcutShortLabel="@string/shortcut_camera"
+        android:shortcutLongLabel="@string/shortcut_camera_long">
+        <intent
+            android:action="kopri.OPEN_CAMERA"
+            android:targetPackage="com.kopri.translator"
+            android:targetClass="com.kopri.translator.MainActivity" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="shortcut_phrasebook"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_book"
+        android:shortcutShortLabel="@string/shortcut_phrasebook"
+        android:shortcutLongLabel="@string/shortcut_phrasebook_long">
+        <intent
+            android:action="kopri.OPEN_PHRASEBOOK"
+            android:targetPackage="com.kopri.translator"
+            android:targetClass="com.kopri.translator.MainActivity" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="shortcut_flashcards"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_cards"
+        android:shortcutShortLabel="@string/shortcut_flashcards"
+        android:shortcutLongLabel="@string/shortcut_flashcards_long">
+        <intent
+            android:action="kopri.OPEN_FLASHCARDS"
+            android:targetPackage="com.kopri.translator"
+            android:targetClass="com.kopri.translator.MainActivity" />
+    </shortcut>
+
+</shortcuts>

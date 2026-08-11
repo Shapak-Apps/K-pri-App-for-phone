@@ -6,6 +6,7 @@ import '../../../core/controllers/app_settings_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../conversation/data/tts_service.dart';
 import '../../history/data/history_repository.dart';
+import '../../profile/data/profile_repository.dart';
 import '../data/speech_service.dart';
 import '../data/translator_service.dart';
 import 'translation_state.dart';
@@ -49,7 +50,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
   bool _awaitingRecog = false;
   Completer<String?>? _recogCompleter;
 
-  // уникальный id последнего обработанного внешнего текста
   int _lastIncomingId = -1;
 
   @override
@@ -61,7 +61,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
     widget.incomingText.addListener(_onIncomingText);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) FocusManager.instance.primaryFocus?.unfocus();
-      // обработать intent, если он пришёл до монтирования
       _onIncomingText();
     });
   }
@@ -95,13 +94,11 @@ class _TranslateScreenState extends State<TranslateScreen> {
     final text = ev.text.trim();
     if (text.isEmpty) return;
 
-    // подставляем, сбрасываем предыдущий результат и сразу переводим
     _suppress = true;
     _ctrl.text = text;
     _ctrl.selection = TextSelection.collapsed(offset: text.length);
     _suppress = false;
     setState(() => _state = const IdleState());
-    // небольшой отложенный запуск — чтобы setState успел отрисоваться
     Future.microtask(_translate);
   }
 
@@ -179,6 +176,8 @@ class _TranslateScreenState extends State<TranslateScreen> {
       if (context.settings.autoSaveHistory) {
         widget.repo.add(source: text, result: res.text, from: saved, to: _to);
       }
+      // ← XP / стрик / дневная цель (работает всегда)
+      ProfileRepository.instance.onTranslationDone();
       try {
         await HomeWidget.saveWidgetData<String>('last_source', text);
         await HomeWidget.saveWidgetData<String>('last_result', res.text);
@@ -239,6 +238,8 @@ class _TranslateScreenState extends State<TranslateScreen> {
           to: _to,
         );
       }
+      // ← NEW: XP / стрик / дневная цель
+      ProfileRepository.instance.onTranslationDone();
       if (context.settings.autoSpeak) {
         _tts.speak(res.text, _to);
       }
@@ -405,11 +406,11 @@ class _TranslateScreenState extends State<TranslateScreen> {
                   alignment: Alignment.topCenter,
                   child: _voiceAnalyzing
                       ? Padding(
-                          padding: const EdgeInsets.only(top: 14),
-                          child: AnalyzingWave(
-                            label: context.l10n.t('analyzing'),
-                          ),
-                        )
+                    padding: const EdgeInsets.only(top: 14),
+                    child: AnalyzingWave(
+                      label: context.l10n.t('analyzing'),
+                    ),
+                  )
                       : const SizedBox.shrink(),
                 ),
                 const SizedBox(height: 14),

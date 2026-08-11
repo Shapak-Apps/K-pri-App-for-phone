@@ -75,7 +75,7 @@ class AppSettingsController extends ChangeNotifier {
         .values[_box.get('theme', defaultValue: ThemeMode.dark.index) as int];
     _lang =
         AppLang.values[_box.get('lang', defaultValue: AppLang.tk.index) as int];
-    _fontScale = (_box.get('fontScale', defaultValue: 1.0) as num).toDouble();
+    _fontScale = (_box.get('fontScale', defaultValue: 0.85) as num).toDouble();
     _speechRate = (_box.get('speechRate', defaultValue: 0.5) as num).toDouble();
     _ttsVolume = (_box.get('ttsVolume', defaultValue: 1.0) as num).toDouble();
     _ttsPitch = (_box.get('ttsPitch', defaultValue: 1.0) as num).toDouble();

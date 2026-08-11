@@ -359,8 +359,16 @@ class ClipboardService :
             open?.let {
                 PendingIntent.getActivity(this, 0, it, PendingIntent.FLAG_IMMUTABLE)
             }
-        return Notification
-            .Builder(this, CHANNEL)
+
+        val builder =
+            if (Build.VERSION.SDK_INT >= 26) {
+                Notification.Builder(this, CHANNEL)
+            } else {
+                @Suppress("DEPRECATION")
+                Notification.Builder(this)
+            }
+
+        return builder
             .setContentTitle("Köpri")
             .setContentText(getString(R.string.clipboard_notif))
             .setSmallIcon(R.drawable.ic_notify)

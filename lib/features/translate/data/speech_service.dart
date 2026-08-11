@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -26,6 +27,8 @@ class SpeechService {
   bool _restartScheduled = false;
   int _netFails = 0;
 
+  Completer<bool>? _initCompleter;
+
   static const _restartDelay = Duration(milliseconds: 700);
   static const _netRestartDelay = Duration(milliseconds: 1500);
   static const _maxNetFails = 4;
@@ -35,12 +38,28 @@ class SpeechService {
 
   Future<bool> init() async {
     if (_ready) return true;
-    _ready = await _stt.initialize(
-      onError: _handleError,
-      onStatus: _handleStatus,
-    );
-    debugPrint('[speech] init => $_ready');
-    return _ready;
+
+    final existing = _initCompleter;
+    if (existing != null) {
+      return existing.future;
+    }
+
+    final completer = Completer<bool>();
+    _initCompleter = completer;
+
+    try {
+      _ready = await _stt.initialize(
+        onError: _handleError,
+        onStatus: _handleStatus,
+      );
+      completer.complete(_ready);
+      return _ready;
+    } catch (e) {
+      completer.complete(false);
+      return false;
+    } finally {
+      _initCompleter = null;
+    }
   }
 
   Future<void> start({
@@ -106,7 +125,6 @@ class SpeechService {
       debugPrint('[speech] listen() ok');
     } catch (e) {
       debugPrint('[speech] listen() threw: $e');
-      // сеть совсем мертва — не молотим, пауза и счётчик
       _netFails++;
       if (_netFails >= _maxNetFails) {
         _finish('listen_failed');
@@ -124,7 +142,6 @@ class SpeechService {
       _onEnd?.call();
       return;
     }
-    // Пользователь ещё держит запись → спокойно слушаем дальше.
     _scheduleRestart(_restartDelay);
   }
 
@@ -136,18 +153,16 @@ class SpeechService {
       _onError?.call(msg);
       return;
     }
-    // Реальный конец: нет разрешения / нет распознавателя / не инициализирован.
     final hard =
         e.permanent ||
-        RegExp(
-          r'permission|denied|not_available|not initialized|no recognizer',
-          caseSensitive: false,
-        ).hasMatch(msg);
+            RegExp(
+              r'permission|denied|not_available|not initialized|no recognizer',
+              caseSensitive: false,
+            ).hasMatch(msg);
     if (hard) {
       _finish(msg);
       return;
     }
-    // Сеть/язык/временное — не гасим кнопку, пробуем реже; защита от молотьбы.
     if (!_gotResult) _netFails++;
     if (_netFails >= _maxNetFails) {
       _finish('network_unstable');

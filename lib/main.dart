@@ -17,6 +17,9 @@ class IncomingText {
 
 final incomingText = ValueNotifier<IncomingText?>(null);
 
+// ← для ТЁПЛОГО старта (приложение уже открыто)
+final openScreen = ValueNotifier<int?>(null);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
@@ -30,20 +33,29 @@ Future<void> main() async {
       final id = (m['id'] as int?) ?? DateTime.now().millisecondsSinceEpoch;
       if (text.isNotEmpty) incomingText.value = IncomingText(text, id);
     }
+    // тёплый старт: переключаем вкладку на лету
+    if (call.method == 'openScreen' && call.arguments is int) {
+      openScreen.value = call.arguments as int;
+    }
+    return null;
   });
 
-  intentChannel
-      .invokeMethod<String>('getPendingText')
-      .then((t) {
-        final text = t?.trim() ?? '';
-        if (text.isNotEmpty) {
-          incomingText.value = IncomingText(
-            text,
-            DateTime.now().millisecondsSinceEpoch,
-          );
-        }
-      })
-      .catchError((_) {});
+  // ═══ КЛЮЧЕВОЙ ФИКС: читаем shortcut ДО runApp ═══
+  int? pendingScreen;
+  try {
+    pendingScreen = await intentChannel.invokeMethod<int>('getPendingScreen');
+  } catch (_) {}
+
+  String? pendingText;
+  try {
+    pendingText = await intentChannel.invokeMethod<String>('getPendingText');
+  } catch (_) {}
+  if (pendingText != null && pendingText.trim().isNotEmpty) {
+    incomingText.value = IncomingText(
+      pendingText.trim(),
+      DateTime.now().millisecondsSinceEpoch,
+    );
+  }
 
   final repo = HistoryRepository();
   final settings = AppSettingsController();
@@ -53,7 +65,11 @@ Future<void> main() async {
   runApp(
     AppProviders(
       controller: settings,
-      child: KopriApp(repo: repo, settings: settings),
+      child: KopriApp(
+        repo: repo,
+        settings: settings,
+        initialScreen: pendingScreen ?? 0, // ← передаём индекс шортката
+      ),
     ),
   );
 }
@@ -61,7 +77,13 @@ Future<void> main() async {
 class KopriApp extends StatelessWidget {
   final HistoryRepository repo;
   final AppSettingsController settings;
-  const KopriApp({super.key, required this.repo, required this.settings});
+  final int initialScreen;
+  const KopriApp({
+    super.key,
+    required this.repo,
+    required this.settings,
+    this.initialScreen = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +117,11 @@ class KopriApp extends StatelessWidget {
           ),
           home: SplashScreen(
             initTask: () async {},
-            next: (_) => AppShell(repo: repo, incomingText: incomingText),
+            next: (_) => AppShell(
+              repo: repo,
+              incomingText: incomingText,
+              initialScreen: initialScreen,
+            ),
           ),
         );
       },

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/controllers/app_settings_controller.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../data/native/translate_ffi.dart';
 import '../../data/languages.dart';
 
 const _langToCountry = <String, String>{
@@ -88,6 +89,13 @@ String _flagOf(String code) {
   if (code == 'auto') return '🌐';
   final cc = _langToCountry[code];
   if (cc == null || cc.length != 2) return '🏳️';
+
+  try {
+    final native = TranslateFFI().flag(cc);
+    if (native != null && native.isNotEmpty) return native;
+  } catch (_) {
+  }
+
   const base = 0x1F1E6 - 0x41;
   return String.fromCharCode(base + cc.codeUnitAt(0)) +
       String.fromCharCode(base + cc.codeUnitAt(1));

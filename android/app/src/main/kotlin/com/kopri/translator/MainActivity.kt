@@ -11,6 +11,7 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
     companion object {
         var pendingText: String? = null
+        var pendingScreen: Int? = null
         var clipboardRunning = false
 
         private val trailingUrl =
@@ -106,6 +107,11 @@ class MainActivity : FlutterActivity() {
                     pendingText = null
                 }
 
+                "getPendingScreen" -> {
+                    result.success(pendingScreen)
+                    pendingScreen = null
+                }
+
                 else -> {
                     result.notImplemented()
                 }
@@ -122,6 +128,22 @@ class MainActivity : FlutterActivity() {
 
     private fun handleIntent(intent: Intent?) {
         intent ?: return
+
+        val screen: Int? =
+            when (intent.action) {
+                "kopri.OPEN_TRANSLATE" -> 0
+                "kopri.OPEN_CAMERA" -> 1
+                "kopri.OPEN_PHRASEBOOK" -> 2
+                "kopri.OPEN_FLASHCARDS" -> 3
+                else -> null
+            }
+        if (screen != null) {
+            pendingScreen = screen
+            intentChannel?.invokeMethod("openScreen", screen)
+            intent.action = null
+            return
+        }
+
         val raw: String? =
             when (intent.action) {
                 Intent.ACTION_SEND -> {

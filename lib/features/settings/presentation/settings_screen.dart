@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'licenses_screen.dart';
 import '../../../core/controllers/app_settings_controller.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
@@ -365,10 +365,8 @@ class SettingsScreen extends StatelessWidget {
                       Icons.description_rounded,
                       l10n.t('licenses'),
                       c.sub,
-                      () => showLicensePage(
-                        context: context,
-                        applicationName: 'Köpri',
-                        applicationVersion: '1.0.1',
+                          () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const LicensesScreen()),
                       ),
                     ),
                     _ActionRow(

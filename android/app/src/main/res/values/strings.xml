@@ -2,4 +2,12 @@
 <resources>
     <string name="widget_description">Последний перевод из Köpri</string>
     <string name="clipboard_notif">Bufer terjimesi işleýär</string>
+    <string name="shortcut_translate">Translate</string>
+    <string name="shortcut_translate_long">Open translator</string>
+    <string name="shortcut_camera">Camera</string>
+    <string name="shortcut_camera_long">Translate from photo</string>
+    <string name="shortcut_phrasebook">Phrasebook</string>
+    <string name="shortcut_phrasebook_long">Open phrasebook</string>
+    <string name="shortcut_flashcards">Cards</string>
+    <string name="shortcut_flashcards_long">Open flashcards</string>
 </resources>
