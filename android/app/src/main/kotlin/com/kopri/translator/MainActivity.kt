@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -24,6 +25,8 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(engine: FlutterEngine) {
         super.configureFlutterEngine(engine)
+
+        ClipboardFilterBridge.attach(engine)
 
         MethodChannel(engine.dartExecutor.binaryMessenger, "kopri/apk")
             .setMethodCallHandler { call, result ->
@@ -70,6 +73,12 @@ class MainActivity : FlutterActivity() {
                             .putString("clip_to", target)
                             .apply()
 
+                        if (clipboardRunning) {
+                            Log.d("KopriMain", "ClipboardService already running, skipping restart")
+                            result.success(true)
+                            return@setMethodCallHandler
+                        }
+
                         val si =
                             Intent(this, ClipboardService::class.java)
                                 .putExtra("target", target)
@@ -91,6 +100,12 @@ class MainActivity : FlutterActivity() {
 
                     "isClipboardRunning" -> {
                         result.success(clipboardRunning)
+                    }
+
+                    // ═══ НОВЫЙ МЕТОД: игнорировать следующее копирование ═══
+                    "setIgnoreNextClipboard" -> {
+                        ClipboardService.ignoreNextClipboard = true
+                        result.success(true)
                     }
 
                     else -> {

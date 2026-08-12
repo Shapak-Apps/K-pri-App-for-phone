@@ -51,6 +51,8 @@ KP_EXPORT int32_t pn_tm_lookup(const char* src, const char* from, const char* to
                                char* out_dst, int32_t out_sz);
 KP_EXPORT int32_t pn_tm_clear();
 
+KP_EXPORT int32_t pn_clip_classify(const char* text);
+
 #ifdef __cplusplus
 }
 #endif

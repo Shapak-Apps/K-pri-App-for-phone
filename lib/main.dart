@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'core/controllers/app_settings_controller.dart';
+import 'core/native/clip_filter_native.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/app_shell.dart';
 import 'core/widgets/splash_screen.dart';
@@ -36,14 +37,32 @@ Future<void> main() async {
       final id = (m['id'] as int?) ?? DateTime.now().millisecondsSinceEpoch;
       if (text.isNotEmpty) incomingText.value = IncomingText(text, id);
     }
-    // тёплый старт: переключаем вкладку на лету
     if (call.method == 'openScreen' && call.arguments is int) {
       openScreen.value = call.arguments as int;
     }
     return null;
   });
 
-  // ═══ КЛЮЧЕВОЙ ФИКС: читаем shortcut ДО runApp ═══
+  const clipChannel = MethodChannel('kopri/clip_filter');
+  clipChannel.setMethodCallHandler((call) async {
+    if (call.method == 'classify' && call.arguments is Map) {
+      final m = Map<String, dynamic>.from(call.arguments as Map);
+      final id = m['id'] as int;
+      final text = (m['text'] as String?) ?? '';
+      final skip = ClipFilterNative.instance.classify(text);
+      final should = skip == ClipSkip.translatable;
+      debugPrint(
+          '[clip_filter] text="${text.length > 40 ? text.substring(0, 40) : text}" → $skip → should=$should');
+      try {
+        await clipChannel.invokeMethod('filterResult', {
+          'id': id,
+          'should': should,
+        });
+      } catch (_) {}
+    }
+    return null;
+  });
+
   int? pendingScreen;
   try {
     pendingScreen = await intentChannel.invokeMethod<int>('getPendingScreen');
@@ -71,7 +90,7 @@ Future<void> main() async {
       child: KopriApp(
         repo: repo,
         settings: settings,
-        initialScreen: pendingScreen ?? 0, // ← передаём индекс шортката
+        initialScreen: pendingScreen ?? 0,
       ),
     ),
   );

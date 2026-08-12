@@ -5,6 +5,7 @@
 #include "csv_engine.h"
 #include "image_fast.h"
 #include "translate_engine.h"
+#include "clip_filter.h"
 #include "tm_engine.h"
 #include <cstring>
 #include <string>
@@ -189,4 +190,14 @@ KP_EXPORT int32_t pn_tm_lookup(const char* src, const char* from, const char* to
 KP_EXPORT int32_t pn_tm_clear() {
     return kp::tm_clear();
 }
+
+// ═══════════════════════════════════════════════════════════
+// CLIPBOARD FILTER
+// ═══════════════════════════════════════════════════════════
+
+KP_EXPORT int32_t pn_clip_classify(const char* text) {
+    if (!text) return (int32_t)kp::ClipSkip::EMPTY;
+    return (int32_t)kp::classify(text);
+}
+
 }

@@ -239,13 +239,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final p = ProfileRepository.instance;
     final s = _stats();
 
-    bool wasRunning = false;
     try {
-      final running = await _apkChannel.invokeMethod<bool>('isClipboardRunning');
-      wasRunning = running == true;
-      if (wasRunning) {
-        await _apkChannel.invokeMethod('stopClipboard');
-      }
+      await _apkChannel.invokeMethod('setIgnoreNextClipboard');
     } catch (_) {}
 
     final text = 'Köpri — ${p.name.isEmpty ? l10n.t('profile_user_default') : p.name}\n'
@@ -256,16 +251,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     await Clipboard.setData(ClipboardData(text: text));
     _snack(l10n.t('copied'));
-
-    if (wasRunning) {
-      await Future.delayed(const Duration(milliseconds: 800));
-      try {
-        await _apkChannel.invokeMethod('startClipboard', {
-          'source': context.settings.defaultFrom,
-          'target': context.settings.defaultTo,
-        });
-      } catch (_) {}
-    }
   }
 
   void _feedback() async {

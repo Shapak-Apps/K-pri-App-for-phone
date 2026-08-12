@@ -34,7 +34,11 @@ class ClipboardService :
         private const val TAG = "KopriClip"
         private const val NOTIF_ID = 911
         private const val CHANNEL = "kopri_clipboard"
+
+        var ignoreNextClipboard = false
     }
+
+    private var instanceCount = 0
 
     private lateinit var clipboard: ClipboardManager
     private lateinit var wm: WindowManager
@@ -50,13 +54,19 @@ class ClipboardService :
     private var target = "ru"
     private var debounce: Runnable? = null
 
-    // ── Флаг активности: если false, сервис не реагирует на буфер ──
     private var isActive = true
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
+        instanceCount++
+        if (instanceCount > 1) {
+            Log.e(TAG, "Multiple ClipboardService instances detected! Stopping duplicate.")
+            stopSelf()
+            return
+        }
+
         clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         tts = TextToSpeech(this, this)
@@ -81,7 +91,6 @@ class ClipboardService :
         val pause = intent?.getBooleanExtra("pause", false) ?: false
         isActive = !pause
 
-        // Сохраняем состояние
         getSharedPreferences("kopri_prefs", MODE_PRIVATE)
             .edit()
             .putBoolean("clip_active", isActive)
@@ -97,6 +106,7 @@ class ClipboardService :
     }
 
     override fun onDestroy() {
+        instanceCount--
         MainActivity.clipboardRunning = false
         hideBubble()
         tts?.stop()
@@ -104,10 +114,10 @@ class ClipboardService :
         super.onDestroy()
     }
 
-    // ── буфер изменился ──────────────────────────────────────────
     private fun onCopy() {
-        if (!isActive) {
-            Log.d(TAG, "clipboard changed but service is paused, ignoring")
+        if (ignoreNextClipboard) {
+            ignoreNextClipboard = false
+            Log.d(TAG, "clipboard change ignored (flag was set)")
             return
         }
 
@@ -115,14 +125,26 @@ class ClipboardService :
             skipNext = false
             return
         }
+        if (!isActive) {
+            Log.d(TAG, "clipboard changed but service is paused, ignoring")
+            return
+        }
         val text = readClipboard() ?: return
         if (text.isEmpty() || text == lastText || text.length > 600) return
         lastText = text
         Log.w(TAG, "clipboard changed: ${text.take(30)}...")
 
-        debounce?.let { handler.removeCallbacks(it) }
-        debounce = Runnable { translateAndShow(text) }
-        handler.postDelayed(debounce!!, 600)
+        ClipboardFilterBridge.shouldTranslate(text) { should ->
+            if (!should) {
+                Log.w(TAG, "clipboard filter: skipped (non-translatable) → hiding bubble")
+                handler.post { hideBubble() }  // ═══ СКРЫВАЕМ ПУЗЫРЁК ═══
+                return@shouldTranslate
+            }
+            Log.d(TAG, "clipboard filter: translatable → showing bubble")
+            debounce?.let { handler.removeCallbacks(it) }
+            debounce = Runnable { translateAndShow(text) }
+            handler.postDelayed(debounce!!, 600)
+        }
     }
 
     private fun readClipboard(): String? =
@@ -137,17 +159,22 @@ class ClipboardService :
         }
 
     private fun onBubbleTap() {
-        val text = readClipboard()
-        Log.w(TAG, "bubble tap, clipboard: ${text?.take(30)}")
+        val text = readClipboard() ?: return
+        if (text.isEmpty()) return
 
-        if (!text.isNullOrEmpty() && text != lastText) {
-            lastText = text
-            translateAndShow(text)
-        } else if (!text.isNullOrEmpty()) {
-            showLastTranslation(text)
-        } else {
-            if (lastText != null) {
-                showLastTranslation(lastText!!)
+        Log.w(TAG, "bubble tap, clipboard: ${text.take(30)}")
+
+        ClipboardFilterBridge.shouldTranslate(text) { should ->
+            if (!should) {
+                Log.w(TAG, "bubble tap: skipped (non-translatable)")
+                return@shouldTranslate
+            }
+
+            if (text != lastText) {
+                lastText = text
+                translateAndShow(text)
+            } else {
+                showLastTranslation(text)
             }
         }
     }
