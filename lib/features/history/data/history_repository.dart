@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'history_models.dart';
+import '../../translate/data/tm_service.dart';
 
 class HistoryRepository extends ChangeNotifier {
   static const _boxName = 'history';
@@ -9,6 +11,15 @@ class HistoryRepository extends ChangeNotifier {
 
   Future<void> init() async {
     _box = await Hive.openBox(_boxName);
+    unawaited(_rebuildTm());
+  }
+
+  Future<void> _rebuildTm() async {
+    try {
+      await TmService.instance.rebuild(getAll());
+    } catch (e) {
+      debugPrint('[tm] rebuild error: $e');
+    }
   }
 
   Future<void> add({
@@ -27,6 +38,12 @@ class HistoryRepository extends ChangeNotifier {
       timestamp: DateTime.now(),
     );
     await _box.put(entry.id, entry.toMap());
+    TmService.instance.add(
+      src: entry.source,
+      dst: entry.result,
+      from: entry.from,
+      to: entry.to,
+    );
     notifyListeners();
   }
 
@@ -69,6 +86,7 @@ class HistoryRepository extends ChangeNotifier {
   Future<int> clear() async {
     final n = _box.length;
     await _box.clear();
+    TmService.instance.clear();
     notifyListeners();
     return n;
   }
@@ -106,7 +124,10 @@ class HistoryRepository extends ChangeNotifier {
         n++;
       } catch (_) {}
     }
-    if (n > 0) notifyListeners();
+    if (n > 0) {
+      notifyListeners();
+      unawaited(_rebuildTm());
+    }
     return n;
   }
 }

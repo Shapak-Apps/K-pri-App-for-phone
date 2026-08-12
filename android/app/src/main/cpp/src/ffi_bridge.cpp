@@ -5,7 +5,7 @@
 #include "csv_engine.h"
 #include "image_fast.h"
 #include "translate_engine.h"
-
+#include "tm_engine.h"
 #include <cstring>
 #include <string>
 #include <vector>
@@ -167,4 +167,26 @@ KP_EXPORT int32_t pn_flag_emoji(const char* cc, char* out, int32_t out_sz) {
     return (int32_t)r.size();
 }
 
-} // extern "C"
+// ═══════════════════════════════════════════════════════════
+// TRANSLATION MEMORY
+// ═══════════════════════════════════════════════════════════
+
+KP_EXPORT int32_t pn_tm_rebuild(int32_t n, const char** srcs, const char** dsts,
+                                const char** froms, const char** tos) {
+    return kp::tm_rebuild(n, srcs, dsts, froms, tos);
+}
+
+KP_EXPORT int32_t pn_tm_add(const char* src, const char* dst,
+                            const char* from, const char* to) {
+    return kp::tm_add(src, dst, from, to);
+}
+
+KP_EXPORT int32_t pn_tm_lookup(const char* src, const char* from, const char* to,
+                               char* out_dst, int32_t out_sz) {
+    return kp::tm_lookup(src, from, to, out_dst, out_sz);
+}
+
+KP_EXPORT int32_t pn_tm_clear() {
+    return kp::tm_clear();
+}
+}

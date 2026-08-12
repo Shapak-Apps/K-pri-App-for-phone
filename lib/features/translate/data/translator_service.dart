@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 import 'native/translate_ffi.dart';
 import 'offline_translator.dart';
+import 'tm_service.dart';
 
 class TranslationResult {
   final String text;
@@ -56,6 +58,16 @@ class OnlineTranslator implements TranslatorService {
     final src = _nffi.normalize(text) ?? text.trim();
     if (src.isEmpty) return const TranslationResult(text: '');
     if (from == to && from != 'auto') return TranslationResult(text: src);
+
+    // ═══ TM: мгновенный хит ПЕРЕД любым переводом ═══
+    final tm = TmService.instance;
+    if (tm.isAvailable && from != 'auto') {
+      final hit = tm.lookup(src, from: from, to: to);
+      if (hit != null) {
+        debugPrint('[tm] hit score=${hit.score}');
+        return TranslationResult(text: hit.dst, detected: null);
+      }
+    }
 
     if (src.length > 1800) return _translateChunked(src, from, to);
     return _translateSingle(src, from, to);

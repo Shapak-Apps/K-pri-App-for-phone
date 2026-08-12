@@ -17,6 +17,7 @@ add_library(profile_native SHARED
         src/image_fast.cpp
         src/translate_engine.cpp
         src/splash_engine.cpp
+        src/tm_engine.cpp
 )
 
 target_compile_options(profile_native PRIVATE -O3 -ffast-math)

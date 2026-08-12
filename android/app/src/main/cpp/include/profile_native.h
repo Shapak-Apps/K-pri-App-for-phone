@@ -42,6 +42,15 @@ KP_EXPORT int32_t pn_split_chunks(const char* text, int32_t max, char* out, int3
 KP_EXPORT int32_t pn_parse_gtx(const char* json, char* out_text, int32_t text_sz, char* out_det, int32_t det_sz);
 KP_EXPORT int32_t pn_flag_emoji(const char* cc, char* out, int32_t out_sz);
 
+// ═══ Translation Memory ═══
+KP_EXPORT int32_t pn_tm_rebuild(int32_t n, const char** srcs, const char** dsts,
+                                const char** froms, const char** tos);
+KP_EXPORT int32_t pn_tm_add(const char* src, const char* dst,
+                            const char* from, const char* to);
+KP_EXPORT int32_t pn_tm_lookup(const char* src, const char* from, const char* to,
+                               char* out_dst, int32_t out_sz);
+KP_EXPORT int32_t pn_tm_clear();
+
 #ifdef __cplusplus
 }
 #endif
