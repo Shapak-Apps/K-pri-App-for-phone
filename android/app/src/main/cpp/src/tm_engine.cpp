@@ -19,13 +19,13 @@ namespace kp {
     namespace {
 
         struct Entry {
-            std::string key;   // "from>to|lower(normalize(src))"
-            std::string dst;   // оригинальный перевод (не lowercased)
-            std::string pair;  // "from>to"
+            std::string key;
+            std::string dst;
+            std::string pair;
         };
 
         struct State {
-            std::unordered_map<std::string, std::string> exact;  // key -> dst
+            std::unordered_map<std::string, std::string> exact;
             std::vector<Entry> fuzzy;
         };
 
@@ -34,10 +34,6 @@ namespace kp {
 
         constexpr size_t MAX_TOTAL = 10000;
 
-// ASCII + базовая UTF-8 lower. Для нашей задачи достаточно:
-// ключ формируется из нормализованного текста, и мы сравниваем побайтово.
-// Dart-сторона передаёт уже lowercased текст, поэтому здесь lower
-// нужен только для страховки (если Dart что-то пропустил).
         static std::string to_lower_ascii(const std::string& s) {
             std::string out;
             out.reserve(s.size());
@@ -47,8 +43,6 @@ namespace kp {
             return out;
         }
 
-// Ключ поиска.
-// src_norm должен быть уже lowercased (Dart присылает готовый).
         static std::string make_key(const std::string& src_norm,
                                     const std::string& from,
                                     const std::string& to) {
@@ -62,7 +56,6 @@ namespace kp {
             return k;
         }
 
-// Левенштейн с одной строкой DP.
         static int levenshtein(const std::string& a, const std::string& b) {
             const size_t m = a.size();
             const size_t n = b.size();
@@ -85,7 +78,7 @@ namespace kp {
             return prev[n];
         }
 
-    } // namespace
+    }
 
     int32_t tm_rebuild(int32_t n, const char** srcs, const char** dsts,
                        const char** froms, const char** tos) {
@@ -105,7 +98,6 @@ namespace kp {
                 std::string key = make_key(src_norm, froms[i], tos[i]);
                 std::string pair = std::string(froms[i]) + ">" + tos[i];
 
-                // Последний wins (перезаписывает более старые с тем же ключом)
                 fresh->exact[key] = dsts[i];
                 Entry e;
                 e.key = std::move(key);
@@ -181,13 +173,11 @@ namespace kp {
         {
             std::lock_guard<std::mutex> lk(g_mu);
 
-            // 1) Точный хит O(1)
             auto it = g_state->exact.find(key);
             if (it != g_state->exact.end()) {
                 hit_dst = &it->second;
                 score = 1000;
             } else {
-                // 2) Fuzzy: только по той же паре языков, с ранним отсевом по длине.
                 const size_t slen = src_norm.size();
                 const size_t max_delta = (slen * 25) / 100 + 2; // допуск ±25% + 2
 
@@ -196,12 +186,10 @@ namespace kp {
 
                 for (const auto& e : g_state->fuzzy) {
                     if (e.pair != pair) continue;
-                    // длина ключа: "from>to|" + src_norm. Сравниваем только src часть.
-                    const size_t prefix = pair.size() + 1; // "from>to|"
+                    const size_t prefix = pair.size() + 1;
                     if (e.key.size() < prefix) continue;
                     const size_t e_slen = e.key.size() - prefix;
 
-                    // Быстрый отсев по длине (экономит до 90% проверок)
                     if (e_slen > slen + max_delta || slen > e_slen + max_delta) continue;
                     if (e_slen == 0) continue;
 
@@ -214,7 +202,7 @@ namespace kp {
                     if (s > best) {
                         best = s;
                         best_dst = &e.dst;
-                        if (best == 1000) break; // не может быть лучше
+                        if (best == 1000) break;
                     }
                 }
                 if (best >= 800 && best_dst) {
@@ -253,4 +241,4 @@ namespace kp {
         return 0;
     }
 
-} // namespace kp
+}

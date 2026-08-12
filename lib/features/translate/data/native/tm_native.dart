@@ -41,7 +41,6 @@ class TmNative {
   bool _ok = false;
   bool get available => _ok;
 
-  // 4 МБ буфер для результата — хватит на любой перевод
   late final Pointer<Uint8> _lookupBuf = calloc<Uint8>(4 * 1024 * 1024);
 
   int get lookupBufSize => 4 * 1024 * 1024;

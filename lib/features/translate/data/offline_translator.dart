@@ -11,8 +11,6 @@ class OfflineTranslator {
   final _models = OnDeviceTranslatorModelManager();
   final _langId = LanguageIdentifier(confidenceThreshold: 0.5);
 
-  /// Языки, которые ML Kit умеет переводить оффлайн (BCP-коды).
-  /// Туркменского (tk) здесь НЕТ — он всегда идёт в онлайн.
   static const Set<String> supported = {
     'af',
     'sq',
@@ -169,7 +167,7 @@ class OfflineTranslator {
     String? detected;
 
     if (from == 'auto') {
-      if (_tkChars.hasMatch(text)) return null; // туркменский → онлайн
+      if (_tkChars.hasMatch(text)) return null;
       detected = await detect(text);
       if (detected == null || !_supported(detected)) return null;
       src = detected;

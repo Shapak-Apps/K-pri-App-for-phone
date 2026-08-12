@@ -176,7 +176,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
       if (context.settings.autoSaveHistory) {
         widget.repo.add(source: text, result: res.text, from: saved, to: _to);
       }
-      // ← XP / стрик / дневная цель (работает всегда)
       ProfileRepository.instance.onTranslationDone();
       try {
         await HomeWidget.saveWidgetData<String>('last_source', text);
@@ -238,7 +237,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
           to: _to,
         );
       }
-      // ← NEW: XP / стрик / дневная цель
       ProfileRepository.instance.onTranslationDone();
       if (context.settings.autoSpeak) {
         _tts.speak(res.text, _to);
