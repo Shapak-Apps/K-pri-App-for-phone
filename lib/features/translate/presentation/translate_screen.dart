@@ -42,6 +42,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
   TranslationState _state = const IdleState();
   bool _loading = false, _listening = false, _suppress = false;
   bool _voiceAnalyzing = false;
+  bool _approx = false;
   Timer? _debounce, _idleT;
   String _base = '';
 
@@ -161,6 +162,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
       return;
     }
     if (_loading) return;
+    _approx = false;
     setState(() {
       _loading = true;
       _state = const LoadingState();
@@ -171,6 +173,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
       final saved = _from == 'auto' ? (res.detected ?? 'auto') : _from;
       setState(() {
         _loading = false;
+        _approx = res.approx;
         _state = SuccessState(res.text, res.detected);
       });
       if (context.settings.autoSaveHistory) {
@@ -227,6 +230,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
       _suppress = false;
       setState(() {
         _voiceAnalyzing = false;
+        _approx = res.approx;
         _state = SuccessState(res.text, res.detected);
       });
       if (context.settings.autoSaveHistory) {
@@ -351,6 +355,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.c;
     final auto = switch (_state) {
       SuccessState(detected: final d) when _from == 'auto' => d,
       _ => null,
@@ -418,6 +423,32 @@ class _TranslateScreenState extends State<TranslateScreen> {
                   onTap: _translate,
                 ),
                 const SizedBox(height: 14),
+                if (_approx)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: c.warn.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: c.warn.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded, color: c.warn, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            switch (context.settings.lang.name) {
+                              'ru' => '≈ Приблизительный перевод',
+                              'tk' => '≈ Takmyny terjime',
+                              _ => '≈ Approximate translation',
+                            },
+                            style: TextStyle(color: c.warn, fontSize: 11, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ResultCard(state: shownState, onSpeak: _speak),
               ],
             ),

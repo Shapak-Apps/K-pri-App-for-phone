@@ -52,7 +52,7 @@ namespace kj {
 
                 if (i >= n) return out;
 
-                ++i; // opening quote
+                ++i;
 
                 size_t start = i;
 
@@ -256,7 +256,7 @@ namespace kj {
             }
         };
 
-    } // namespace
+    }
 
     const ValuePtr& Value::get(const std::string& k) const {
         static const ValuePtr null_v = std::make_shared<Value>();
@@ -306,4 +306,4 @@ namespace kj {
         return empty;
     }
 
-} // namespace kj
+}

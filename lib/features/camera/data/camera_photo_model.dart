@@ -1,4 +1,3 @@
-/// Снимок с распознанным текстом и переводами.
 class CameraPhoto {
   final String id;
   final String path;

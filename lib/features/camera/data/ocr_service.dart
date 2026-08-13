@@ -1,17 +1,16 @@
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tesseract_ocr/flutter_tesseract_ocr.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
+import 'ocr_native.dart';
 
 class OcrService {
   static const _assetDir = 'assets/tessdata/';
-  static const _goodScore = 0.7;
-
-  static const _maxRuns = 16;
+  static const _goodScore = 0.72;
+  static const _stopScore = 0.85;
+  static const _maxRuns = 18;
 
   static const _families = <(String, List<String>)>[
     ('mix', ['rus', 'eng']),
@@ -19,7 +18,11 @@ class OcrService {
     ('cyr', ['kaz', 'uzb_cyrl', 'kir', 'tgk', 'mon', 'bul', 'srp', 'mkd']),
     ('ara', ['ara', 'fas', 'urd', 'heb', 'pus']),
     ('cjk', ['chi_sim', 'chi_tra', 'jpn', 'kor']),
-    ('dev', ['hin', 'tha', 'tam', 'tel', 'ben', 'nep', 'pan', 'guj', 'mar', 'kan', 'mal', 'sin', 'khm', 'lao', 'mya']),
+    ('dev', [
+      'hin', 'tha', 'tam', 'tel', 'ben',
+      'nep', 'pan', 'guj', 'mar', 'kan',
+      'mal', 'sin', 'khm', 'lao', 'mya',
+    ]),
     ('lat', ['eng', 'tur', 'deu', 'fra', 'spa', 'ita', 'por', 'aze', 'uzb_latn', 'tuk']),
   ];
 
@@ -41,155 +44,147 @@ class OcrService {
 
   Future<String> recognize(String path) async {
     var runs = 0;
-    var globalBest = '';
-    var globalScore = 0.0;
-
     final available = await _loadAvailable();
-    final hasCyrillic = available.contains('rus');
+    final hasCyr = available.contains('rus');
 
-    // ── 1) ML Kit — латиница ────────────────────────────────────
-    var gmsOk = true;
-    var latinSeen = false;
+    var mlText = '';
+    var mlScore = 0.0;
+    var gmsOk = false;
+    if (!hasCyr) {
+      try {
+        _latin ??= TextRecognizer(script: TextRecognitionScript.latin);
+        final res = await _latin!.processImage(InputImage.fromFile(File(path)));
+        mlText = res.text.trim();
+        mlScore = _score(mlText, 'lat');
+        gmsOk = true;
+        if (available.isEmpty) return mlText;
+        if (mlScore >= _goodScore) return mlText;
+      } catch (e) {
+        debugPrint('[ocr] ML Kit unavailable: $e');
+      }
+    }
+
+    final dir = await getTemporaryDirectory();
+    final tag = DateTime.now().microsecondsSinceEpoch;
+    final base = '${dir.path}/ocrb_$tag.png';
+    final prepRes = await compute(ocrPrepWork, [path, base, 2200, 140]);
+    if (prepRes != 0) {
+      debugPrint('[ocr] C++ prep failed: $prepRes');
+      return mlText;
+    }
+    debugPrint('[ocr] C++ prep OK');
+
+    final temps = <String>[base];
     try {
-      _latin ??= TextRecognizer(script: TextRecognitionScript.latin);
-      final res = await _latin!.processImage(InputImage.fromFile(File(path)));
-      final t = res.text.trim();
-      final s = _score(t, 'lat');
+      final scanLang = hasCyr
+          ? (available.contains('eng') ? 'rus+eng' : 'rus')
+          : (available.contains('eng') ? 'eng' : available.first);
+      final scoreScript = hasCyr ? 'mix' : 'lat';
 
-      if (s >= _goodScore && !hasCyrillic) {
-        debugPrint('[ocr] ML Kit latin OK (no cyr tessdata): ${t.length} chars');
-        return t;
-      }
-      if (s >= 0.25) latinSeen = true;
-      if (t.isNotEmpty && s > globalScore) {
-        globalScore = s;
-        globalBest = t;
-      }
-    } catch (e) {
-      gmsOk = false;
-      debugPrint('[ocr] ML Kit unavailable: $e');
-    }
+      var globalBest = '';
+      var globalScore = -1.0;
+      var globalLang = scanLang;
+      var bestAngle = 0;
+      var bestWork = base;
 
-    // ── 2) Tesseract с авто-поворотом ───────────────────────────
-    if (available.isEmpty) return globalBest;
-
-    final base = await _loadBase(path);
-    if (base == null) return globalBest;
-
-    final order = <(String, List<String>)>[..._families];
-
-    if (gmsOk && !latinSeen) {
-      order.removeWhere((f) => f.$1 == 'lat');
-    }
-
-    if (!gmsOk) {
-      final lat = order.where((f) => f.$1 == 'lat').toList();
-      order.removeWhere((f) => f.$1 == 'lat');
-      final mixIdx = order.indexWhere((f) => f.$1 == 'mix');
-      order.insertAll(mixIdx + 1, lat);
-    }
-
-    for (final fam in order) {
-      if (runs >= _maxRuns) break;
-      final used = fam.$2.where(available.contains).toList();
-      if (used.isEmpty) continue;
-      final lang = used.join('+');
-
-      for (final angle in const [0, 90, 180, 270]) {
+      for (final psm in const ['6', '11']) {
         if (runs >= _maxRuns) break;
+        runs++;
+        final text = (await _runTess(base, scanLang, psm)).trim();
+        final s = _score(text, scoreScript);
+        debugPrint('[ocr] 0° psm$psm → ${s.toStringAsFixed(2)}, ${text.length} chars');
+        if (s > globalScore) {
+          globalScore = s;
+          globalBest = text;
+          globalLang = scanLang;
+        }
+        if (s >= _goodScore) break;
+      }
 
-        final image = angle == 0
-            ? base
-            : img.copyRotate(base, angle: angle, interpolation: img.Interpolation.linear);
-        final tmp = await _tmpEncode(image);
-        try {
+      if (globalScore < _goodScore) {
+        for (final angle in const [90, 180, 270]) {
+          if (runs >= _maxRuns || globalScore >= _stopScore) break;
+          final img = '${dir.path}/ocrb_${tag}_r$angle.png';
+          if (await compute(ocrRotateWork, [base, img, angle]) != 0) continue;
+          temps.add(img);
           runs++;
-          final text = (await _runTess(tmp, lang)).trim();
-          final s = _score(text, fam.$1);
-          debugPrint('[ocr] ${fam.$1}($lang) @${angle}° → score ${s.toStringAsFixed(2)}, ${text.length} chars');
-
+          final text = (await _runTess(img, scanLang, '6')).trim();
+          final s = _score(text, scoreScript);
+          debugPrint('[ocr] angle $angle → ${s.toStringAsFixed(2)}, ${text.length} chars');
           if (s > globalScore) {
             globalScore = s;
             globalBest = text;
+            bestAngle = angle;
+            bestWork = img;
+            globalLang = scanLang;
           }
-          if (s >= _goodScore) return text;
-
-          if (angle == 0 && (text.isEmpty || s < 0.08)) break;
-        } finally {
-          try {
-            await File(tmp).delete();
-          } catch (_) {}
+          if (s >= _stopScore) break;
         }
       }
-    }
 
-    debugPrint('[ocr] done, best score ${globalScore.toStringAsFixed(2)}');
-    return globalBest;
-  }
-
-  // ── Препроцессинг: КРУПНЕЕ + ровное освещение ────────────────
-  Future<img.Image?> _loadBase(String path) async {
-    try {
-      final bytes = await File(path).readAsBytes();
-      var image = img.decodeImage(bytes);
-      if (image == null) return null;
-
-      image = img.bakeOrientation(image);
-
-      const target = 2600.0;
-      const maxSide = 3200.0;
-      final longest = image.width > image.height
-          ? image.width.toDouble()
-          : image.height.toDouble();
-
-      if (longest < target) {
-        final scale = (target / longest).clamp(1.0, 3.0);
-        image = img.copyResize(
-          image,
-          width: (image.width * scale).round(),
-          height: (image.height * scale).round(),
-          interpolation: img.Interpolation.cubic,
-        );
-      } else if (longest > maxSide) {
-        final scale = maxSide / longest;
-        image = img.copyResize(
-          image,
-          width: (image.width * scale).round(),
-          height: (image.height * scale).round(),
-          interpolation: img.Interpolation.linear,
-        );
+      final order = <(String, List<String>)>[..._families];
+      if (gmsOk && mlScore >= 0.5) {
+        order.removeWhere((f) => f.$1 == 'lat');
       }
 
-      image = img.grayscale(image);
-      image = img.adjustColor(image, contrast: 1.35, brightness: 1.05);
+      for (final fam in order) {
+        if (runs >= _maxRuns || globalScore >= _stopScore) break;
+        final used = fam.$2.where(available.contains).toList();
+        if (used.isEmpty) continue;
+        final lang = used.join('+');
+        if (lang == globalLang) continue;
+        runs++;
+        final text = (await _runTess(bestWork, lang, '6')).trim();
+        final s = _score(text, fam.$1);
+        debugPrint('[ocr] ${fam.$1} @${bestAngle}° → ${s.toStringAsFixed(2)}, ${text.length} chars');
+        if (s > globalScore) {
+          globalScore = s;
+          globalBest = text;
+          globalLang = lang;
+        }
+      }
 
-      debugPrint('[ocr] base: ${image.width}x${image.height}');
-      return image;
-    } catch (e) {
-      debugPrint('[ocr] loadBase error: $e');
-      return null;
+      if (globalScore < _goodScore && runs < _maxRuns) {
+        runs++;
+        final text = (await _runTess(bestWork, globalLang, '3')).trim();
+        final s = _score(text, scoreScript);
+        debugPrint('[ocr] psm3 fallback @${bestAngle}° → ${s.toStringAsFixed(2)}, ${text.length} chars');
+        if (s > globalScore) {
+          globalScore = s;
+          globalBest = text;
+        }
+      }
+
+      debugPrint('[ocr] done, best ${globalScore.toStringAsFixed(2)}');
+
+      if (!hasCyr) {
+        if (globalBest.trim().isEmpty && mlText.isNotEmpty) return mlText;
+        if (globalScore < 0.3 && mlScore > globalScore && mlText.isNotEmpty) {
+          return mlText;
+        }
+      }
+      return globalBest;
+    } finally {
+      for (final t in temps) {
+        try {
+          await File(t).delete();
+        } catch (_) {}
+      }
     }
   }
 
-  Future<String> _tmpEncode(img.Image image) async {
-    final dir = await getTemporaryDirectory();
-    final p = '${dir.path}/ocr_${DateTime.now().microsecondsSinceEpoch}.jpg';
-    await File(p).writeAsBytes(img.encodeJpg(image, quality: 92));
-    return p;
-  }
-
-  Future<String> _runTess(String path, String lang) async {
+  Future<String> _runTess(String path, String lang, String psm) async {
     try {
       return await FlutterTesseractOcr.extractText(
         path,
         language: lang,
         args: {
-          'psm': '3',
+          'psm': psm,
           'preserve_interword_spaces': '1',
         },
       );
     } catch (e) {
-      debugPrint('[ocr] tess($lang) error: $e');
+      debugPrint('[ocr] tess($lang psm $psm) error: $e');
       return '';
     }
   }
@@ -230,7 +225,40 @@ class OcrService {
 
     final purity = target / letters;
     final density = letters / t.length;
-    return purity * (density > 0.5 ? 1.0 : density / 0.5);
+    final densityF = density > 0.5 ? 1.0 : density / 0.5;
+
+    var pure = 0.0;
+    for (final w in t.split(RegExp(r'\s+'))) {
+      var wc = 0, wl = 0;
+      for (final r in w.runes) {
+        if (r >= 0x0400 && r <= 0x04FF) {
+          wc++;
+        } else if ((r >= 0x41 && r <= 0x5A) || (r >= 0x61 && r <= 0x7A)) {
+          wl++;
+        }
+      }
+      final n = wc + wl;
+      if (n == 0) continue;
+      final dom = wc > wl ? wc : wl;
+      pure += (dom / n >= 0.75) ? n : n * 0.25;
+    }
+    final consistency = letters > 0 ? (pure / letters).clamp(0.0, 1.0) : 1.0;
+
+    var natural = 1.0;
+    if ((script == 'cyr' || script == 'mix') && cyr > 0) {
+      const common = 'еоаинстрвлкмдпуыьгзячйхб';
+      var c = 0;
+      for (final r in t.runes) {
+        if (r >= 0x0400 && r <= 0x04FF &&
+            common.contains(String.fromCharCode(r))) {
+          c++;
+        }
+      }
+      final ratio = c / cyr;
+      natural = 0.6 + 0.4 * (ratio > 0.7 ? 1.0 : ratio / 0.7);
+    }
+
+    return purity * densityF * (0.5 + 0.5 * consistency) * natural;
   }
 
   void dispose() {

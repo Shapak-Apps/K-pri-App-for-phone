@@ -7,6 +7,7 @@
 #include "translate_engine.h"
 #include "clip_filter.h"
 #include "tm_engine.h"
+#include "mt_tk_engine.h"
 #include <cstring>
 #include <string>
 #include <vector>
@@ -200,4 +201,13 @@ KP_EXPORT int32_t pn_clip_classify(const char* text) {
     return (int32_t)kp::classify(text);
 }
 
+// ═══ MT TURKMEN CORE ═══
+KP_EXPORT int32_t pn_mt_load(int32_t n, const char** ru, const char** en, const char** tk) {
+    return kp::mt_load(n, ru, en, tk);
+}
+
+KP_EXPORT int32_t pn_mt_translate(const char* text, const char* from,
+                                  char* out, int32_t out_sz, int32_t* quality) {
+    return kp::mt_translate(text, from, out, out_sz, quality);
+}
 }

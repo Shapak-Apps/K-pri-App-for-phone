@@ -1,15 +1,15 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
+import 'mt_service.dart';
 import 'native/translate_ffi.dart';
 import 'offline_translator.dart';
-import 'tm_service.dart';
 
 class TranslationResult {
   final String text;
   final String? detected;
-  const TranslationResult({required this.text, this.detected});
+  final bool approx;
+  const TranslationResult({required this.text, this.detected, this.approx = false});
 }
 
 class TranslationFailedException implements Exception {
@@ -59,13 +59,21 @@ class OnlineTranslator implements TranslatorService {
     if (src.isEmpty) return const TranslationResult(text: '');
     if (from == to && from != 'auto') return TranslationResult(text: src);
 
-    // ═══ TM: мгновенный хит ПЕРЕД любым переводом ═══
-    final tm = TmService.instance;
-    if (tm.isAvailable && from != 'auto') {
-      final hit = tm.lookup(src, from: from, to: to);
-      if (hit != null) {
-        debugPrint('[tm] hit score=${hit.score}');
-        return TranslationResult(text: hit.dst, detected: null);
+    if (to == 'tk') {
+      String srcLang = from;
+      if (from == 'auto') srcLang = _detectLang(src, to);
+      if (srcLang == 'tk') {
+        return TranslationResult(text: src, detected: 'tk');
+      }
+      if (srcLang == 'ru' || srcLang == 'en') {
+        final hit = MtService.instance.translate(src, srcLang);
+        if (hit != null) {
+          return TranslationResult(
+            text: hit.text,
+            detected: srcLang,
+            approx: hit.quality == 3,
+          );
+        }
       }
     }
 
@@ -81,13 +89,15 @@ class OnlineTranslator implements TranslatorService {
     final chunks = _nffi.splitChunks(text, 1500) ?? _dartSplit(text, 1500);
     final sb = StringBuffer();
     String? detected;
+    bool anyApprox = false;
     for (final ch in chunks) {
       final r = await _translateSingle(ch, from, to);
       detected ??= r.detected;
+      anyApprox = anyApprox || r.approx;
       if (sb.isNotEmpty) sb.writeln();
       sb.write(r.text);
     }
-    return TranslationResult(text: sb.toString(), detected: detected);
+    return TranslationResult(text: sb.toString(), detected: detected, approx: anyApprox);
   }
 
   List<String> _dartSplit(String text, int max) {
@@ -112,7 +122,6 @@ class OnlineTranslator implements TranslatorService {
       String from,
       String to,
       ) async {
-    // 0) Оффлайн (ML Kit)
     try {
       final off = await OfflineTranslator.instance
           .translate(src, from: from, to: to)

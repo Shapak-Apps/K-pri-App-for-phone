@@ -19,6 +19,7 @@ add_library(profile_native SHARED
         src/splash_engine.cpp
         src/tm_engine.cpp
         src/clip_filter.cpp
+        src/mt_tk_engine.cpp
 )
 
 target_compile_options(profile_native PRIVATE -O3 -ffast-math)
