@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 import 'core/controllers/app_settings_controller.dart';
 import 'core/native/clip_filter_native.dart';
 import 'core/theme/app_theme.dart';
