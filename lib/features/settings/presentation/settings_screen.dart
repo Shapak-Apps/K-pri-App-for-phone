@@ -546,7 +546,6 @@ class SettingsScreen extends StatelessWidget {
     if (context.mounted) _snack(context, '${l10n.t('photos_cleared')} · $n');
   }
 
-  // ───────────────────────── JSON EXPORT ─────────────────────────
   Future<void> _exportFile(BuildContext context) async {
     final l10n = context.settings.l10n;
 
@@ -607,7 +606,6 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  // ───────────────────────── JSON IMPORT ─────────────────────────
   Future<void> _importClipboard(BuildContext context) async {
     final l10n = context.settings.l10n;
     final raw = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
@@ -648,7 +646,6 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-// ───────────────────────── building blocks ─────────────────────────
 
 class _OfflineModelsSection extends StatefulWidget {
   const _OfflineModelsSection({super.key});
@@ -656,20 +653,47 @@ class _OfflineModelsSection extends StatefulWidget {
   State<_OfflineModelsSection> createState() => _OfflineModelsSectionState();
 }
 
-class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
+class _OfflineModelsSectionState extends State<_OfflineModelsSection>
+    with WidgetsBindingObserver {
   List<String>? _codes;
   bool _busy = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    OfflineTranslator.instance.addListener(_onModelsChanged);
     _load();
+  }
+
+  @override
+  void dispose() {
+    OfflineTranslator.instance.removeListener(_onModelsChanged);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _onModelsChanged() {
+    if (mounted) _load();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _load();
   }
 
   Future<void> _load() async {
     final list = await OfflineTranslator.instance.downloadedModels();
     if (!mounted) return;
     setState(() => _codes = list);
+  }
+
+  Future<void> _refresh() async {
+    if (_busy || !mounted) return;
+    setState(() => _busy = true);
+    await _load();
+    if (!mounted) return;
+    setState(() => _busy = false);
   }
 
   Future<void> _deleteOne(String code) async {
@@ -734,9 +758,24 @@ class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
     final loaded = _codes != null;
 
     final children = <Widget>[
-      Text(
-        l10n.t('offline_models_desc'),
-        style: AppTheme.caption(color: c.sub, size: 12),
+      Row(
+        children: [
+          Expanded(
+            child: Text(
+              l10n.t('offline_models_desc'),
+              style: AppTheme.caption(color: c.sub, size: 12),
+            ),
+          ),
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              icon: Icon(Icons.refresh_rounded, color: c.accent, size: 22),
+              onPressed: _busy ? null : _refresh,
+            ),
+          ),
+        ],
       ),
       const SizedBox(height: 8),
       Text(
@@ -805,6 +844,16 @@ class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
             l10n.t('offline_models_downloaded'),
             style: AppTheme.label(color: c.faint, size: 10),
           ),
+          const Spacer(),
+          if (_busy)
+            SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: c.accent,
+              ),
+            ),
         ],
       ),
       const SizedBox(height: 10),

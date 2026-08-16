@@ -234,34 +234,86 @@ class _OrbitalParticlesPainter extends CustomPainter {
 
 class _TitlePainter extends CustomPainter {
   static const _letters = ['K', 'ö', 'p', 'r', 'i'];
-  final Animation<double> mainCtrl, wavePhase; final List<Color> colors; final TextStyle style;
-  late final List<TextPainter> _painters; late final double _totalWidth; bool _init = false;
+  final Animation<double> mainCtrl, wavePhase;
+  final List<Color> colors;
+  final TextStyle style;
 
-  _TitlePainter({required Listenable repaint, required this.mainCtrl, required this.wavePhase, required this.colors, required this.style}) : super(repaint: repaint);
+  List<TextPainter> _painters = [];
+  double _totalWidth = 0;
+  bool _init = false;
+
+  _TitlePainter({
+    required Listenable repaint,
+    required this.mainCtrl,
+    required this.wavePhase,
+    required this.colors,
+    required this.style,
+  }) : super(repaint: repaint);
 
   void _initPainters() {
-    _painters = []; _totalWidth = 0;
+    _painters = [];
+    _totalWidth = 0;
     for (int i = 0; i < _letters.length; i++) {
-      final tp = TextPainter(text: TextSpan(text: _letters[i], style: style.copyWith(color: colors[i])), textDirection: TextDirection.ltr)..layout();
-      _painters.add(tp); _totalWidth += tp.width;
+      final tp = TextPainter(
+        text: TextSpan(
+          text: _letters[i],
+          style: style.copyWith(color: colors[i]),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      _painters.add(tp);
+      _totalWidth += tp.width;
     }
     _init = true;
   }
 
-  @override void paint(Canvas canvas, Size size) {
+  @override
+  void paint(Canvas canvas, Size size) {
     if (!_init) _initPainters();
-    final mt = mainCtrl.value, wp = wavePhase.value; final native = SplashNative.instance;
+
+    final mt = mainCtrl.value;
+    final wp = wavePhase.value;
+    final native = SplashNative.instance;
+
     if (native.available) native.letters(mt, wp, _letters.length);
-    double x = (size.width - _totalWidth) / 2; final buf = native.letterList;
+
+    double x = (size.width - _totalWidth) / 2;
+    final buf = native.letterList;
+
     for (int i = 0; i < _letters.length; i++) {
-      final tp = _painters[i]; double yOff, scale, rot, wave;
-      if (native.available) { final o = i * 4; yOff = buf[o]; scale = buf[o + 1]; rot = buf[o + 2]; wave = buf[o + 3]; }
-      else { final s = 0.25 + i * 0.08, t = ((mt - s) / 0.25).clamp(0.0, 1.0); scale = 1 + 2.70158 * (t - 1) * (t - 1) * (t - 1) + 1.70158 * (t - 1) * (t - 1); yOff = 50.0 * (1.0 - (1 - (1 - t) * (1 - t) * (1 - t))); rot = (-math.pi / 6) * (1.0 - (1 - (1 - t) * (1 - t))); wave = math.sin(wp + i * 0.5) * 2; }
-      if (scale > 0.001) { canvas.save(); canvas.translate(x + tp.width / 2, size.height / 2 + yOff + wave); canvas.rotate(rot); canvas.scale(scale); tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2)); canvas.restore(); }
+      final tp = _painters[i];
+      double yOff, scale, rot, wave;
+
+      if (native.available) {
+        final o = i * 4;
+        yOff = buf[o];
+        scale = buf[o + 1];
+        rot = buf[o + 2];
+        wave = buf[o + 3];
+      } else {
+        final s = 0.25 + i * 0.08;
+        final t = ((mt - s) / 0.25).clamp(0.0, 1.0);
+        scale = 1 + 2.70158 * (t - 1) * (t - 1) * (t - 1) + 1.70158 * (t - 1) * (t - 1);
+        yOff = 50.0 * (1.0 - (1 - (1 - t) * (1 - t) * (1 - t)));
+        rot = (-math.pi / 6) * (1.0 - (1 - (1 - t) * (1 - t)));
+        wave = math.sin(wp + i * 0.5) * 2;
+      }
+
+      if (scale > 0.001) {
+        canvas.save();
+        canvas.translate(x + tp.width / 2, size.height / 2 + yOff + wave);
+        canvas.rotate(rot);
+        canvas.scale(scale);
+        tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+        canvas.restore();
+      }
       x += tp.width;
     }
   }
-  @override bool shouldRepaint(covariant _TitlePainter old) => false;
+
+  @override
+  bool shouldRepaint(covariant _TitlePainter old) => false;
 }
 
 class _BlackHolePainter extends CustomPainter {

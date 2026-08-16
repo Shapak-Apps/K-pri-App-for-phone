@@ -7,14 +7,17 @@ import '../../../core/theme/app_colors.dart';
 import '../../conversation/data/tts_service.dart';
 import '../../history/data/history_repository.dart';
 import '../../profile/data/profile_repository.dart';
+import '../data/offline_translator.dart';
 import '../data/speech_service.dart';
 import '../data/translator_service.dart';
+import '../data/languages.dart';
 import 'translation_state.dart';
 import 'widgets/input_card.dart';
 import 'widgets/language_selector.dart';
 import 'widgets/result_card.dart';
 import 'widgets/translate_bridge.dart';
 import '../../../core/widgets/analyzing_wave.dart';
+import '../../../core/l10n/app_strings.dart';
 import 'package:flutter/foundation.dart';
 
 class TranslateScreen extends StatefulWidget {
@@ -389,6 +392,9 @@ class _TranslateScreenState extends State<TranslateScreen> {
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               children: [
+                // 🚀 НОВЫЙ БАННЕР: видно скачивание и ошибку оффлайн-модели
+                const _ModelDownloadBanner(),
+
                 InputCard(
                   controller: _ctrl,
                   focusNode: _focus,
@@ -426,7 +432,10 @@ class _TranslateScreenState extends State<TranslateScreen> {
                 if (_approx)
                   Container(
                     margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: c.warn.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -434,7 +443,11 @@ class _TranslateScreenState extends State<TranslateScreen> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline_rounded, color: c.warn, size: 16),
+                        Icon(
+                          Icons.info_outline_rounded,
+                          color: c.warn,
+                          size: 16,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -443,7 +456,11 @@ class _TranslateScreenState extends State<TranslateScreen> {
                               'tk' => '≈ Takmyny terjime',
                               _ => '≈ Approximate translation',
                             },
-                            style: TextStyle(color: c.warn, fontSize: 11, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              color: c.warn,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
@@ -454,6 +471,117 @@ class _TranslateScreenState extends State<TranslateScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🚀 НОВЫЙ ВИДЖЕТ: Баннер скачивания/ошибки оффлайн-модели
+// ═══════════════════════════════════════════════════════════════════════
+class _ModelDownloadBanner extends StatelessWidget {
+  const _ModelDownloadBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final lang = context.settings.lang;
+    final tr = OfflineTranslator.instance;
+
+    return ListenableBuilder(
+      listenable: tr,
+      builder: (context, _) {
+        // ── Идёт скачивание ──
+        if (tr.downloadingCode != null) {
+          final name = AppLanguages.all[tr.downloadingCode] ??
+              tr.downloadingCode!.toUpperCase();
+          final label = switch (lang) {
+            AppLang.ru => 'Скачивание модели: $name…',
+            AppLang.tk => 'Model ýüklenýär: $name…',
+            AppLang.en => 'Downloading model: $name…',
+          };
+          return _BannerBox(
+            color: c.accent,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: c.accent,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: c.accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // ── Ошибка скачивания ──
+        if (tr.failedCode != null) {
+          final name = AppLanguages.all[tr.failedCode] ??
+              tr.failedCode!.toUpperCase();
+          final label = switch (lang) {
+            AppLang.ru => 'Не удалось скачать $name. Проверьте интернет.',
+            AppLang.tk => '$name ýüklemek başa barmady. Interneti barlaň.',
+            AppLang.en =>
+            'Failed to download $name. Check your internet connection.',
+          };
+          return _BannerBox(
+            color: c.warn,
+            child: Row(
+              children: [
+                Icon(Icons.wifi_off_rounded, color: c.warn, size: 16),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: c.warn,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
+    );
+  }
+}
+
+class _BannerBox extends StatelessWidget {
+  final Color color;
+  final Widget child;
+  const _BannerBox({required this.color, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
+        ),
+        child: child,
       ),
     );
   }

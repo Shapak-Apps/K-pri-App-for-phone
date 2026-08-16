@@ -14,8 +14,6 @@ plugins {
 
 android {
     namespace = "com.kopri.translator"
-    compileSdkExtension = null
-    compileSdkPreview = null
     compileSdk = 37
 
     compileOptions {
@@ -27,7 +25,6 @@ android {
         applicationId = "com.kopri.translator"
 
         minSdk = flutter.minSdkVersion
-
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
