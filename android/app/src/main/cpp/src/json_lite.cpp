@@ -1,9 +1,8 @@
 #include "json_lite.h"
 #include <cctype>
-#include <cstdlib>
-#include <memory>
-#include <string>
-#include <vector>
+#include <cstring>
+#include <sstream>
+#include <locale>
 
 namespace kj {
     namespace {
@@ -14,245 +13,182 @@ namespace kj {
 
             explicit Parser(const std::string& t) : s(t) {}
 
-            void skip() {
-                const size_t n = s.size();
-
-                while (i < n) {
-                    const char c = s[i];
-
-                    if (
-                            c == ' ' ||
-                            c == '\n' ||
-                            c == '\r' ||
-                            c == '\t' ||
-                            c == '\f' ||
-                            c == '\v'
-                            ) {
-                        ++i;
-                    } else {
-                        break;
-                    }
+            void skip_ws() {
+                while (i < s.size()) {
+                    char c = s[i];
+                    if (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\f' || c == '\v') ++i;
+                    else break;
                 }
             }
 
-            bool eat(char c) {
-                skip();
-
-                if (i < s.size() && s[i] == c) {
-                    ++i;
-                    return true;
-                }
-
+            bool try_eat(char c) {
+                skip_ws();
+                if (i < s.size() && s[i] == c) { ++i; return true; }
                 return false;
             }
 
-            std::string parse_str() {
+            void expect(char c) {
+                if (!try_eat(c)) throw std::runtime_error(std::string("Expected '") + c + "'");
+            }
+
+            uint32_t parse_hex4() {
+                if (i + 4 > s.size()) throw std::runtime_error("Unexpected end of hex");
+                uint32_t cp = 0;
+                for (int j = 0; j < 4; ++j) {
+                    char c = s[i++];
+                    cp <<= 4;
+                    if (c >= '0' && c <= '9') cp |= (c - '0');
+                    else if (c >= 'a' && c <= 'f') cp |= (c - 'a' + 10);
+                    else if (c >= 'A' && c <= 'F') cp |= (c - 'A' + 10);
+                    else throw std::runtime_error("Invalid hex char");
+                }
+                return cp;
+            }
+
+            void append_utf8(std::string& out, uint32_t cp) {
+                if (cp < 0x80) out += static_cast<char>(cp);
+                else if (cp < 0x800) {
+                    out += static_cast<char>(0xC0 | (cp >> 6));
+                    out += static_cast<char>(0x80 | (cp & 0x3F));
+                } else if (cp < 0x10000) {
+                    out += static_cast<char>(0xE0 | (cp >> 12));
+                    out += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+                    out += static_cast<char>(0x80 | (cp & 0x3F));
+                } else if (cp < 0x110000) {
+                    out += static_cast<char>(0xF0 | (cp >> 18));
+                    out += static_cast<char>(0x80 | ((cp >> 12) & 0x3F));
+                    out += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+                    out += static_cast<char>(0x80 | (cp & 0x3F));
+                }
+            }
+
+            std::string parse_string() {
+                expect('"');
                 std::string out;
-                const size_t n = s.size();
-
-                if (i >= n) return out;
-
-                ++i;
-
                 size_t start = i;
 
-                while (i < n) {
-                    const char c = s[i];
-
+                while (i < s.size()) {
+                    char c = s[i];
                     if (c == '"') {
                         out.append(s, start, i - start);
                         ++i;
                         return out;
                     }
-
                     if (c == '\\') {
                         out.append(s, start, i - start);
                         ++i;
-
-                        if (i >= n) {
-                            out += '\\';
-                            start = i;
-                            break;
-                        }
-
-                        const char e = s[i++];
-
+                        if (i >= s.size()) throw std::runtime_error("Unexpected end of escape");
+                        char e = s[i++];
                         switch (e) {
-                            case 'n':
-                                out += '\n';
-                                break;
-
-                            case 't':
-                                out += '\t';
-                                break;
-
-                            case 'r':
-                                out += '\r';
-                                break;
-
-                            case 'u':
-                                if (i + 4 <= n) {
-                                    char tmp[5] = {
-                                            s[i],
-                                            s[i + 1],
-                                            s[i + 2],
-                                            s[i + 3],
-                                            '\0'
-                                    };
-
-                                    const unsigned code = static_cast<unsigned>(
-                                            std::strtoul(tmp, nullptr, 16)
-                                    );
-
-                                    i += 4;
-
-                                    if (code < 0x80) {
-                                        out += static_cast<char>(code);
-                                    } else if (code < 0x800) {
-                                        out += static_cast<char>(0xC0 | (code >> 6));
-                                        out += static_cast<char>(0x80 | (code & 63));
-                                    } else {
-                                        out += static_cast<char>(0xE0 | (code >> 12));
-                                        out += static_cast<char>(0x80 | ((code >> 6) & 63));
-                                        out += static_cast<char>(0x80 | (code & 63));
-                                    }
+                            case '"': out += '"'; break;
+                            case '\\': out += '\\'; break;
+                            case '/': out += '/'; break;
+                            case 'b': out += '\b'; break;
+                            case 'f': out += '\f'; break;
+                            case 'n': out += '\n'; break;
+                            case 'r': out += '\r'; break;
+                            case 't': out += '\t'; break;
+                            case 'u': {
+                                uint32_t cp = parse_hex4();
+                                if (cp >= 0xD800 && cp <= 0xDBFF) {
+                                    if (i + 2 <= s.size() && s[i] == '\\' && s[i+1] == 'u') {
+                                        i += 2;
+                                        uint32_t low = parse_hex4();
+                                        if (low >= 0xDC00 && low <= 0xDFFF) {
+                                            cp = 0x10000 + ((cp - 0xD800) << 10) + (low - 0xDC00);
+                                        } else throw std::runtime_error("Invalid low surrogate");
+                                    } else throw std::runtime_error("Missing low surrogate");
                                 }
+                                append_utf8(out, cp);
                                 break;
-
-                            default:
-                                out += e;
-                                break;
+                            }
+                            default: throw std::runtime_error(std::string("Invalid escape: \\") + e);
                         }
-
                         start = i;
                     } else {
                         ++i;
                     }
                 }
+                throw std::runtime_error("Unterminated string");
+            }
 
-                if (start < n) {
-                    out.append(s, start, n - start);
+            double parse_number() {
+                size_t start = i;
+                if (i < s.size() && s[i] == '-') ++i;
+                if (i < s.size() && s[i] == '0') ++i;
+                else if (i < s.size() && s[i] >= '1' && s[i] <= '9') {
+                    ++i;
+                    while (i < s.size() && s[i] >= '0' && s[i] <= '9') ++i;
+                } else throw std::runtime_error("Invalid number");
+
+                if (i < s.size() && s[i] == '.') {
+                    ++i;
+                    if (i >= s.size() || s[i] < '0' || s[i] > '9') throw std::runtime_error("Invalid fraction");
+                    while (i < s.size() && s[i] >= '0' && s[i] <= '9') ++i;
+                }
+                if (i < s.size() && (s[i] == 'e' || s[i] == 'E')) {
+                    ++i;
+                    if (i < s.size() && (s[i] == '+' || s[i] == '-')) ++i;
+                    if (i >= s.size() || s[i] < '0' || s[i] > '9') throw std::runtime_error("Invalid exponent");
+                    while (i < s.size() && s[i] >= '0' && s[i] <= '9') ++i;
                 }
 
-                return out;
+                std::istringstream iss(s.substr(start, i - start));
+                iss.imbue(std::locale::classic()); // Гарантированно парсит точку, а не запятую
+                double val = 0;
+                iss >> val;
+                return val;
+            }
+
+            bool match_word(const char* word) {
+                size_t len = std::strlen(word);
+                if (i + len > s.size()) return false;
+                if (s.compare(i, len, word) == 0) { i += len; return true; }
+                return false;
             }
 
             ValuePtr parse_value() {
-                skip();
-
-                if (i >= s.size()) {
-                    return std::make_shared<Value>();
-                }
-
-                const char c = s[i];
+                skip_ws();
+                if (i >= s.size()) throw std::runtime_error("Unexpected end of JSON");
+                char c = s[i];
+                auto v = std::make_shared<Value>();
 
                 if (c == '{') {
-                    return parse_obj();
+                    v->type = Type::Obj;
+                    ++i;
+                    if (try_eat('}')) return v;
+                    while (true) {
+                        skip_ws();
+                        std::string key = parse_string();
+                        expect(':');
+                        v->obj[std::move(key)] = parse_value();
+                        if (try_eat(',')) continue;
+                        expect('}');
+                        break;
+                    }
+                    return v;
                 }
 
                 if (c == '[') {
-                    return parse_arr();
-                }
-
-                if (c == '"') {
-                    auto v = std::make_shared<Value>();
-                    v->type = Type::Str;
-                    v->str = parse_str();
-                    return v;
-                }
-
-                if (c == 't') {
-                    i += 4;
-                    auto v = std::make_shared<Value>();
-                    v->type = Type::Bool;
-                    v->b = true;
-                    return v;
-                }
-
-                if (c == 'f') {
-                    i += 5;
-                    auto v = std::make_shared<Value>();
-                    v->type = Type::Bool;
-                    v->b = false;
-                    return v;
-                }
-
-                if (c == 'n') {
-                    i += 4;
-                    return std::make_shared<Value>();
-                }
-
-                auto v = std::make_shared<Value>();
-                v->type = Type::Num;
-
-                char* end = nullptr;
-                v->num = std::strtod(s.c_str() + i, &end);
-
-                i = end ? static_cast<size_t>(end - s.c_str()) : i + 1;
-
-                return v;
-            }
-
-            ValuePtr parse_arr() {
-                auto v = std::make_shared<Value>();
-                v->type = Type::Arr;
-
-                ++i;
-
-                if (eat(']')) {
-                    return v;
-                }
-
-                while (i < s.size()) {
-                    v->arr.push_back(parse_value());
-
-                    if (eat(',')) {
-                        continue;
+                    v->type = Type::Arr;
+                    ++i;
+                    if (try_eat(']')) return v;
+                    while (true) {
+                        v->arr.push_back(parse_value());
+                        if (try_eat(',')) continue;
+                        expect(']');
+                        break;
                     }
-
-                    eat(']');
-                    break;
-                }
-
-                return v;
-            }
-
-            ValuePtr parse_obj() {
-                auto v = std::make_shared<Value>();
-                v->type = Type::Obj;
-
-                ++i;
-
-                if (eat('}')) {
                     return v;
                 }
 
-                while (i < s.size()) {
-                    skip();
+                if (c == '"') { v->type = Type::Str; v->str = parse_string(); return v; }
+                if (c == 't') { if (!match_word("true")) throw std::runtime_error("Invalid token"); v->type = Type::Bool; v->b = true; return v; }
+                if (c == 'f') { if (!match_word("false")) throw std::runtime_error("Invalid token"); v->type = Type::Bool; v->b = false; return v; }
+                if (c == 'n') { if (!match_word("null")) throw std::runtime_error("Invalid token"); v->type = Type::Null; return v; }
+                if (c == '-' || (c >= '0' && c <= '9')) { v->type = Type::Num; v->num = parse_number(); return v; }
 
-                    std::string key;
-
-                    if (i < s.size() && s[i] == '"') {
-                        key = parse_str();
-                    } else {
-                        while (i < s.size() && s[i] != ':') {
-                            ++i;
-                        }
-                    }
-
-                    eat(':');
-
-                    v->obj[key] = parse_value();
-
-                    if (eat(',')) {
-                        continue;
-                    }
-
-                    eat('}');
-                    break;
-                }
-
-                return v;
+                throw std::runtime_error(std::string("Unexpected char: ") + c);
             }
         };
 
@@ -260,7 +196,6 @@ namespace kj {
 
     const ValuePtr& Value::get(const std::string& k) const {
         static const ValuePtr null_v = std::make_shared<Value>();
-
         auto it = obj.find(k);
         return it == obj.end() ? null_v : it->second;
     }
@@ -282,27 +217,15 @@ namespace kj {
 
     const std::vector<ValuePtr>& as_list(const ValuePtr& root) {
         static const std::vector<ValuePtr> empty;
-
         if (!root) return empty;
-
-        if (root->type == Type::Arr) {
-            return root->arr;
-        }
-
+        if (root->type == Type::Arr) return root->arr;
         if (root->type == Type::Obj) {
             auto h = root->get("history");
-
-            if (h && h->type == Type::Arr) {
-                return h->arr;
-            }
-
+            if (h && h->type == Type::Arr) return h->arr;
             for (auto& kv : root->obj) {
-                if (kv.second && kv.second->type == Type::Arr) {
-                    return kv.second->arr;
-                }
+                if (kv.second && kv.second->type == Type::Arr) return kv.second->arr;
             }
         }
-
         return empty;
     }
 

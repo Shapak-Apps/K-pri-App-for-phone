@@ -1,10 +1,12 @@
 #pragma once
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
+#include <stdexcept>
 
 namespace kj {
+
     enum class Type { Null, Bool, Num, Str, Arr, Obj };
 
     struct Value;
@@ -13,7 +15,7 @@ namespace kj {
     struct Value {
         Type type = Type::Null;
         bool b = false;
-        double num = 0;
+        double num = 0.0;
         std::string str;
         std::vector<ValuePtr> arr;
         std::map<std::string, ValuePtr> obj;
@@ -25,4 +27,5 @@ namespace kj {
 
     ValuePtr parse(const std::string& text);
     const std::vector<ValuePtr>& as_list(const ValuePtr& root);
+
 }

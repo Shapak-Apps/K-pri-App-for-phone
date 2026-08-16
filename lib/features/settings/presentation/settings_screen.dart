@@ -365,8 +365,10 @@ class SettingsScreen extends StatelessWidget {
                       Icons.description_rounded,
                       l10n.t('licenses'),
                       c.sub,
-                          () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const LicensesScreen()),
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const LicensesScreen(),
+                        ),
                       ),
                     ),
                     _ActionRow(
@@ -406,16 +408,25 @@ class SettingsScreen extends StatelessWidget {
     AppLang.en => 'Hello, how are you?',
   };
 
-  void _snack(BuildContext context, String t) => ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(t), backgroundColor: context.c.accent));
+  void _snack(BuildContext context, String t, {bool warn = false}) =>
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(t),
+          backgroundColor: warn ? context.c.warn : context.c.accent,
+        ),
+      );
 
   Future<void> _shareApp(BuildContext context) async {
+    final l10n = context.settings.l10n;
+    if (!Platform.isAndroid) {
+      if (context.mounted) _snack(context, l10n.t('share_unavailable'));
+      return;
+    }
     try {
       final apk = await _apkChannel.invokeMethod<String>('getApkPath');
       final cache = await _apkChannel.invokeMethod<String>('getCacheDir');
       if (apk == null || cache == null || apk.isEmpty) {
-        if (context.mounted) _snack(context, 'APK tapylmady');
+        if (context.mounted) _snack(context, l10n.t('apk_not_found'));
         return;
       }
       final dest = File('$cache/Kopri.apk');
@@ -426,18 +437,19 @@ class SettingsScreen extends StatelessWidget {
         text: 'Köpri — ähli dillerde terjimeçi 🌉',
       );
     } catch (e) {
-      if (context.mounted) _snack(context, 'Paýlaşyp bolmady: $e');
+      if (context.mounted) _snack(context, '${l10n.t('share_failed')}: $e');
     }
   }
 
   Future<void> _openTelegram(BuildContext context) async {
+    final l10n = context.settings.l10n;
     try {
       await launchUrl(
         Uri.parse(_telegramUrl),
         mode: LaunchMode.externalApplication,
       );
     } catch (_) {
-      if (context.mounted) _snack(context, 'Telegram açylmady');
+      if (context.mounted) _snack(context, l10n.t('telegram_failed'));
     }
   }
 
@@ -534,28 +546,68 @@ class SettingsScreen extends StatelessWidget {
     if (context.mounted) _snack(context, '${l10n.t('photos_cleared')} · $n');
   }
 
+  // ───────────────────────── JSON EXPORT ─────────────────────────
   Future<void> _exportFile(BuildContext context) async {
     final l10n = context.settings.l10n;
+
+    if (!context.mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: Center(
+          child: CircularProgressIndicator(color: context.c.accent),
+        ),
+      ),
+    );
+
+    String json = '';
     try {
-      final cache = await _apkChannel.invokeMethod<String>('getCacheDir');
-      if (cache != null && cache.isNotEmpty) {
-        final file = File('$cache/kopri_history.json');
-        await file.writeAsString(repo.exportJson());
-        await Share.shareXFiles(
-          [XFile(file.path)],
-          subject: 'Köpri',
-          text: 'Köpri — history',
-        );
-      } else {
-        await Clipboard.setData(ClipboardData(text: repo.exportJson()));
+      json = await repo.exportJson();
+    } catch (e) {
+      if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (context.mounted) _snack(context, l10n.t('export_failed'), warn: true);
+      return;
+    }
+
+    bool shared = false;
+    try {
+      if (Platform.isAndroid) {
+        final cache = await _apkChannel.invokeMethod<String>('getCacheDir');
+        if (cache != null && cache.isNotEmpty) {
+          final file = File('$cache/kopri_history.json');
+          await file.writeAsString(json);
+          await Share.shareXFiles(
+            [XFile(file.path)],
+            subject: 'Köpri',
+            text: 'Köpri — history',
+          );
+          shared = true;
+        }
       }
-      if (context.mounted) _snack(context, l10n.t('history_exported'));
     } catch (_) {
-      await Clipboard.setData(ClipboardData(text: repo.exportJson()));
-      if (context.mounted) _snack(context, l10n.t('history_exported'));
+    }
+
+    if (!shared) {
+      try {
+        await Clipboard.setData(ClipboardData(text: json));
+        shared = true;
+      } catch (_) {
+      }
+    }
+
+    if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+    if (context.mounted) {
+      _snack(
+        context,
+        shared ? l10n.t('history_exported') : l10n.t('export_failed'),
+        warn: !shared,
+      );
     }
   }
 
+  // ───────────────────────── JSON IMPORT ─────────────────────────
   Future<void> _importClipboard(BuildContext context) async {
     final l10n = context.settings.l10n;
     final raw = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
@@ -563,12 +615,35 @@ class SettingsScreen extends StatelessWidget {
       if (context.mounted) _snack(context, l10n.t('no_data_clipboard'));
       return;
     }
+
+    if (!await _askConfirm(context, l10n.t('import_history'))) return;
+
+    if (!context.mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: Center(
+          child: CircularProgressIndicator(color: context.c.accent),
+        ),
+      ),
+    );
+
     try {
       final n = await repo.importJson(raw);
+      if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
       if (context.mounted)
         _snack(context, '${l10n.t('history_imported')} · $n');
-    } catch (_) {
-      if (context.mounted) _snack(context, l10n.t('no_data_clipboard'));
+    } on PlatformException catch (e) {
+      if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+      final msg = e.message ?? l10n.t('invalid_json');
+      if (context.mounted)
+        _snack(context, '${l10n.t('import_failed')}: $msg', warn: true);
+    } catch (e) {
+      if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (context.mounted)
+        _snack(context, '${l10n.t('import_failed')}: $e', warn: true);
     }
   }
 }
@@ -582,7 +657,7 @@ class _OfflineModelsSection extends StatefulWidget {
 }
 
 class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
-  List<String>? _codes; // null = идёт проверка
+  List<String>? _codes;
   bool _busy = false;
 
   @override
@@ -598,9 +673,10 @@ class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
   }
 
   Future<void> _deleteOne(String code) async {
-    if (_busy) return;
+    if (_busy || !mounted) return;
     setState(() => _busy = true);
     final ok = await OfflineTranslator.instance.deleteModel(code);
+    if (!mounted) return;
     await _load();
     if (!mounted) return;
     setState(() => _busy = false);
@@ -614,7 +690,7 @@ class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
   }
 
   Future<void> _deleteAll() async {
-    if (_busy) return;
+    if (_busy || !mounted) return;
     final was = (_codes ?? const <String>[]).length;
     if (was == 0) {
       _snack(context.settings.l10n.t('offline_models_none'), warn: true);
@@ -622,6 +698,7 @@ class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
     }
     setState(() => _busy = true);
     final n = await OfflineTranslator.instance.deleteAllDownloaded();
+    if (!mounted) return;
     await _load();
     if (!mounted) return;
     setState(() => _busy = false);
@@ -667,8 +744,6 @@ class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
         style: AppTheme.caption(color: c.faint, size: 11),
       ),
       const SizedBox(height: 10),
-
-      // ── КРАСНОЕ примечание: загрузка идёт в фоне, не пугаться ──
       Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -696,8 +771,6 @@ class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
         ),
       ),
       const SizedBox(height: 10),
-
-      // ── как именуются пакеты (профессионально, без дословного .zip) ──
       Text(
         l10n.t('offline_models_format'),
         style: AppTheme.caption(color: c.faint, size: 11),
@@ -714,15 +787,11 @@ class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
         ],
       ),
       const SizedBox(height: 8),
-
-      // ── спокойная строка про английский / базовые пакеты ──
       Text(
         l10n.t('offline_models_en_note'),
         style: AppTheme.caption(color: c.faint, size: 11),
       ),
       const SizedBox(height: 12),
-
-      // ── счётчик скачанных моделей ──
       Row(
         children: [
           Icon(Icons.offline_bolt_rounded, color: c.accent, size: 18),
@@ -792,7 +861,6 @@ class _OfflineModelsSectionState extends State<_OfflineModelsSection> {
     return _Section(c, l10n.t('offline_models_title'), children);
   }
 
-  /// Маленький «код-чип» — иллюстрация формата имён пакетов.
   Widget _chip(AppColors c, String label) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
     decoration: BoxDecoration(
@@ -1202,7 +1270,6 @@ class _DangerRow extends StatelessWidget {
   );
 }
 
-/// 10 цветов-шариков, ровно 2 ряда по 5. Выбранный подсвечивается галочкой.
 class _AccentPicker extends StatelessWidget {
   final AppColors c;
   final int index;
@@ -1310,7 +1377,6 @@ class _DataCounter extends StatelessWidget {
   );
 }
 
-/// Переключатель «Перевод из буфера» — управляет ClipboardService.
 class ClipboardSwitchRow extends StatefulWidget {
   const ClipboardSwitchRow({super.key});
   @override
@@ -1325,9 +1391,11 @@ class _ClipboardSwitchRowState extends State<ClipboardSwitchRow> {
   @override
   void initState() {
     super.initState();
-    _ch.invokeMethod<bool>('isClipboardRunning').then((v) {
-      if (mounted) setState(() => _on = v == true);
-    });
+    if (Platform.isAndroid) {
+      _ch.invokeMethod<bool>('isClipboardRunning').then((v) {
+        if (mounted) setState(() => _on = v == true);
+      });
+    }
   }
 
   String get _title => switch (context.settings.lang) {
@@ -1345,7 +1413,7 @@ class _ClipboardSwitchRowState extends State<ClipboardSwitchRow> {
   };
 
   Future<void> _toggle(bool v) async {
-    if (_busy) return;
+    if (_busy || !Platform.isAndroid) return;
     setState(() => _busy = true);
     try {
       if (v) {
@@ -1385,6 +1453,7 @@ class _ClipboardSwitchRowState extends State<ClipboardSwitchRow> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Platform.isAndroid) return const SizedBox.shrink();
     return _SwitchRow(
       context.c,
       Icons.content_paste_rounded,

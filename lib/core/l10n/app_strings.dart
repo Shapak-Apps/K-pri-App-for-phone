@@ -1,4 +1,3 @@
-/// Поддерживаемые языки ИНТЕРФЕЙСА.
 enum AppLang { tk, ru, en }
 
 extension AppLangX on AppLang {
@@ -231,6 +230,13 @@ const Map<AppLang, Map<String, String>> appStrings = {
     'streak_day': 'gün',
     'streak_days': 'gün',
     'streak_consecutive': 'yzygiderli',
+    'invalid_json': 'Nädogry JSON formaty',
+    'import_failed': 'Import şowsuz boldy',
+    'export_failed': 'Eksport şowsuz boldy',
+    'apk_not_found': 'APK tapylmady',
+    'share_failed': 'Paýlaşyp bolmady',
+    'telegram_failed': 'Telegram açylmady',
+    'share_unavailable': 'Bu funksiýa diňe Android-de işleýär',
   },
   AppLang.ru: {
     'app_name': 'Köpri',
@@ -449,6 +455,13 @@ const Map<AppLang, Map<String, String>> appStrings = {
     'streak_day': 'день',
     'streak_days': 'дней',
     'streak_consecutive': 'подряд',
+    'invalid_json': 'Неверный формат JSON',
+    'import_failed': 'Ошибка импорта',
+    'export_failed': 'Ошибка экспорта',
+    'apk_not_found': 'APK не найден',
+    'share_failed': 'Не удалось поделиться',
+    'telegram_failed': 'Не удалось открыть Telegram',
+    'share_unavailable': 'Функция доступна только на Android',
   },
   AppLang.en: {
     'app_name': 'Köpri',
@@ -668,5 +681,12 @@ const Map<AppLang, Map<String, String>> appStrings = {
     'streak_day': 'day',
     'streak_days': 'days',
     'streak_consecutive': 'consecutive',
+    'invalid_json': 'Invalid JSON format',
+    'import_failed': 'Import failed',
+    'export_failed': 'Export failed',
+    'apk_not_found': 'APK not found',
+    'share_failed': 'Could not share',
+    'telegram_failed': 'Could not open Telegram',
+    'share_unavailable': 'This feature is only available on Android',
   },
 };
