@@ -25,6 +25,7 @@ class MtService {
     final ru = <String>[];
     final en = <String>[];
     final tk = <String>[];
+    final tr = <String>[];
 
     for (final cat in phrasebook) {
       for (final sub in cat.s) {
@@ -33,6 +34,7 @@ class MtService {
           ru.add(p.ru);
           en.add(p.en);
           tk.add(p.tk);
+          tr.add('');
         }
       }
     }
@@ -42,6 +44,7 @@ class MtService {
       ru.add(w.ru);
       en.add(w.en);
       tk.add(w.tk);
+      tr.add(w.tr);
     }
 
     final n = ru.length;
@@ -53,17 +56,20 @@ class MtService {
     final pRu = calloc<Pointer<Utf8>>(n);
     final pEn = calloc<Pointer<Utf8>>(n);
     final pTk = calloc<Pointer<Utf8>>(n);
+    final pTr = calloc<Pointer<Utf8>>(n);
     final keep = <Pointer<Utf8>>[];
     try {
       for (int i = 0; i < n; i++) {
         pRu[i] = ru[i].toNativeUtf8();
         pEn[i] = en[i].toNativeUtf8();
         pTk[i] = tk[i].toNativeUtf8();
+        pTr[i] = tr[i].toNativeUtf8();
         keep.add(pRu[i]);
         keep.add(pEn[i]);
         keep.add(pTk[i]);
+        keep.add(pTr[i]);
       }
-      final r = _n.load(n, pRu, pEn, pTk);
+      final r = _n.load(n, pRu, pEn, pTk, pTr);
       _loaded = (r == 0);
       debugPrint('[mt] loaded $n phrases+words → ${_loaded ? "OK" : "FAIL"}');
     } catch (e) {
@@ -76,6 +82,7 @@ class MtService {
       calloc.free(pRu);
       calloc.free(pEn);
       calloc.free(pTk);
+      calloc.free(pTr);
     }
     if (!_loaded) _failed = true;
   }

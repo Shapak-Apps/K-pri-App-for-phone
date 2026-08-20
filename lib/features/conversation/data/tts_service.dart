@@ -5,7 +5,6 @@ class TtsService {
   final FlutterTts _tts = FlutterTts();
   bool _ready = false;
 
-  // глобальные значения, синхронизируются с настройками из main.dart
   static double _gRate = 0.5, _gVolume = 1.0, _gPitch = 1.0;
 
   static void applySettings(AppSettingsController s) {
@@ -22,12 +21,12 @@ class TtsService {
   }
 
   Future<void> speak(
-    String text,
-    String langCode, {
-    double? rate,
-    double? volume,
-    double? pitch,
-  }) async {
+      String text,
+      String langCode, {
+        double? rate,
+        double? volume,
+        double? pitch,
+      }) async {
     if (text.trim().isEmpty) return;
     if (!_ready) await init();
     await _tts.setLanguage(await _bestLocale(langCode));
@@ -51,6 +50,8 @@ class TtsService {
     switch (code) {
       case 'tk':
         return ['tk-TM', 'tr-TR', 'en-US'];
+      case 'tr':
+        return ['tr-TR', 'en-US'];
       case 'ru':
         return ['ru-RU', 'en-US'];
       case 'en':

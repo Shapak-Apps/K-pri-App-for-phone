@@ -4,7 +4,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/app_strings.dart';
 
-/// Режим озвучки фраз в разговорнике.
 enum PhraseSpeakMode { iface, english, both }
 
 class AppSettingsController extends ChangeNotifier {
@@ -15,7 +14,6 @@ class AppSettingsController extends ChangeNotifier {
   AppLang _lang = AppLang.tk;
   double _fontScale = 1.0;
 
-  // речь
   double _speechRate = 0.5;
   double _ttsVolume = 1.0;
   double _ttsPitch = 1.0;
@@ -23,28 +21,22 @@ class AppSettingsController extends ChangeNotifier {
   int _listenSeconds = 45;
   int _pauseSeconds = 2;
 
-  // перевод
   String _defaultFrom = 'auto';
   String _defaultTo = 'ru';
   bool _autoTranslate = true;
   int _translateDelayMs = 700;
 
-  // разговорник / карточки
-  bool _showTranscription = true;
   PhraseSpeakMode _phraseSpeak = PhraseSpeakMode.both;
   int _flashcardSession = 20;
   bool _spacedRep = true;
 
-  // данные
   bool _autoSaveHistory = true;
-  int _autoCleanDays = 0; // 0 = выкл
+  int _autoCleanDays = 0;
 
-  // вид
   int _accentIndex = 0;
   bool _animationsOn = true;
   bool _compact = false;
 
-  // ── геттеры ──
   ThemeMode get themeMode => _themeMode;
   AppLang get lang => _lang;
   AppLocalizations get l10n => AppLocalizations(_lang);
@@ -59,7 +51,6 @@ class AppSettingsController extends ChangeNotifier {
   String get defaultTo => _defaultTo;
   bool get autoTranslate => _autoTranslate;
   int get translateDelayMs => _translateDelayMs;
-  bool get showTranscription => _showTranscription;
   PhraseSpeakMode get phraseSpeak => _phraseSpeak;
   int get flashcardSession => _flashcardSession;
   bool get spacedRep => _spacedRep;
@@ -74,7 +65,7 @@ class AppSettingsController extends ChangeNotifier {
     _themeMode = ThemeMode
         .values[_box.get('theme', defaultValue: ThemeMode.dark.index) as int];
     _lang =
-        AppLang.values[_box.get('lang', defaultValue: AppLang.tk.index) as int];
+    AppLang.values[_box.get('lang', defaultValue: AppLang.tk.index) as int];
     _fontScale = (_box.get('fontScale', defaultValue: 0.85) as num).toDouble();
     _speechRate = (_box.get('speechRate', defaultValue: 0.5) as num).toDouble();
     _ttsVolume = (_box.get('ttsVolume', defaultValue: 1.0) as num).toDouble();
@@ -86,14 +77,12 @@ class AppSettingsController extends ChangeNotifier {
     _defaultTo = _box.get('defaultTo', defaultValue: 'ru') as String;
     _autoTranslate = _box.get('autoTranslate', defaultValue: true) as bool;
     _translateDelayMs = _box.get('translateDelayMs', defaultValue: 700) as int;
-    _showTranscription =
-        _box.get('showTranscription', defaultValue: true) as bool;
     _phraseSpeak =
-        PhraseSpeakMode.values[_box.get(
-              'phraseSpeak',
-              defaultValue: PhraseSpeakMode.both.index,
-            )
-            as int];
+    PhraseSpeakMode.values[_box.get(
+      'phraseSpeak',
+      defaultValue: PhraseSpeakMode.both.index,
+    )
+    as int];
     _flashcardSession = _box.get('flashcardSession', defaultValue: 20) as int;
     _spacedRep = _box.get('spacedRep', defaultValue: true) as bool;
     _autoSaveHistory = _box.get('autoSaveHistory', defaultValue: true) as bool;
@@ -183,12 +172,6 @@ class AppSettingsController extends ChangeNotifier {
   Future<void> setTranslateDelayMs(int v) async {
     _translateDelayMs = v;
     await _box.put('translateDelayMs', v);
-    notifyListeners();
-  }
-
-  Future<void> setShowTranscription(bool v) async {
-    _showTranscription = v;
-    await _box.put('showTranscription', v);
     notifyListeners();
   }
 

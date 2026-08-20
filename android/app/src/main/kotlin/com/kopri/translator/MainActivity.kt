@@ -3,6 +3,7 @@ package com.kopri.translator
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
@@ -22,6 +23,11 @@ class MainActivity : FlutterActivity() {
     }
 
     private var intentChannel: MethodChannel? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        CrashHandler.nativeInit()
+    }
 
     override fun configureFlutterEngine(engine: FlutterEngine) {
         super.configureFlutterEngine(engine)
@@ -102,7 +108,6 @@ class MainActivity : FlutterActivity() {
                         result.success(clipboardRunning)
                     }
 
-                    // ═══ НОВЫЙ МЕТОД: игнорировать следующее копирование ═══
                     "setIgnoreNextClipboard" -> {
                         ClipboardService.ignoreNextClipboard = true
                         result.success(true)

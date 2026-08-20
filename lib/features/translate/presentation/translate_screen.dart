@@ -415,11 +415,11 @@ class _TranslateScreenState extends State<TranslateScreen> {
                   alignment: Alignment.topCenter,
                   child: _voiceAnalyzing
                       ? Padding(
-                    padding: const EdgeInsets.only(top: 14),
-                    child: AnalyzingWave(
-                      label: context.l10n.t('analyzing'),
-                    ),
-                  )
+                          padding: const EdgeInsets.only(top: 14),
+                          child: AnalyzingWave(
+                            label: context.l10n.t('analyzing'),
+                          ),
+                        )
                       : const SizedBox.shrink(),
                 ),
                 const SizedBox(height: 14),
@@ -491,14 +491,15 @@ class _ModelDownloadBanner extends StatelessWidget {
     return ListenableBuilder(
       listenable: tr,
       builder: (context, _) {
-        // ── Идёт скачивание ──
         if (tr.downloadingCode != null) {
-          final name = AppLanguages.all[tr.downloadingCode] ??
+          final name =
+              AppLanguages.all[tr.downloadingCode] ??
               tr.downloadingCode!.toUpperCase();
           final label = switch (lang) {
             AppLang.ru => 'Скачивание модели: $name…',
             AppLang.tk => 'Model ýüklenýär: $name…',
             AppLang.en => 'Downloading model: $name…',
+            AppLang.tr => 'Model indiriliyor: $name…',
           };
           return _BannerBox(
             color: c.accent,
@@ -528,15 +529,16 @@ class _ModelDownloadBanner extends StatelessWidget {
           );
         }
 
-        // ── Ошибка скачивания ──
         if (tr.failedCode != null) {
-          final name = AppLanguages.all[tr.failedCode] ??
-              tr.failedCode!.toUpperCase();
+          final name =
+              AppLanguages.all[tr.failedCode] ?? tr.failedCode!.toUpperCase();
           final label = switch (lang) {
             AppLang.ru => 'Не удалось скачать $name. Проверьте интернет.',
             AppLang.tk => '$name ýüklemek başa barmady. Interneti barlaň.',
+            AppLang.tr =>
+              '$name indirilemedi. İnternet bağlantınızı kontrol edin.',
             AppLang.en =>
-            'Failed to download $name. Check your internet connection.',
+              'Failed to download $name. Check your internet connection.',
           };
           return _BannerBox(
             color: c.warn,

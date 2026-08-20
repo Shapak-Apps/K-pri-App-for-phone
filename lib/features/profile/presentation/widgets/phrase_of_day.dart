@@ -19,8 +19,7 @@ class _PhraseOfDayState extends State<PhraseOfDay> {
     final l10n = context.l10n;
     final src = context.settings.lang.name;
 
-    // собираем все фразы
-    final all = <dynamic>[];
+    final all = <PPh>[];
     for (final cat in phrasebook) {
       for (final sub in cat.s) {
         all.addAll(sub.p);
@@ -30,13 +29,25 @@ class _PhraseOfDayState extends State<PhraseOfDay> {
 
     final day = DateTime.now().difference(DateTime(2024, 1, 1)).inDays;
     final p = all[day % all.length];
-    final text = src == 'ru' ? p.ru as String : (src == 'en' ? p.en as String : p.tk as String);
+
+    final text = switch (src) {
+      'ru' => p.ru,
+      'en' => p.en,
+      'tr' => p.tr,
+      _ => p.tk,
+    };
+
+    final ttsCode = src == 'tr' ? 'en' : src;
+    final ttsText = src == 'tr' ? p.en : text;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [c.accent.withValues(alpha: 0.16), c.accent.withValues(alpha: 0.05)],
+          colors: [
+            c.accent.withValues(alpha: 0.16),
+            c.accent.withValues(alpha: 0.05),
+          ],
         ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: c.accent.withValues(alpha: 0.3)),
@@ -49,17 +60,29 @@ class _PhraseOfDayState extends State<PhraseOfDay> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.t('profile_phrase_day'),
-                    style: TextStyle(color: c.accent, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                Text(
+                  l10n.t('profile_phrase_day'),
+                  style: TextStyle(
+                    color: c.accent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(text, style: TextStyle(color: c.text, fontSize: 15, fontWeight: FontWeight.w700)),
-                if (p.tr != null && context.settings.showTranscription)
-                  Text('[${p.tr}]', style: TextStyle(color: c.faint, fontSize: 11)),
+                Text(
+                  text,
+                  style: TextStyle(
+                    color: c.text,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ],
             ),
           ),
           IconButton(
-            onPressed: () => _tts.speak(text, src),
+            onPressed: () => _tts.speak(ttsText, ttsCode),
             icon: Icon(Icons.volume_up_rounded, color: c.accent),
           ),
         ],

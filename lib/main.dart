@@ -1,3 +1,7 @@
+import 'dart:ui' show PlatformDispatcher;
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,6 +13,7 @@ import 'core/widgets/app_shell.dart';
 import 'core/widgets/splash_screen.dart';
 import 'features/conversation/data/tts_service.dart';
 import 'features/history/data/history_repository.dart';
+import 'firebase_options.dart';
 
 class IncomingText {
   final String text;
@@ -22,6 +27,15 @@ final openScreen = ValueNotifier<int?>(null);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
   GoogleFonts.config.allowRuntimeFetching = false;
 
@@ -51,7 +65,8 @@ Future<void> main() async {
       final skip = ClipFilterNative.instance.classify(text);
       final should = skip == ClipSkip.translatable;
       debugPrint(
-          '[clip_filter] text="${text.length > 40 ? text.substring(0, 40) : text}" → $skip → should=$should');
+        '[clip_filter] text="${text.length > 40 ? text.substring(0, 40) : text}" → $skip → should=$should',
+      );
       try {
         await clipChannel.invokeMethod('filterResult', {
           'id': id,

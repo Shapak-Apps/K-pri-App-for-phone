@@ -202,8 +202,8 @@ KP_EXPORT int32_t pn_clip_classify(const char* text) {
 }
 
 // ═══ MT TURKMEN CORE ═══
-KP_EXPORT int32_t pn_mt_load(int32_t n, const char** ru, const char** en, const char** tk) {
-    return kp::mt_load(n, ru, en, tk);
+KP_EXPORT int32_t pn_mt_load(int32_t n, const char** ru, const char** en, const char** tk, const char** tr) {
+    return kp::mt_load(n, ru, en, tk, tr);
 }
 
 KP_EXPORT int32_t pn_mt_translate(const char* text, const char* from,

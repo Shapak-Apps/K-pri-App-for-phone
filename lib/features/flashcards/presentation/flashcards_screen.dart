@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/controllers/app_settings_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../conversation/data/tts_service.dart';
 import '../../history/data/history_models.dart';
 import '../../history/data/history_repository.dart';
 
@@ -87,6 +88,20 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     });
   }
 
+  void _speakCurrent(HistoryEntry e) {
+    final text = _back ? e.result : e.source;
+    final lang = _back ? e.to : e.from;
+    TtsService().speak(text, lang);
+  }
+
+  String _flagFor(String code) => switch (code) {
+    'ru' => '🇷🇺',
+    'tk' => '🇹🇲',
+    'en' => '🇬🇧',
+    'tr' => '🇹🇷',
+    _ => '🏳️',
+  };
+
   @override
   Widget build(BuildContext context) {
     final c = context.c, l10n = context.l10n;
@@ -156,6 +171,11 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                             _back ? l10n.t('to') : l10n.t('from'),
                             style: AppTheme.label(color: c.accent, size: 11),
                           ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${_flagFor(e.from)} ${e.from.toUpperCase()} → ${_flagFor(e.to)} ${e.to.toUpperCase()}',
+                            style: AppTheme.label(color: c.faint, size: 10),
+                          ),
                           if (isRepeated) ...[
                             const SizedBox(width: 8),
                             Icon(Icons.replay_rounded, color: c.warn, size: 14),
@@ -177,6 +197,46 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                           fontWeight: FontWeight.w800,
                         ),
                       ),
+                      const SizedBox(height: 20),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(30),
+                          onTap: () => _speakCurrent(e),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: c.accent.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: c.accent.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.volume_up_rounded,
+                                  color: c.accent,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  l10n.t('speak'),
+                                  style: TextStyle(
+                                    color: c.accent,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -192,7 +252,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                   l10n.t('forgot'),
                   Icons.close_rounded,
                   c.warn,
-                  () => _next(remembered: false),
+                      () => _next(remembered: false),
                 ),
               ),
               const SizedBox(width: 12),
@@ -202,7 +262,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                   l10n.t('remember'),
                   Icons.check_rounded,
                   c.accent,
-                  () => _next(remembered: true),
+                      () => _next(remembered: true),
                 ),
               ),
             ],

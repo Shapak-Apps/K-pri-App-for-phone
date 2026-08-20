@@ -7,10 +7,11 @@ import '../../../core/widgets/app_route.dart';
 import '../../conversation/data/tts_service.dart';
 import '../data/phrasebook_data.dart';
 
-// режим озвучки фраз
 bool _showIface(PhraseSpeakMode m) =>
     m == PhraseSpeakMode.iface || m == PhraseSpeakMode.both;
+
 bool _showEn(PhraseSpeakMode m, String src) {
+  if (src == 'tr') return false;
   if (m == PhraseSpeakMode.english) return true;
   if (m == PhraseSpeakMode.both) return src != 'en';
   return false;
@@ -52,7 +53,8 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
         for (final p in s.p) {
           if (p.ru.toLowerCase().contains(q) ||
               p.en.toLowerCase().contains(q) ||
-              p.tk.toLowerCase().contains(q)) {
+              p.tk.toLowerCase().contains(q) ||
+              p.tr.toLowerCase().contains(q)) {
             out.add((c: c, s: s, p: p));
           }
         }
@@ -285,7 +287,11 @@ class _Results extends StatelessWidget {
                 ),
               ),
               if (_showIface(mode)) ...[
-                _spk(Icons.record_voice_over_rounded, phText(it.p, src), src),
+                _spk(
+                  Icons.record_voice_over_rounded,
+                  phText(it.p, src),
+                  src == 'tr' ? 'en' : src,
+                ),
                 const SizedBox(width: 6),
               ],
               if (_showEn(mode, src))
@@ -569,7 +575,7 @@ class _PhraseTileState extends State<_PhraseTile> {
                       c,
                       Icons.record_voice_over_rounded,
                       phText(ph, src),
-                      src,
+                      src == 'tr' ? 'en' : src,
                     ),
                     const SizedBox(width: 6),
                   ],
@@ -600,19 +606,11 @@ class _PhraseTileState extends State<_PhraseTile> {
                           children: [
                             const Divider(height: 1),
                             const SizedBox(height: 10),
-                            if (src != 'en') _row(c, 'EN', ph.en, c.accent),
+                            if (src != 'en' && src != 'tr')
+                              _row(c, 'EN', ph.en, c.accent),
                             if (src != 'ru') _row(c, 'RU', ph.ru, c.sub),
                             if (src != 'tk') _row(c, 'TK', ph.tk, c.sub),
-                            if (context.settings.showTranscription) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                '[${ph.tr}]',
-                                style: AppTheme.caption(
-                                  color: c.faint,
-                                  size: 12,
-                                ),
-                              ),
-                            ],
+                            if (src != 'tr') _row(c, 'TR', ph.tr, c.sub),
                           ],
                         ),
                       )

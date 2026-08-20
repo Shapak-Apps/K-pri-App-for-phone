@@ -18,9 +18,9 @@ namespace kp {
         struct Engine {
             std::atomic<bool> loaded{false};
             std::mutex load_mu;
-            std::unordered_map<std::string, std::string> ph_ru, ph_en;
-            std::vector<std::string> keys_ru, keys_en;
-            std::unordered_map<std::string, std::string> w_ru, w_en;
+            std::unordered_map<std::string, std::string> ph_ru, ph_en, ph_tr;
+            std::vector<std::string> keys_ru, keys_en, keys_tr;
+            std::unordered_map<std::string, std::string> w_ru, w_en, w_tr;
         };
 
         Engine g;
@@ -34,7 +34,7 @@ namespace kp {
             } else if ((c >> 4) == 0xE && i + 2 < t.size()) {
                 cp = ((c & 0x0F) << 12) | ((t[i + 1] & 0x3F) << 6) | (t[i + 2] & 0x3F); i += 3;
             } else if ((c >> 3) == 0x1E && i + 3 < t.size()) {
-                cp = ((c & 0x07) << 18) | ((t[i + 1] & 0x3F) << 12) |
+                cp = ((c & 0x07) << 18) | ((t[i + 1] & 0x12) << 12) |
                      ((t[i + 2] & 0x3F) << 6) | (t[i + 3] & 0x3F); i += 4;
             } else { i += 1; return 0; }
             return cp;
@@ -51,7 +51,6 @@ namespace kp {
             if (cp >= 'A' && cp <= 'Z') return cp + 32;
             if (cp >= 0x410 && cp <= 0x42F) return cp + 0x20;
             if (cp == 0x401) return 0x451;
-
             if (cp == 0x3C2) return 0x3C3;
 
             switch (cp) {
@@ -59,7 +58,7 @@ namespace kp {
                 case 0xD6: return 0xF6;   case 0xDC: return 0xFC;
                 case 0xDD: return 0xFD;   case 0x17D: return 0x17E;
                 case 0x147: return 0x148; case 0x15E: return 0x15F;
-                case 0x11E: return 0x11F;
+                case 0x11E: return 0x11F; case 0x130: return 0x69;
                 case 0x391: return 0x3B1; case 0x392: return 0x3B2;
                 case 0x393: return 0x3B3; case 0x394: return 0x3B4;
                 case 0x395: return 0x3B5; case 0x396: return 0x3B6;
@@ -171,72 +170,89 @@ namespace kp {
 
     }
 
-    int32_t mt_load(int32_t n, const char** ru, const char** en, const char** tk) {
+    int32_t mt_load(int32_t n, const char** ru, const char** en, const char** tk, const char** tr) {
         std::lock_guard<std::mutex> lk(g.load_mu);
         if (g.loaded.load()) return 0;
 
         auto t0 = std::chrono::steady_clock::now();
         Engine e;
-        std::unordered_map<std::string, std::unordered_map<std::string, int32_t>> cooc_ru, cooc_en;
-        std::unordered_map<std::string, int32_t> tot_ru, tot_en;
+        std::unordered_map<std::string, std::unordered_map<std::string, int32_t>> cooc_ru, cooc_en, cooc_tr;
+        std::unordered_map<std::string, int32_t> tot_ru, tot_en, tot_tr;
 
         for (int32_t i = 0; i < n; ++i) {
-            if (!ru[i] || !en[i] || !tk[i]) continue;
+            if (!tk[i]) continue;
             const std::string kt = norm_key(tk[i]);
             if (kt.empty()) continue;
 
-            const std::string kr = norm_key(ru[i]);
-            if (!kr.empty() && !e.ph_ru.count(kr)) {
-                e.ph_ru[kr] = tk[i];
-                e.keys_ru.push_back(kr);
+            if (ru[i]) {
+                const std::string kr = norm_key(ru[i]);
+                if (!kr.empty() && !e.ph_ru.count(kr)) {
+                    e.ph_ru[kr] = tk[i];
+                    e.keys_ru.push_back(kr);
+                }
             }
-            const std::string ke = norm_key(en[i]);
-            if (!ke.empty() && !e.ph_en.count(ke)) {
-                e.ph_en[ke] = tk[i];
-                e.keys_en.push_back(ke);
+            if (en[i]) {
+                const std::string ke = norm_key(en[i]);
+                if (!ke.empty() && !e.ph_en.count(ke)) {
+                    e.ph_en[ke] = tk[i];
+                    e.keys_en.push_back(ke);
+                }
+            }
+            if (tr[i]) {
+                const std::string ktr = norm_key(tr[i]);
+                if (!ktr.empty() && !e.ph_tr.count(ktr)) {
+                    e.ph_tr[ktr] = tk[i];
+                    e.keys_tr.push_back(ktr);
+                }
             }
 
-            auto tr = tokenize(ru[i]);
-            auto te = tokenize(en[i]);
             auto tt = tokenize(tk[i]);
             if (tt.empty()) continue;
 
-            auto feed = [&](std::vector<std::string>& src,
+            auto feed = [&](const char* src_raw,
                             std::unordered_map<std::string, std::unordered_map<std::string, int32_t>>& cooc,
                             std::unordered_map<std::string, int32_t>& tot) {
-                if (src.empty()) return;
-                if (src.size() == 1) {
+                if (!src_raw) return;
+                auto src_toks = tokenize(src_raw);
+                if (src_toks.empty()) return;
+                if (src_toks.size() == 1) {
                     std::string joined;
                     for (size_t j = 0; j < tt.size(); ++j) { if (j) joined += ' '; joined += tt[j]; }
-                    cooc[src[0]][joined] += 10;
-                    tot[src[0]] += 10;
+                    cooc[src_toks[0]][joined] += 10;
+                    tot[src_toks[0]] += 10;
                     return;
                 }
-                for (auto& s : src) {
+                for (auto& s : src_toks) {
                     tot[s] += 1;
                     for (auto& t : tt) cooc[s][t] += 1;
                 }
             };
-            feed(tr, cooc_ru, tot_ru);
-            feed(te, cooc_en, tot_en);
+
+            feed(ru[i], cooc_ru, tot_ru);
+            feed(en[i], cooc_en, tot_en);
+            feed(tr[i], cooc_tr, tot_tr);
         }
 
         build_words(cooc_ru, tot_ru, e.w_ru);
         build_words(cooc_en, tot_en, e.w_en);
+        build_words(cooc_tr, tot_tr, e.w_tr);
 
         g.ph_ru = std::move(e.ph_ru);
         g.ph_en = std::move(e.ph_en);
+        g.ph_tr = std::move(e.ph_tr);
         g.keys_ru = std::move(e.keys_ru);
         g.keys_en = std::move(e.keys_en);
+        g.keys_tr = std::move(e.keys_tr);
         g.w_ru = std::move(e.w_ru);
         g.w_en = std::move(e.w_en);
+        g.w_tr = std::move(e.w_tr);
         g.loaded.store(true);
 
         auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - t0).count();
-        MT_LOG("load n=%d ph_ru=%zu ph_en=%zu w_ru=%zu w_en=%zu in %lld ms",
-               (int)n, g.ph_ru.size(), g.ph_en.size(),
-               g.w_ru.size(), g.w_en.size(), (long long)ms);
+        MT_LOG("load n=%d ph_ru=%zu ph_en=%zu ph_tr=%zu w_ru=%zu w_en=%zu w_tr=%zu in %lld ms",
+               (int)n, g.ph_ru.size(), g.ph_en.size(), g.ph_tr.size(),
+               g.w_ru.size(), g.w_en.size(), g.w_tr.size(), (long long)ms);
         return 0;
     }
 
@@ -247,9 +263,11 @@ namespace kp {
         if (quality) *quality = 0;
 
         const bool is_ru = std::strcmp(from, "ru") == 0;
-        const auto& ph = is_ru ? g.ph_ru : g.ph_en;
-        const auto& keys = is_ru ? g.keys_ru : g.keys_en;
-        const auto& wd = is_ru ? g.w_ru : g.w_en;
+        const bool is_tr = std::strcmp(from, "tr") == 0;
+
+        const auto& ph = is_ru ? g.ph_ru : (is_tr ? g.ph_tr : g.ph_en);
+        const auto& keys = is_ru ? g.keys_ru : (is_tr ? g.keys_tr : g.keys_en);
+        const auto& wd = is_ru ? g.w_ru : (is_tr ? g.w_tr : g.w_en);
 
         const std::string k = norm_key(text);
         if (k.empty()) return -1;
@@ -274,7 +292,7 @@ namespace kp {
         const std::string* best_key = nullptr;
         for (const auto& key : keys) {
             size_t d1 = key.size() > k.size() ? key.size() - k.size() : k.size() - key.size();
-            if ((int)d1 > cap) continue; // быстрая фильтрация
+            if ((int)d1 > cap) continue;
             int d = lev_cap(k, key, cap);
             if (d > cap) continue;
             int mx = (int)(key.size() > k.size() ? key.size() : k.size());
