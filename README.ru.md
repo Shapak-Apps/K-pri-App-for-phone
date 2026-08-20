@@ -169,6 +169,7 @@ flutter:
     - assets/tessdata/
     - assets/icon/
 ```
+Перед запуском программы прочитай build.gradle(andorid) и build.gradle(:app)
 
 ## 🏃 Запуск (Debug)
 

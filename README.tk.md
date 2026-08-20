@@ -170,6 +170,8 @@ flutter:
     - assets/icon/
 ```
 
+Programmany işletmekden öň build.gradle(andorid) we build.gradle(:app) oka
+
 ## 🏃 Işletmek (Debug)
 
 ```bash

@@ -169,6 +169,7 @@ flutter:
     - assets/tessdata/
     - assets/icon/
 ```
+Before run app please read two files build.gradle(andorid) and build.gradle(:app)
 
 ## 🏃 Running (Debug)
 
