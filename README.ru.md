@@ -1,5 +1,4 @@
 <div align="center">
-
 <img src="./assets/icon/app_icon.png" alt="Köpri" width="120" />
 
 # Köpri Translator
@@ -13,13 +12,12 @@
 ![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg?logo=android)
 ![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
-[🇬🇧 English](./README.md) · [🇹🇲 Türkmençe](./README.tk.md)
-
+[🇬 English](./README.md) · [🇹🇲 Türkmençe](./README.tk.md)
 </div>
 
----
+Köpri — бесплатный оффлайн-переводчик на Flutter. Переводи текст в текст или открой огромный разговорник — всё работает без интернета. Перевод через камеру находится в активной разработке и выйдет в версии 2.0.0.
 
-**Köpri** — бесплатный оффлайн-переводчик на Flutter. Переводи текст в текст или открой огромный разговорник — всё работает без интернета. **Перевод через камеру находится в активной разработке и выйдет в версии 2.0.0.**
+Köpri — часть организации [Shapak-Apps](https://github.com/Shapak-Apps) — открытый исходный код из Туркменистана.
 
 ## 📱 Скриншоты
 
@@ -34,7 +32,7 @@
 
 ## ✨ Возможности
 
-- 🚧 **Перевод через камеру (гибридный OCR) — Скоро в v2.0.0** — сверхбыстрое распознавание через **Google ML Kit** (латиница, ~0.3 с) + **Tesseract OCR** (кириллица, арабский, CJK, деванагари) как запасной вариант. Находится в активной разработке — будет доступно только в следующем крупном обновлении.
+- 🚧 **Перевод через камеру (гибридный OCR) — Скоро в v2.0.0** — сверхбыстрое распознавание через Google ML Kit (латиница, ~0.3 с) + Tesseract OCR (кириллица, арабский, CJK, деванагари) как запасной вариант. Находится в активной разработке — будет доступно только в следующем крупном обновлении.
 - 💬 **Перевод текста** — мгновенный перевод между 50+ языками
 - 📖 **Огромный разговорник** — тысячи фраз в десятках категорий и подкатегорий
 - 📴 **Полный оффлайн** — интернет не нужен, данные не покидают устройство
@@ -43,11 +41,11 @@
 - 🎨 **Современный UI** — чистый дизайн с тёмной темой
 - 👤 **Профиль** — удобное отслеживание активности, статистики и всех выполненных переводов
 - 🎮 **Хардкорная прогрессия** — XP уровни (1–100), дневные стрики, бейджи и титул «Легенда перевода» для самых активных пользователей
-- 🚀 **Нативная производительность** — тяжёлые вычисления (XP, стрики, статистика, парсинг JSON, ресайз аватара) работают на **C++17 через FFI** — в 10–60 раз быстрее, чем на чистом Dart
+- 🚀 **Нативная производительность** — тяжёлые вычисления (XP, стрики, статистика, парсинг JSON, ресайз аватара) работают на C++17 через FFI — в 10–60 раз быстрее, чем на чистом Dart
 
-### 🌍 Поддерживаемые языки
+## 🌍 Поддерживаемые языки
 
-🇬🇧 Английский · 🇷🇺 Русский · 🇹🇲 Туркменский · 🇹🇷 Турецкий · 🇰🇿 Казахский · 🇹🇯 Таджикский · 🇺🇿 Узбекский · 🇺🇦 Украинский · 🇨🇳 Китайский · 🇯🇵 Японский · 🇰🇷 Корейский · 🇸🇦 Арабский · 🇩🇪 Немецкий · 🇫🇷 Французский · 🇪🇸 Испанский · 🇮🇹 Итальянский · 🇮🇳 Хинди и другие
+🇬🇧 Английский · 🇷🇺 Русский · 🇹🇲 Туркменский · 🇹 Турецкий · 🇿 Казахский · 🇹🇯 Таджикский · 🇺🇿 Узбекский · 🇺🇦 Украинский · 🇨🇳 Китайский · 🇯🇵 Японский · 🇰🇷 Корейский · 🇸🇦 Арабский · 🇩🇪 Немецкий · 🇫🇷 Французский · 🇪 Испанский · 🇹 Итальянский · 🇮🇳 Хинди и другие
 
 ## 🛠 Технологии
 
@@ -55,41 +53,41 @@
 | --- | --- |
 | Фреймворк | [Flutter](https://flutter.dev) 3.x |
 | Язык | [Dart](https://dart.dev) 3.x |
-| **Нативное ядро** | **C++17 (через FFI)** — XP, стрики, статистика, JSON/CSV, ресайз аватара, парсинг перевода и много других ядер |
-| OCR (латиница) | [Google ML Kit](https://developers.google.com/ml-kit/vision/text-recognition) (оффлайн, на устройстве) — _скоро_ |
-| OCR (кириллица / арабский / CJK / деванагари) | [Tesseract OCR](https://tesseract-ocr.github.io) (flutter_tesseract_ocr) — _скоро_ |
-| Камера | [camera](https://pub.dev/packages/camera) — _скоро в v2.0.0_ |
+| Нативное ядро | C++17 (через FFI) — XP, стрики, статистика, JSON/CSV, ресайз аватара, парсинг перевода и много других ядер |
+| OCR (латиница) | [Google ML Kit](https://developers.google.com/ml-kit/vision/text-recognition) (оффлайн, на устройстве) — скоро |
+| OCR (кириллица / арабский / CJK / деванагари) | [Tesseract OCR](https://tesseract-ocr.github.io) (flutter_tesseract_ocr) — скоро |
+| Камера | [camera](https://pub.dev/packages/camera) — скоро в v2.0.0 |
 | Хранилище | SharedPreferences / Hive |
 | Архитектура | Feature-first, чистая архитектура |
 
-> **Почему гибрид?** ML Kit в 10–20 раз быстрее Tesseract на латинице (вывески, меню, документы), а Tesseract покрывает письменности, которые ML Kit пока не поддерживает (кириллица, арабский, деванагари). Движок полностью реализован на C++ и будет включён в v2.0.0.
+Почему гибрид? ML Kit в 10–20 раз быстрее Tesseract на латинице (вывески, меню, документы), а Tesseract покрывает письменности, которые ML Kit пока не поддерживает (кириллица, арабский, деванагари). Движок полностью реализован на C++ и будет включён в v2.0.0.
 
-### ⚡ Модули C++ (нативная производительность)
+## ⚡ Модули C++ (нативная производительность)
 
 | Модуль | Назначение |
-|---|---|
-| `xp_engine` | XP, уровни, прогресс с экспоненциальной сложностью (BASE 200, GROWTH 1.25) — в 20 раз быстрее Dart |
-| `streak_engine` | Текущий/лучший стрик через алгоритм гражданских дней Хиннанта (точно через месяцы/годы) |
-| `stats_engine` | Недельный график (O(n)), пиковый час, средняя длина, топ-фразы — всё в C++ |
-| `ocr_engine` | Нативная предобработка и поворот изображений для OCR — _выйдет вместе с камерой в v2.0.0_ |
-| `json_lite` | Ручной рекурсивный парсер JSON для экспорта профиля |
-| `csv_engine` | Нативная конвертация JSON→CSV для экспорта истории |
-| `image_fast` | Мгновенный ресайз аватара через `stb_image` (512px) — без лагов UI при применении фото |
-| `translate_engine` | Нативное определение письменности, парсинг ответа Google GTX, чанкинг длинных текстов |
-| `tm_engine` | Память переводов с точным и нечётким поиском (Levenshtein) |
-| `mt_tk_engine` | Оффлайн туркменский движок перевода (фразы + слова) |
-| `clip_filter` | Умный фильтр буфера обмена (URL, email, код, хеши, эмодзи) |
-| `splash_engine` | Частицы/полосы/буквы splash-экрана на C++ |
-| `crash_handler` | Нативный обработчик падений с логированием backtrace |
-| `ffi_bridge` | FFI-мост между Dart и нативной библиотекой |
+| --- | --- |
+| xp_engine | XP, уровни, прогресс с экспоненциальной сложностью (BASE 200, GROWTH 1.25) — в 20 раз быстрее Dart |
+| streak_engine | Текущий/лучший стрик через алгоритм гражданских дней Хиннанта (точно через месяцы/годы) |
+| stats_engine | Недельный график (O(n)), пиковый час, средняя длина, топ-фразы — всё в C++ |
+| ocr_engine | Нативная предобработка и поворот изображений для OCR — выйдет вместе с камерой в v2.0.0 |
+| json_lite | Ручной рекурсивный парсер JSON для экспорта профиля |
+| csv_engine | Нативная конвертация JSON→CSV для экспорта истории |
+| image_fast | Мгновенный ресайз аватара через stb_image (512px) — без лагов UI при применении фото |
+| translate_engine | Нативное определение письменности, парсинг ответа Google GTX, чанкинг длинных текстов |
+| tm_engine | Память переводов с точным и нечётким поиском (Levenshtein) |
+| mt_tk_engine | Оффлайн туркменский движок перевода (фразы + слова) |
+| clip_filter | Умный фильтр буфера обмена (URL, email, код, хеши, эмодзи) |
+| splash_engine | Частицы/полосы/буквы splash-экрана на C++ |
+| crash_handler | Нативный обработчик падений с логированием backtrace |
+| ffi_bridge | FFI-мост между Dart и нативной библиотекой |
 
 ## 🎮 Система прогрессии
 
-В Köpri используется **хардкорная** кривая прокачки — каждый уровень надо заслужить:
+В Köpri используется хардкорная кривая прокачки — каждый уровень надо заслужить:
 
-- **+5 XP** за каждый завершённый перевод
-- Экспоненциальная стоимость: **BASE 200, GROWTH 1.25** — каждый следующий уровень требует ~25% больше XP
-- **100 уровней**, уровень 100 = «Легенда перевода»
+- +5 XP за каждый завершённый перевод
+- Экспоненциальная стоимость: BASE 200, GROWTH 1.25 — каждый следующий уровень требует ~25% больше XP
+- 100 уровней, уровень 100 = «Легенда перевода»
 - Дневные стрики, лучший стрик, бейджи и ежедневные цели
 
 ## 🚀 Начало работы
@@ -109,28 +107,28 @@ flutter doctor
 
 ### Установка
 
-**1. Клонируй репозиторий**
+1. **Клонируй репозиторий**
 
 ```bash
-git clone https://github.com/aynazar-sylyyew-dev/K-pri-App-for-phone.git
+git clone https://github.com/Shapak-Apps/K-pri-App-for-phone.git
 cd K-pri-App-for-phone
 ```
 
-**2. Установи зависимости**
+2. **Установи зависимости**
 
 ```bash
 flutter pub get
 ```
 
-**3. ⚠️ ВАЖНО: добавь OCR-модели в `assets/tessdata/` (для камеры в v2.0.0)**
+3. **⚠️ ВАЖНО: добавь OCR-модели в `assets/tessdata/` (для камеры в v2.0.0)**
 
-Латиницу распознаёт **Google ML Kit** (модель скачивается автоматически через Google Play Services), поэтому для Tesseract нужны только модели **кириллицы, арабского, CJK и деванагари**. Файлы `eng.traineddata` и `tur.traineddata` оставлены как запасные для устройств без Google Play Services. Всего нужно **38 файлов моделей**.
+Латиницу распознаёт Google ML Kit (модель скачивается автоматически через Google Play Services), поэтому для Tesseract нужны только модели кириллицы, арабского, CJK и деванагари. Файлы `eng.traineddata` и `tur.traineddata` оставлены как запасные для устройств без Google Play Services. Всего нужно 38 файлов моделей.
 
-> **Примечание:** В текущей сборке APK модели исключены для уменьшения размера (камера Coming Soon). Раскомментируй `- assets/tessdata/` в `pubspec.yaml` при выпуске v2.0.0.
+**Примечание:** В текущей сборке APK модели исключены для уменьшения размера (камера Coming Soon). Раскомментируй `- assets/tessdata/` в `pubspec.yaml` при выпуске v2.0.0.
 
-Скачай все одной командой:
+**Скачай все одной командой:**
 
-```powershell
+```bash
 # PowerShell (Windows) — запусти в корне проекта
 New-Item -ItemType Directory -Force -Path "assets\tessdata" | Out-Null
 "eng tur rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya".Split(" ") | ForEach-Object {
@@ -146,13 +144,13 @@ for c in eng tur rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd he
 done
 ```
 
-> Для лучшего качества (файлы больше) замени `tessdata_fast` на `tessdata` в ссылках.
+Для лучшего качества (файлы больше) замени `tessdata_fast` на `tessdata` в ссылках.
 
-**4. ⚠️ ВАЖНО: скачай stb_image-хедеры для нативного ресайза аватара**
+4. **⚠️ ВАЖНО: скачай stb_image-хедеры для нативного ресайза аватара**
 
 C++-модуль `image_fast` использует single-header библиотеки [stb_image](https://github.com/nothings/stb) и [stb_image_write](https://github.com/nothings/stb) для мгновенного ресайза аватара. Скачай их в `android/app/src/main/cpp/`:
 
-```powershell
+```bash
 # PowerShell (Windows) — запусти в корне проекта
 New-Item -ItemType Directory -Force -Path "android\app\src\main\cpp" | Out-Null
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h" -OutFile "android\app\src\main\cpp\stb_image.h"
@@ -162,15 +160,15 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/nothings/stb/master/st
 ```bash
 # curl (Linux / macOS) — запусти в корне проекта
 mkdir -p android/app/src/main/cpp
-curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h" -o "android/app/src/main/cpp/stb_image.h"
-curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h" -o "android/app/src/main/cpp/stb_image_write.h"
+curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h" -o android/app/src/main/cpp/stb_image.h
+curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h" -o android/app/src/main/cpp/stb_image_write.h
 ```
 
-> Если stb-хедеры отсутствуют, приложение автоматически переключится на копирование через Dart — всё продолжит работать, просто чуть медленнее.
+Если stb-хедеры отсутствуют, приложение автоматически переключится на копирование через Dart — всё продолжит работать, просто чуть медленнее.
 
-**5. Настройка Android**
+5. **Настройка Android**
 
-Приложению нужен **Android 5.0+ (API 21)**. Добавь внутрь `<application>` в `android/app/src/main/AndroidManifest.xml`, чтобы модель ML Kit скачивалась заранее при установке:
+Приложению нужен Android 5.0+ (API 21). Добавь внутрь `<application>` в `android/app/src/main/AndroidManifest.xml`, чтобы модель ML Kit скачивалась заранее при установке:
 
 ```xml
 <meta-data
@@ -202,7 +200,7 @@ flutter run
 
 ## 📦 Сборка (Release)
 
-**APK:**
+APK:
 
 ```bash
 flutter build apk --release
@@ -210,13 +208,13 @@ flutter build apk --release
 
 Готовый файл: `build/app/outputs/flutter-apk/app-release.apk`
 
-**APK по архитектурам (меньше размер):**
+APK по архитектурам (меньше размер):
 
 ```bash
 flutter build apk --release --split-per-abi
 ```
 
-**App Bundle для Google Play:**
+App Bundle для Google Play:
 
 ```bash
 flutter build appbundle --release
@@ -241,8 +239,9 @@ flutter build appbundle --release
 
 ## 👤 Автор
 
-**Айназар Сылыев**
+Айназар Сылыев
 🐙 GitHub: [@aynazar-sylyyew-dev](https://github.com/aynazar-sylyyew-dev)
+🏢 Организация: [Shapak-Apps](https://github.com/Shapak-Apps)
 
 ## 🙏 Благодарности
 
@@ -253,9 +252,7 @@ flutter build appbundle --release
 - [flutter_tesseract_ocr](https://pub.dev/packages/flutter_tesseract_ocr) — плагин OCR
 
 <div align="center">
-
 Сделано с ❤️, Flutter и C++
 
-[⭐ Поставь звезду на GitHub](https://github.com/aynazar-sylyyew-dev/K-pri-App-for-phone)
-
+[⭐ Поставь звезду на GitHub](https://github.com/Shapak-Apps/K-pri-App-for-phone)
 </div>
