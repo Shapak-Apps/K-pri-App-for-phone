@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -12,6 +13,8 @@ class SpeechService {
   final SpeechToText _stt = SpeechToText();
   bool _ready = false;
   bool _wantListening = false;
+  bool _engineBusy = false;
+  bool _stopRequested = false;
 
   SpeechResultCb? _onResult;
   SpeechLevelCb? _onLevel;
@@ -19,19 +22,25 @@ class SpeechService {
   SpeechErrorCb? _onError;
 
   String _locale = 'en_US';
-  Duration _listenFor = const Duration(seconds: 120);
-  Duration _pauseFor = const Duration(seconds: 8);
+  Duration _listenFor = const Duration(seconds: 55);
+  Duration _pauseFor = const Duration(seconds: 5);
 
   DateTime _sessionStart = DateTime.now();
+  DateTime _lastResultTime = DateTime.now();
   bool _gotResult = false;
   bool _restartScheduled = false;
   int _netFails = 0;
+  int _restartAttempts = 0;
+  double _peakLevel = 0.0;
 
   Completer<bool>? _initCompleter;
+  Timer? _silenceTimer;
 
-  static const _restartDelay = Duration(milliseconds: 700);
-  static const _netRestartDelay = Duration(milliseconds: 1500);
-  static const _maxNetFails = 4;
+  static const _restartDelay = Duration(milliseconds: 500);
+  static const _netRestartBaseDelay = Duration(milliseconds: 800);
+  static const _maxNetFails = 3;
+  static const _maxRestarts = 5;
+  static const _silenceTimeout = Duration(seconds: 8);
 
   bool get isReady => _ready;
   bool get isListening => _wantListening;
@@ -48,13 +57,24 @@ class SpeechService {
     _initCompleter = completer;
 
     try {
-      _ready = await _stt.initialize(
-        onError: _handleError,
-        onStatus: _handleStatus,
-      );
+      final status = await Permission.microphone.status;
+      if (!status.isGranted) {
+        final req = await Permission.microphone.request();
+        if (!req.isGranted) {
+          debugPrint('[speech] microphone permission denied');
+          completer.complete(false);
+          return false;
+        }
+      }
+
+      _ready = await _stt
+          .initialize(onError: _handleError, onStatus: _handleStatus)
+          .timeout(const Duration(seconds: 8), onTimeout: () => false);
+
       completer.complete(_ready);
       return _ready;
     } catch (e) {
+      debugPrint('[speech] init error: $e');
       completer.complete(false);
       return false;
     } finally {
@@ -68,8 +88,8 @@ class SpeechService {
     SpeechLevelCb? onLevel,
     SpeechEndCb? onEnd,
     SpeechErrorCb? onError,
-    Duration listenFor = const Duration(seconds: 120),
-    Duration pauseFor = const Duration(seconds: 8),
+    Duration listenFor = const Duration(seconds: 55),
+    Duration pauseFor = const Duration(seconds: 5),
   }) async {
     _onResult = onResult;
     _onLevel = onLevel;
@@ -79,7 +99,10 @@ class SpeechService {
     _pauseFor = pauseFor;
     _locale = localeFor(appLangCode);
     _wantListening = true;
+    _stopRequested = false;
     _netFails = 0;
+    _restartAttempts = 0;
+    _peakLevel = 0.0;
 
     if (!_ready) {
       final ok = await init();
@@ -93,55 +116,115 @@ class SpeechService {
   }
 
   Future<void> _startEngine() async {
-    if (!_wantListening) return;
+    if (!_wantListening || _engineBusy) return;
+
+    if (_restartAttempts >= _maxRestarts) {
+      _finish('max_restarts');
+      return;
+    }
+
+    _engineBusy = true;
     try {
       if (_stt.isListening) {
-        await _stt.stop();
-        await Future.delayed(const Duration(milliseconds: 150));
+        try {
+          await _stt.stop().timeout(const Duration(milliseconds: 300));
+        } catch (_) {}
+        await Future.delayed(const Duration(milliseconds: 120));
       }
     } catch (_) {}
 
     _gotResult = false;
     _sessionStart = DateTime.now();
-    debugPrint('[speech] engine start locale=$_locale');
+    _lastResultTime = DateTime.now();
+    debugPrint(
+      '[speech] engine start locale=$_locale attempt=${_restartAttempts + 1}',
+    );
+
     try {
-      await _stt.listen(
-        onResult: (r) {
-          debugPrint(
-            '[speech] result final=${r.finalResult} "${r.recognizedWords}"',
+      await _stt
+          .listen(
+            onResult: (r) {
+              _lastResultTime = DateTime.now();
+              debugPrint(
+                '[speech] result final=${r.finalResult} "${r.recognizedWords}"',
+              );
+              _gotResult = true;
+              _netFails = 0;
+              _restartAttempts = 0;
+              _onResult?.call(r.recognizedWords, r.finalResult);
+            },
+            onSoundLevelChange: (lvl) {
+              if (lvl > _peakLevel) _peakLevel = lvl;
+              _onLevel?.call(lvl);
+            },
+            localeId: _locale,
+            listenFor: _listenFor,
+            pauseFor: _pauseFor,
+            partialResults: true,
+            listenMode: ListenMode.confirmation,
+            cancelOnError: false,
+            sampleRate: 16000,
+          )
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              throw TimeoutException('listen timeout');
+            },
           );
-          _gotResult = true;
-          _netFails = 0;
-          _onResult?.call(r.recognizedWords, r.finalResult);
-        },
-        onSoundLevelChange: (lvl) => _onLevel?.call(lvl),
-        localeId: _locale,
-        listenFor: _listenFor,
-        pauseFor: _pauseFor,
-        partialResults: true,
-        listenMode: ListenMode.dictation,
-        cancelOnError: false,
-      );
+
       debugPrint('[speech] listen() ok');
+      _startSilenceTimer();
     } catch (e) {
       debugPrint('[speech] listen() threw: $e');
       _netFails++;
       if (_netFails >= _maxNetFails) {
         _finish('listen_failed');
       } else {
-        _scheduleRestart(_netRestartDelay);
+        _scheduleRestart(_exponentialDelay());
       }
+    } finally {
+      _engineBusy = false;
     }
+  }
+
+  Duration _exponentialDelay() {
+    final base = _netRestartBaseDelay.inMilliseconds;
+    final exp = base * (1 << _restartAttempts.clamp(0, 4));
+    final jitter = (DateTime.now().millisecondsSinceEpoch % 200);
+    return Duration(milliseconds: exp + jitter);
+  }
+
+  void _startSilenceTimer() {
+    _silenceTimer?.cancel();
+    _silenceTimer = Timer(_silenceTimeout, () {
+      if (!_wantListening) return;
+      final silence = DateTime.now().difference(_lastResultTime);
+      if (silence >= _silenceTimeout && !_gotResult) {
+        debugPrint('[speech] silence timeout — auto stop');
+        _finish('silence_timeout');
+      } else if (silence >= _silenceTimeout && _gotResult) {
+        _finish('idle');
+      }
+    });
   }
 
   void _handleStatus(String s) {
     debugPrint('[speech] status: $s');
+
+    if (s == 'listening') {
+      _engineBusy = false;
+      return;
+    }
+
     if (s != 'done' && s != 'notListening') return;
 
-    if (!_wantListening) {
+    if (!_wantListening || _stopRequested) {
+      _silenceTimer?.cancel();
       _onEnd?.call();
       return;
     }
+
+    _restartAttempts++;
     _scheduleRestart(_restartDelay);
   }
 
@@ -153,57 +236,84 @@ class SpeechService {
       _onError?.call(msg);
       return;
     }
+
     final hard =
         e.permanent ||
-            RegExp(
-              r'permission|denied|not_available|not initialized|no recognizer',
-              caseSensitive: false,
-            ).hasMatch(msg);
+        RegExp(
+          r'permission|denied|not_available|not initialized|no recognizer|audio',
+          caseSensitive: false,
+        ).hasMatch(msg);
+
     if (hard) {
       _finish(msg);
       return;
     }
+
     if (!_gotResult) _netFails++;
     if (_netFails >= _maxNetFails) {
       _finish('network_unstable');
     } else {
-      _scheduleRestart(_netRestartDelay);
+      _scheduleRestart(_exponentialDelay());
     }
   }
 
   void _finish(String msg) {
     final duration = DateTime.now().difference(_sessionStart).inSeconds;
-    debugPrint('[speech] finish: $msg (session lasted: ${duration}s)');
+    debugPrint(
+      '[speech] finish: $msg (session: ${duration}s, peak_level: ${_peakLevel.toStringAsFixed(1)}, results: $_gotResult)',
+    );
 
+    _silenceTimer?.cancel();
     _wantListening = false;
+    _stopRequested = true;
     _restartScheduled = false;
+    _engineBusy = false;
     _netFails = 0;
-    _onError?.call(msg);
+    _restartAttempts = 0;
+
+    if (!_gotResult && _peakLevel < 5.0 && msg != 'silence_timeout') {
+      _onError?.call('low_audio');
+    } else {
+      _onError?.call(msg);
+    }
   }
 
   void _scheduleRestart(Duration delay) {
-    if (_restartScheduled || !_wantListening) return;
+    if (_restartScheduled || !_wantListening || _stopRequested) return;
     _restartScheduled = true;
     Future.delayed(delay, () {
       _restartScheduled = false;
-      if (_wantListening) _startEngine();
+      if (_wantListening && !_stopRequested) _startEngine();
     });
   }
 
   Future<void> stop() async {
     debugPrint('[speech] stop');
     _wantListening = false;
+    _stopRequested = true;
     _restartScheduled = false;
+    _silenceTimer?.cancel();
     try {
-      await _stt.stop();
+      if (_stt.isListening) {
+        await _stt.stop().timeout(
+          const Duration(milliseconds: 500),
+          onTimeout: () => null,
+        );
+      }
     } catch (_) {}
   }
 
   Future<void> cancel() async {
+    debugPrint('[speech] cancel');
     _wantListening = false;
+    _stopRequested = true;
     _restartScheduled = false;
+    _silenceTimer?.cancel();
     try {
-      await _stt.cancel();
+      await _stt.cancel().timeout(
+        const Duration(milliseconds: 500),
+        onTimeout: () => null,
+      );
     } catch (_) {}
   }
 
@@ -212,7 +322,7 @@ class SpeechService {
       'ru': 'ru_RU',
       'en': 'en_US',
       'tr': 'tr_TR',
-      'tk': 'tk_TM',
+      'tk': 'ru_RU',
       'de': 'de_DE',
       'fr': 'fr_FR',
       'es': 'es_ES',
@@ -244,8 +354,11 @@ class SpeechService {
       'ka': 'ka_GE',
       'hy': 'hy_AM',
     };
-    if (code != 'auto') return map[code] ?? '${code}_${code.toUpperCase()}';
+
+    if (code != 'auto') {
+      return map[code] ?? '${code}_${code.toUpperCase()}';
+    }
     final dev = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-    return map[dev] ?? '${dev}_${dev.toUpperCase()}';
+    return map[dev] ?? 'en_US';
   }
 }

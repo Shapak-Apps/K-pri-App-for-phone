@@ -21,6 +21,7 @@ import 'widgets/stats_overview.dart';
 import 'widgets/streak_card.dart';
 import 'widgets/weekly_chart.dart';
 import 'widgets/xp_level_bar.dart';
+import 'screens/about_authors_screen.dart';
 
 const _apkChannel = MethodChannel('kopri/apk');
 
@@ -40,17 +41,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ProfileRepository.instance.ensureInit();
     CameraRepository.instance.ensureInit();
     CameraRepository.instance.addListener(_onData);
-    try { widget.repo.addListener(_onData); } catch (_) {}
+    try {
+      widget.repo.addListener(_onData);
+    } catch (_) {}
   }
 
   @override
   void dispose() {
     CameraRepository.instance.removeListener(_onData);
-    try { widget.repo.removeListener(_onData); } catch (_) {}
+    try {
+      widget.repo.removeListener(_onData);
+    } catch (_) {}
     super.dispose();
   }
 
-  void _onData() { if (mounted) setState(() {}); }
+  void _onData() {
+    if (mounted) setState(() {});
+  }
 
   ({int tr, int fav, int cards, int cam}) _stats() {
     var tr = 0, fav = 0, cards = 0;
@@ -62,16 +69,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       if (Hive.isBoxOpen('flashcards')) cards = Hive.box('flashcards').length;
     } catch (_) {}
-    final cam = CameraRepository.instance.isReady ? CameraRepository.instance.count : 0;
+    final cam = CameraRepository.instance.isReady
+        ? CameraRepository.instance.count
+        : 0;
     return (tr: tr, fav: fav, cards: cards, cam: cam);
   }
 
   void _snack(String t, {bool warn = false}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(t),
-      backgroundColor: warn ? context.c.warn : context.c.accent,
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(t),
+        backgroundColor: warn ? context.c.warn : context.c.accent,
+      ),
+    );
   }
 
   Future<void> _pickAvatar() async {
@@ -80,38 +91,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       backgroundColor: c.surface,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
       builder: (ctx) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _tile(c, Icons.photo_library_rounded, l10n.t('profile_gallery'), () async {
-                Navigator.pop(ctx);
-                final x = await _picker.pickImage(source: ImageSource.gallery,
-                    maxWidth: 512, maxHeight: 512, imageQuality: 85);
-                if (x != null && mounted) await p.saveAvatarFromPath(x.path);
-              }),
+              _tile(
+                c,
+                Icons.photo_library_rounded,
+                l10n.t('profile_gallery'),
+                () async {
+                  Navigator.pop(ctx);
+                  final x = await _picker.pickImage(
+                    source: ImageSource.gallery,
+                    maxWidth: 512,
+                    maxHeight: 512,
+                    imageQuality: 85,
+                  );
+                  if (x != null && mounted) await p.saveAvatarFromPath(x.path);
+                },
+              ),
               const SizedBox(height: 8),
-              _tile(c, Icons.photo_camera_rounded, l10n.t('profile_camera'), () async {
-                Navigator.pop(ctx);
-                final x = await _picker.pickImage(source: ImageSource.camera,
-                    maxWidth: 512, maxHeight: 512, imageQuality: 85);
-                if (x != null && mounted) await p.saveAvatarFromPath(x.path);
-              }),
+              _tile(
+                c,
+                Icons.photo_camera_rounded,
+                l10n.t('profile_camera'),
+                () async {
+                  Navigator.pop(ctx);
+                  final x = await _picker.pickImage(
+                    source: ImageSource.camera,
+                    maxWidth: 512,
+                    maxHeight: 512,
+                    imageQuality: 85,
+                  );
+                  if (x != null && mounted) await p.saveAvatarFromPath(x.path);
+                },
+              ),
               const SizedBox(height: 8),
-              _tile(c, Icons.emoji_emotions_rounded, l10n.t('profile_emoji'), () {
-                Navigator.pop(ctx);
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const PresetAvatarsScreen()));
-              }),
+              _tile(
+                c,
+                Icons.emoji_emotions_rounded,
+                l10n.t('profile_emoji'),
+                () {
+                  Navigator.pop(ctx);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const PresetAvatarsScreen(),
+                    ),
+                  );
+                },
+              ),
               if (p.hasAvatar || p.avatarEmoji != null) ...[
                 const SizedBox(height: 8),
-                _tile(c, Icons.delete_outline_rounded, l10n.t('profile_remove_photo'), () async {
-                  Navigator.pop(ctx);
-                  await p.deleteAvatar();
-                }, warn: true),
+                _tile(
+                  c,
+                  Icons.delete_outline_rounded,
+                  l10n.t('profile_remove_photo'),
+                  () async {
+                    Navigator.pop(ctx);
+                    await p.deleteAvatar();
+                  },
+                  warn: true,
+                ),
               ],
             ],
           ),
@@ -120,8 +164,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _tile(AppColors c, IconData icon, String label, VoidCallback onTap,
-      {bool warn = false}) {
+  Widget _tile(
+    AppColors c,
+    IconData icon,
+    String label,
+    VoidCallback onTap, {
+    bool warn = false,
+  }) {
     return Material(
       color: c.surfaceHi,
       borderRadius: BorderRadius.circular(16),
@@ -134,9 +183,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Icon(icon, color: warn ? c.warn : c.accent, size: 24),
               const SizedBox(width: 14),
-              Text(label, style: TextStyle(
+              Text(
+                label,
+                style: TextStyle(
                   color: warn ? c.warn : c.text,
-                  fontWeight: FontWeight.w700, fontSize: 15)),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
             ],
           ),
         ),
@@ -152,14 +206,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l10n.t('profile_bio_hint'),
-            style: TextStyle(color: c.text, fontWeight: FontWeight.w800)),
+        title: Text(
+          l10n.t('profile_bio_hint'),
+          style: TextStyle(color: c.text, fontWeight: FontWeight.w800),
+        ),
         content: TextField(
           controller: ctrl,
           style: TextStyle(color: c.text),
           decoration: InputDecoration(
-            filled: true, fillColor: c.surfaceHi,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+            filled: true,
+            fillColor: c.surfaceHi,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
         actions: [
@@ -168,8 +228,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ProfileRepository.instance.setBio(ctrl.text.trim());
               Navigator.pop(ctx);
             },
-            child: Text(l10n.t('confirm'),
-                style: TextStyle(color: c.accent, fontWeight: FontWeight.w700)),
+            child: Text(
+              l10n.t('confirm'),
+              style: TextStyle(color: c.accent, fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -194,8 +256,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             tween: Tween(begin: 0, end: value.toDouble()),
             duration: const Duration(milliseconds: 700),
             curve: Curves.easeOutCubic,
-            builder: (context, v, _) => Text(v.round().toString(),
-                style: AppTheme.display(size: 26, color: c.accent)),
+            builder: (context, v, _) => Text(
+              v.round().toString(),
+              style: AppTheme.display(size: 26, color: c.accent),
+            ),
           ),
           const SizedBox(height: 4),
           Text(label, style: AppTheme.label(color: c.sub, size: 10)),
@@ -204,8 +268,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _actionTile(AppColors c, IconData icon, String label, VoidCallback onTap,
-      {bool warn = false}) {
+  Widget _actionTile(
+    AppColors c,
+    IconData icon,
+    String label,
+    VoidCallback onTap, {
+    bool warn = false,
+  }) {
     return Material(
       color: c.surface,
       borderRadius: BorderRadius.circular(16),
@@ -222,10 +291,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Icon(icon, color: warn ? c.warn : c.accent, size: 22),
               const SizedBox(width: 14),
-              Expanded(child: Text(label,
+              Expanded(
+                child: Text(
+                  label,
                   style: TextStyle(
-                      color: warn ? c.warn : c.text,
-                      fontWeight: FontWeight.w700, fontSize: 15))),
+                    color: warn ? c.warn : c.text,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
               Icon(Icons.chevron_right_rounded, color: c.sub, size: 24),
             ],
           ),
@@ -243,7 +318,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await _apkChannel.invokeMethod('setIgnoreNextClipboard');
     } catch (_) {}
 
-    final text = 'Köpri — ${p.name.isEmpty ? l10n.t('profile_user_default') : p.name}\n'
+    final text =
+        'Köpri — ${p.name.isEmpty ? l10n.t('profile_user_default') : p.name}\n'
         '${l10n.t('profile_translations')}: ${s.tr}\n'
         '${l10n.t('profile_favorites')}: ${s.fav}\n'
         '${l10n.t('profile_cards')}: ${s.cards}\n'
@@ -320,11 +396,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 Text(
                   l10n.t('profile_feedback_desc'),
-                  style: TextStyle(
-                    color: c.sub,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
+                  style: TextStyle(color: c.sub, fontSize: 14, height: 1.5),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
@@ -357,22 +429,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         final uri = Uri.parse('https://t.me/kopri_support_bot');
                         try {
                           if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
                           } else {
                             if (mounted) {
-                              _snack(l10n.t('profile_feedback_error'), warn: true);
+                              _snack(
+                                l10n.t('profile_feedback_error'),
+                                warn: true,
+                              );
                             }
                           }
                         } catch (e) {
                           if (mounted) {
-                            _snack('${l10n.t('profile_feedback_error')}: $e', warn: true);
+                            _snack(
+                              '${l10n.t('profile_feedback_error')}: $e',
+                              warn: true,
+                            );
                           }
                         }
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.telegram, color: Colors.white, size: 24),
+                          const Icon(
+                            Icons.telegram,
+                            color: Colors.white,
+                            size: 24,
+                          ),
                           const SizedBox(width: 12),
                           Text(
                             l10n.t('profile_feedback_open'),
@@ -430,9 +515,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l10n.t('profile_clear'),
-            style: TextStyle(color: c.text, fontWeight: FontWeight.w800)),
-        content: Text(l10n.t('profile_clear_msg'), style: TextStyle(color: c.sub)),
+        title: Text(
+          l10n.t('profile_clear'),
+          style: TextStyle(color: c.text, fontWeight: FontWeight.w800),
+        ),
+        content: Text(
+          l10n.t('profile_clear_msg'),
+          style: TextStyle(color: c.sub),
+        ),
         actions: [
           TextButton(
             onPressed: () async {
@@ -440,8 +530,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               await ProfileRepository.instance.clearAll();
               _snack(l10n.t('profile_cleared'));
             },
-            child: Text(l10n.t('confirm'),
-                style: TextStyle(color: c.warn, fontWeight: FontWeight.w700)),
+            child: Text(
+              l10n.t('confirm'),
+              style: TextStyle(color: c.warn, fontWeight: FontWeight.w700),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -475,8 +567,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Icon(Icons.person_rounded, color: c.accent, size: 26),
                 ),
                 const SizedBox(width: 14),
-                Expanded(child: Text(l10n.t('profile_title'),
-                    style: AppTheme.display(size: 19, color: c.text))),
+                Expanded(
+                  child: Text(
+                    l10n.t('profile_title'),
+                    style: AppTheme.display(size: 19, color: c.text),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 22),
@@ -495,17 +591,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             _section(l10n.t('profile_activity'), c),
             const SizedBox(height: 10),
-            Row(children: [
-              Expanded(child: _statCard(c, l10n.t('profile_translations'), s.tr)),
-              const SizedBox(width: 10),
-              Expanded(child: _statCard(c, l10n.t('profile_favorites'), s.fav)),
-            ]),
+            Row(
+              children: [
+                Expanded(
+                  child: _statCard(c, l10n.t('profile_translations'), s.tr),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _statCard(c, l10n.t('profile_favorites'), s.fav),
+                ),
+              ],
+            ),
             const SizedBox(height: 10),
-            Row(children: [
-              Expanded(child: _statCard(c, l10n.t('profile_cards'), s.cards)),
-              const SizedBox(width: 10),
-              Expanded(child: _statCard(c, l10n.t('profile_photos'), s.cam)),
-            ]),
+            Row(
+              children: [
+                Expanded(child: _statCard(c, l10n.t('profile_cards'), s.cards)),
+                const SizedBox(width: 10),
+                Expanded(child: _statCard(c, l10n.t('profile_photos'), s.cam)),
+              ],
+            ),
             const SizedBox(height: 18),
 
             StatsOverview(repo: widget.repo),
@@ -524,20 +628,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             _section(l10n.t('profile_quick'), c),
             const SizedBox(height: 10),
-            _actionTile(c, Icons.import_export_rounded, l10n.t('profile_export'), () {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => ExportScreen(repo: widget.repo)));
-            }),
+            _actionTile(
+              c,
+              Icons.import_export_rounded,
+              l10n.t('profile_export'),
+              () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ExportScreen(repo: widget.repo),
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: 8),
-            _actionTile(c, Icons.share_rounded, l10n.t('profile_share'), _share),
+            _actionTile(
+              c,
+              Icons.share_rounded,
+              l10n.t('profile_share'),
+              _share,
+            ),
             const SizedBox(height: 8),
-            _actionTile(c, Icons.mail_outline_rounded, l10n.t('profile_feedback'), _feedback),
+            _actionTile(
+              c,
+              Icons.mail_outline_rounded,
+              l10n.t('profile_feedback'),
+              _feedback,
+            ),
             const SizedBox(height: 8),
-            _actionTile(c, Icons.delete_sweep_rounded, l10n.t('profile_clear'), _confirmClear, warn: true),
+            _actionTile(
+              c,
+              Icons.delete_sweep_rounded,
+              l10n.t('profile_clear'),
+              _confirmClear,
+              warn: true,
+            ),
+            const SizedBox(height: 18),
+            const AboutAuthorsCard(),
             const SizedBox(height: 24),
-
-            Center(child: Text('Köpri · v1.0.1',
-                style: AppTheme.caption(color: c.faint, size: 11))),
+            Center(
+              child: Text(
+                'Köpri · v1.0.2',
+                style: AppTheme.caption(color: c.faint, size: 11),
+              ),
+            ),
           ],
         );
       },

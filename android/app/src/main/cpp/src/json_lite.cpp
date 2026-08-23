@@ -1,17 +1,23 @@
 #include "json_lite.h"
 #include <cstdlib>
 #include <cstring>
+
 #if defined(KP_HAS_ASM_KERNELS)
 extern "C" int32_t kp_asm_json_scan(const uint8_t* p, int32_t n);
 extern "C" int32_t kp_asm_json_ws(const uint8_t* p, int32_t n);
 #endif
+
 namespace kj {
+
     namespace {
+
         struct Parser {
             const std::string& s;
             size_t i = 0;
+
             explicit Parser(const std::string& t) : s(t) {}
-            void skip_ws() {
+
+            inline void skip_ws() {
 #if defined(KP_HAS_ASM_KERNELS)
                 while (i < s.size()) {
                     const size_t rem = s.size() - i;
@@ -29,16 +35,23 @@ namespace kj {
         }
 #endif
             }
-            bool try_eat(char c) {
+
+            inline bool try_eat(char c) {
                 skip_ws();
-                if (i < s.size() && s[i] == c) { ++i; return true; }
+                if (i < s.size() && s[i] == c) {
+                    ++i;
+                    return true;
+                }
                 return false;
             }
-            void expect(char c) {
+
+            inline void expect(char c) {
                 if (!try_eat(c)) throw std::runtime_error(std::string("Expected '") + c + "'");
             }
-            uint32_t parse_hex4() {
+
+            inline uint32_t parse_hex4() {
                 if (i + 4 > s.size()) throw std::runtime_error("Unexpected end of hex");
+
                 uint32_t cp = 0;
                 for (int j = 0; j < 4; ++j) {
                     char c = s[i++];
@@ -50,9 +63,11 @@ namespace kj {
                 }
                 return cp;
             }
-            void append_utf8(std::string& out, uint32_t cp) {
-                if (cp < 0x80) out += static_cast<char>(cp);
-                else if (cp < 0x800) {
+
+            inline void append_utf8(std::string& out, uint32_t cp) {
+                if (cp < 0x80) {
+                    out += static_cast<char>(cp);
+                } else if (cp < 0x800) {
                     out += static_cast<char>(0xC0 | (cp >> 6));
                     out += static_cast<char>(0x80 | (cp & 0x3F));
                 } else if (cp < 0x10000) {
@@ -66,12 +81,17 @@ namespace kj {
                     out += static_cast<char>(0x80 | (cp & 0x3F));
                 }
             }
+
             std::string parse_string() {
                 expect('"');
+
                 std::string out;
+                out.reserve(64);
                 size_t start = i;
+
                 while (i < s.size()) {
                     char c = s[i];
+
 #if defined(KP_HAS_ASM_KERNELS)
                     if (c != '"' && c != '\\') {
                         const size_t rem = s.size() - i;
@@ -83,15 +103,18 @@ namespace kj {
                         c = s[i];
                     }
 #endif
+
                     if (c == '"') {
                         out.append(s, start, i - start);
                         ++i;
                         return out;
                     }
+
                     if (c == '\\') {
                         out.append(s, start, i - start);
                         ++i;
                         if (i >= s.size()) throw std::runtime_error("Unexpected end of escape");
+
                         char e = s[i++];
                         switch (e) {
                             case '"': out += '"'; break;
@@ -123,45 +146,60 @@ namespace kj {
                         ++i;
                     }
                 }
+
                 throw std::runtime_error("Unterminated string");
             }
+
             double parse_number() {
                 size_t start = i;
+
                 if (i < s.size() && s[i] == '-') ++i;
+
                 if (i < s.size() && s[i] == '0') ++i;
                 else if (i < s.size() && s[i] >= '1' && s[i] <= '9') {
                     ++i;
                     while (i < s.size() && s[i] >= '0' && s[i] <= '9') ++i;
                 } else throw std::runtime_error("Invalid number");
+
                 if (i < s.size() && s[i] == '.') {
                     ++i;
                     if (i >= s.size() || s[i] < '0' || s[i] > '9') throw std::runtime_error("Invalid fraction");
                     while (i < s.size() && s[i] >= '0' && s[i] <= '9') ++i;
                 }
+
                 if (i < s.size() && (s[i] == 'e' || s[i] == 'E')) {
                     ++i;
                     if (i < s.size() && (s[i] == '+' || s[i] == '-')) ++i;
                     if (i >= s.size() || s[i] < '0' || s[i] > '9') throw std::runtime_error("Invalid exponent");
                     while (i < s.size() && s[i] >= '0' && s[i] <= '9') ++i;
                 }
+
                 const std::string tmp = s.substr(start, i - start);
                 return std::strtod(tmp.c_str(), nullptr);
             }
-            bool match_word(const char* word) {
+
+            inline bool match_word(const char* word) {
                 size_t len = std::strlen(word);
                 if (i + len > s.size()) return false;
-                if (s.compare(i, len, word) == 0) { i += len; return true; }
+                if (s.compare(i, len, word) == 0) {
+                    i += len;
+                    return true;
+                }
                 return false;
             }
+
             ValuePtr parse_value() {
                 skip_ws();
                 if (i >= s.size()) throw std::runtime_error("Unexpected end of JSON");
+
                 char c = s[i];
                 auto v = std::make_shared<Value>();
+
                 if (c == '{') {
                     v->type = Type::Obj;
                     ++i;
                     if (try_eat('}')) return v;
+
                     while (true) {
                         skip_ws();
                         std::string key = parse_string();
@@ -173,10 +211,12 @@ namespace kj {
                     }
                     return v;
                 }
+
                 if (c == '[') {
                     v->type = Type::Arr;
                     ++i;
                     if (try_eat(']')) return v;
+
                     while (true) {
                         v->arr.push_back(parse_value());
                         if (try_eat(',')) continue;
@@ -185,43 +225,82 @@ namespace kj {
                     }
                     return v;
                 }
-                if (c == '"') { v->type = Type::Str; v->str = parse_string(); return v; }
-                if (c == 't') { if (!match_word("true")) throw std::runtime_error("Invalid token"); v->type = Type::Bool; v->b = true; return v; }
-                if (c == 'f') { if (!match_word("false")) throw std::runtime_error("Invalid token"); v->type = Type::Bool; v->b = false; return v; }
-                if (c == 'n') { if (!match_word("null")) throw std::runtime_error("Invalid token"); v->type = Type::Null; return v; }
-                if (c == '-' || (c >= '0' && c <= '9')) { v->type = Type::Num; v->num = parse_number(); return v; }
+
+                if (c == '"') {
+                    v->type = Type::Str;
+                    v->str = parse_string();
+                    return v;
+                }
+
+                if (c == 't') {
+                    if (!match_word("true")) throw std::runtime_error("Invalid token");
+                    v->type = Type::Bool;
+                    v->b = true;
+                    return v;
+                }
+
+                if (c == 'f') {
+                    if (!match_word("false")) throw std::runtime_error("Invalid token");
+                    v->type = Type::Bool;
+                    v->b = false;
+                    return v;
+                }
+
+                if (c == 'n') {
+                    if (!match_word("null")) throw std::runtime_error("Invalid token");
+                    v->type = Type::Null;
+                    return v;
+                }
+
+                if (c == '-' || (c >= '0' && c <= '9')) {
+                    v->type = Type::Num;
+                    v->num = parse_number();
+                    return v;
+                }
+
                 throw std::runtime_error(std::string("Unexpected char: ") + c);
             }
         };
-    }
+
+    } // namespace
+
     const ValuePtr& Value::get(const std::string& k) const {
         static const ValuePtr null_v = std::make_shared<Value>();
         auto it = obj.find(k);
         return it == obj.end() ? null_v : it->second;
     }
+
     std::string Value::as_string(const std::string& k) const {
         auto& v = get(k);
         return (v && v->type == Type::Str) ? v->str : "";
     }
+
     bool Value::as_bool(const std::string& k) const {
         auto& v = get(k);
         return v && v->type == Type::Bool && v->b;
     }
+
     ValuePtr parse(const std::string& text) {
         Parser p(text);
         return p.parse_value();
     }
+
     const std::vector<ValuePtr>& as_list(const ValuePtr& root) {
         static const std::vector<ValuePtr> empty;
         if (!root) return empty;
+
         if (root->type == Type::Arr) return root->arr;
+
         if (root->type == Type::Obj) {
             auto h = root->get("history");
             if (h && h->type == Type::Arr) return h->arr;
+
             for (auto& kv : root->obj) {
                 if (kv.second && kv.second->type == Type::Arr) return kv.second->arr;
             }
         }
+
         return empty;
     }
-}
+
+} // namespace kj

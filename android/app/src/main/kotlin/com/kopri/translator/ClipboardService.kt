@@ -137,7 +137,7 @@ class ClipboardService :
         ClipboardFilterBridge.shouldTranslate(text) { should ->
             if (!should) {
                 Log.w(TAG, "clipboard filter: skipped (non-translatable) → hiding bubble")
-                handler.post { hideBubble() }  // ═══ СКРЫВАЕМ ПУЗЫРЁК ═══
+                handler.post { hideBubble() }
                 return@shouldTranslate
             }
             Log.d(TAG, "clipboard filter: translatable → showing bubble")
@@ -207,7 +207,6 @@ class ClipboardService :
         }.start()
     }
 
-    // ── свёрнутый пузырёк ────────────────────────────────────────
     @SuppressLint("ClickableViewAccessibility", "InflateParams")
     private fun showCollapsed() {
         hideBubble()
@@ -230,7 +229,6 @@ class ClipboardService :
             .start()
     }
 
-    // ── раскрытая карточка ───────────────────────────────────────
     @SuppressLint("InflateParams")
     private fun showExpanded(
         original: String,

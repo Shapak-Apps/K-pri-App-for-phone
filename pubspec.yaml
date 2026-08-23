@@ -52,6 +52,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon/
-    - assets/tessdata/
+    - assets/about/
+   #- assets/tessdata/
     - assets/tessdata_config.json
     - assets/google_fonts/

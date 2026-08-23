@@ -4,7 +4,7 @@
 
 # Köpri Translator
 
-Kamera (gibrid OCR) bilen oflaýn terjimeçi, uly gepleşik kitaby we tekst-tekst terjime
+Kamera (gibrid OCR) bilen oflaýn terjimeçi (ýakyn wagtda), uly gepleşik kitaby we tekst-tekst terjime
 
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B.svg?logo=flutter)
@@ -19,7 +19,7 @@ Kamera (gibrid OCR) bilen oflaýn terjimeçi, uly gepleşik kitaby we tekst-teks
 
 ---
 
-**Köpri** — Flutter-da ýasalan mugt, oflaýn terjimeçi. Kameraňyzy islendik tekste gönükdiriň, tekst-tekst terjime ediň ýa-da uly gepleşik kitabyny açyň — hemmesi internetsiz işleýär.
+**Köpri** — Flutter-da ýasalan mugt, oflaýn terjimeçi. Tekst-tekst terjime ediň ýa-da uly gepleşik kitabyny açyň — hemmesi internetsiz işleýär. **Kamera terjimesi işjeň işlenip düzülýär we v2.0.0 wersiýasynda çykar.**
 
 ## 📱 Ekran şekilleri
 
@@ -34,14 +34,15 @@ Kamera (gibrid OCR) bilen oflaýn terjimeçi, uly gepleşik kitaby we tekst-teks
 
 ## ✨ Mümkinçilikler
 
-- 📸 **Kamera terjimesi (gibrid OCR)** — **Google ML Kit** arkaly örän çalt tekst tanamak (latyn elipbiýi, ~0.3 s) + **Tesseract OCR** (kiril, arap, CJK, dewanagari) ätiýaçlyk hökmünde
+- 🚧 **Kamera terjimesi (gibrid OCR) — v2.0.0-da ýakyn wagtda** — **Google ML Kit** arkaly örän çalt tekst tanamak (latyn elipbiýi, ~0.3 s) + **Tesseract OCR** (kiril, arap, CJK, dewanagari) ätiýaçlyk hökmünde. Işjeň işlenip düzülýär — diňe indiki uly täzelenişde elýeterli bolar.
 - 💬 **Tekst-tekst terjime** — 50+ diliň arasynda dessine terjime
 - 📖 **Uly gepleşik kitaby** — onlarça kategoriýada müňlerçe fraza
 - 📴 **Doly oflaýn** — internet gerek däl, maglumatlar enjamda galýar
 - 🕘 **Taryh** — ähli terjimeler lokal ýatda saklanýar
 - ⭐ **Halanlar** — ýygy ulanýan frazalaryňyzy saklaň
 - 🎨 **Häzirki zaman UI** — garaňky režimli arassa dizaýn
-- 👤 Profil — öz statistikaňyza, geçirilen işleriňize we ulanyş vedomostlaryňyza aňsatlyk bilen gözegçilik ediň
+- 👤 **Profil** — öz statistikaňyza, geçirilen işleriňize we ulanyş vedomostlaryňyza aňsatlyk bilen gözegçilik ediň
+- 🎮 **Kyn progressiýa** — XP derejeler (1–100), günlük strіkler, rozetler we iň işjeň ulanyjylar üçin «Terjime efsanesi» ady
 - 🚀 **Natiw tizlik** — agyr hasaplamalar (XP, strіkler, statistika, JSON parsіň, awatar resize) **C++17 FFI arkaly** işleýär — arassa Dart-dan 10–60 esse çalt
 
 ### 🌍 Goldanylýan diller
@@ -50,32 +51,46 @@ Kamera (gibrid OCR) bilen oflaýn terjimeçi, uly gepleşik kitaby we tekst-teks
 
 ## 🛠 Tehnologiýalar
 
-| Gat | Tehnologiýa                                                                                                      |
-| --- |------------------------------------------------------------------------------------------------------------------|
-| Freýmwork | [Flutter](https://flutter.dev) 3.x                                                                               |
-| Dil | [Dart](https://dart.dev) 3.x                                                                                     |
-| **Natiw ýadro** | **C++17 (FFI arkaly)** — XP, strіkler, statistika, JSON/CSV, awatar resize, terjime parsіň wede has köp ýadrolar |
-| OCR (latyn) | [Google ML Kit](https://developers.google.com/ml-kit/vision/text-recognition) (oflaýn, enjamda)                  |
-| OCR (kiril / arap / CJK / dewanagari) | [Tesseract OCR](https://tesseract-ocr.github.io) (flutter_tesseract_ocr)                                         |
-| Kamera | [camera](https://pub.dev/packages/camera)                                                                        |
-| Ammar | SharedPreferences / Hive                                                                                         |
-| Arhitektura | Feature-first, arassa arhitektura                                                                                |
+| Gat | Tehnologiýa |
+| --- | --- |
+| Freýmwork | [Flutter](https://flutter.dev) 3.x |
+| Dil | [Dart](https://dart.dev) 3.x |
+| **Natiw ýadro** | **C++17 (FFI arkaly)** — XP, strіkler, statistika, JSON/CSV, awatar resize, terjime parsіň we beýleki ýadrolar |
+| OCR (latyn) | [Google ML Kit](https://developers.google.com/ml-kit/vision/text-recognition) (oflaýn, enjamda) — _ýakyn wagtda_ |
+| OCR (kiril / arap / CJK / dewanagari) | [Tesseract OCR](https://tesseract-ocr.github.io) (flutter_tesseract_ocr) — _ýakyn wagtda_ |
+| Kamera | [camera](https://pub.dev/packages/camera) — _v2.0.0-de ýakyn wagtda_ |
+| Ammar | SharedPreferences / Hive |
+| Arhitektura | Feature-first, arassa arhitektura |
 
-> **Näme üçin gibrid?** ML Kit latyn elipbiýinde Tesseract-den 10–20 esse çalt (ýazgylar, menýu, resminamalar), Tesseract bolsa ML Kit-iň heniz goldamaýan elipbiýlerini (kiril, arap, dewanagari) tanaýar.
+> **Näme üçin gibrid?** ML Kit latyn elipbiýinde Tesseract-den 10–20 esse çalt (ýazgylar, menýu, resminamalar), Tesseract bolsa ML Kit-iň heniz goldamaýan elipbiýlerini (kiril, arap, dewanagari) tanaýar. Bu hereketlendiriji C++-da doly amala aşyryldy we v2.0.0-de işlediler.
 
 ### ⚡ C++ modullary (natiw tizlik)
 
-| Modul              | Maksady                                                                                 |
-|--------------------|-----------------------------------------------------------------------------------------|
-| `xp_engine`        | XP, derejeler, öňegidişlik (Dart `math.pow` halkalaryndan 20 esse çalt)                 |
-| `streak_engine`    | Häzirki/iň gowy strіk — Hinnant-yň raýat günleri algoritmi bilen (aý/ýyl boýunça takyk) |
-| `stats_engine`     | Hepdelik grafik (O(n)), pik sagady, ortaça uzynlyk, iň köp frazalar — hemmesi C++-da    |
-| `json_lite`        | Profil eksporty üçin öz ýazylan rekurssiý JSON parseri                                  |
-| `csv_engine`       | Taryhy eksporty üçin natiw JSON→CSV konwersiýa                                          |
-| `image_fast`       | `stb_image` arkaly dessine awatar resize (512px) — foto goýlanda UI doňmaýar            |
-| `translate_engine` | Natiw elipbiý kesgitleme, Google GTX jogaby parsіň, uzyn tekstleri bölmek               |
-| `ffi_bridge`       | Dart we natiw kitaphananyň arasynda FFI köprüsi                                         |
-| `Wagt bilen`       | has köpeler                                                                             |
+| Modul | Maksady |
+|---|---|
+| `xp_engine` | XP, derejeler, öňegidişlik eksponensial kynçylyk bilen (BASE 200, GROWTH 1.25) — Dart-dan 20 esse çalt |
+| `streak_engine` | Häzirki/iň gowy strіk — Hinnant-yň raýat günleri algoritmi bilen (aý/ýyl boýunça takyk) |
+| `stats_engine` | Hepdelik grafik (O(n)), pik sagady, ortaça uzynlyk, iň köp frazalar — hemmesi C++-da |
+| `ocr_engine` | OCR üçin natiw surat taýýarlamasy we aýlawy — _kamera bilen v2.0.0-de çykar_ |
+| `json_lite` | Profil eksporty üçin öz ýazylan rekurssiý JSON parseri |
+| `csv_engine` | Taryhy eksporty üçin natiw JSON→CSV konwersiýa |
+| `image_fast` | `stb_image` arkaly dessine awatar resize (512px) — foto goýlanda UI doňmaýar |
+| `translate_engine` | Natiw elipbiý kesgitleme, Google GTX jogaby parsіň, uzyn tekstleri bölmek |
+| `tm_engine` | Takyk we bulaşyk (Levenshtein) gözlegli terjime ýady |
+| `mt_tk_engine` | Oflaýn türkmen terjime hereketlendirijisi (fraza + söz derejesinde) |
+| `clip_filter` | Akylly bufer süzgüji (URL, email, kod, heşler, diňe emoji) |
+| `splash_engine` | Splash-ekran bölejikleri/zolaklar/harplar C++-da hasaplanýar |
+| `crash_handler` | Backtrace loglaýjy natiw çökme tutujy |
+| `ffi_bridge` | Dart we natiw kitaphananyň arasynda FFI köprüsi |
+
+## 🎮 Progressiýa ulgamy
+
+Köpri **kyn** derejeleşme egrisini ulanýar — her dereje gazanylmaly:
+
+- Her tamamlanan terjime üçin **+5 XP**
+- Eksponensial baha: **BASE 200, GROWTH 1.25** — her indiki dereje öňküsinden ~25% köp XP talap edýär
+- **100 dereje**, 100-nji dereje = «Terjime efsanesi»
+- Günlik strіkler, iň gowy strіk, rozetler we günlük maksatlar
 
 ## 🚀 Başlamak
 
@@ -107,9 +122,11 @@ cd K-pri-App-for-phone
 flutter pub get
 ```
 
-**3. ⚠️ WAJYP: OCR modellerini `assets/tessdata/` papkasyna goýuň**
+**3. ⚠️ WAJYP: OCR modellerini `assets/tessdata/` papkasyna goýuň (v2.0.0 kamera üçin)**
 
 Latyn elipbiýini **Google ML Kit** tanaýar (model Google Play Services arkaly awtomatik göçürilýär), şonuň üçin Tesseract diňe **kiril, arap, CJK we dewanagari** modelleri gerek. `eng.traineddata` we `tur.traineddata` Google Play Services bolmadyk enjamlar üçin ätiýaçlyk hökmünde galdyrylan. Jemi **38 model faýly** gerek.
+
+> **Bellik:** Häzirki APK ýygnamasynda modeller göwrümi kiçeltmek üçin aýryldy (kamera Coming Soon). v2.0.0 çykanda `pubspec.yaml`-da `- assets/tessdata/` setirini açyň.
 
 Ähli modelleri bir buýruk bilen göçürip alyň:
 
@@ -166,11 +183,13 @@ Programma **Android 5.0+ (API 21)** talap edýär. ML Kit modeliniň gurnalanda 
 ```yaml
 flutter:
   assets:
-    - assets/tessdata/
     - assets/icon/
+    - assets/tessdata_config.json
+    - assets/google_fonts/
+    # - assets/tessdata/  # ← v2.0.0 çykanda açyň
 ```
 
-Programmany işletmekden öň build.gradle(andorid) we build.gradle(:app) oka
+Programmany işletmekden öň `build.gradle` (android) we `build.gradle` (:app) okaň.
 
 ## 🏃 Işletmek (Debug)
 
@@ -205,7 +224,8 @@ flutter build appbundle --release
 
 ## 🔧 Meseleler
 
-- **«tessdata not found»** — `.traineddata` faýllarynyň `assets/tessdata/` papkasyndadygyny barlaň, soň `flutter pub get` işlediň.
+- **«tessdata not found»** — `.traineddata` faýllarynyň `assets/tessdata/` papkasyndadygyny we `pubspec.yaml`-da setiriň açykdygyny barlaň, soň `flutter pub get` işlediň.
+- **Kamera «Ýakyn wagtda» görkezýär** — bu v1.x üçin garaşylýan. Kamera terjimesi v2.0.0-de işlediler (irki synag üçin `camera_screen.dart`-da `kCameraEnabled`-y `true`-a üýtgediň).
 - **Ilkinji OCR işledilişi haýal** — Google Play Services ML Kit modelini bir gezek göçürýär (~5 MB), soňra tanamak ~0.3 s alýar.
 - **Kamera işlemese** — ilkinji açylyşda Android kameradan peýdalanmaga rugsat sorar, rugsat beriň.
 - **Klon soňy ýygnama ýalňyşlary** — `flutter clean && flutter pub get` işlediň.

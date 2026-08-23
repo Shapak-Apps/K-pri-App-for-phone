@@ -27,14 +27,23 @@ class ProfileFFI {
   bool get isNativeAvailable => _native;
 
   // ═══ XP ═══
-  int getLevel(int xp) => _native ? _b!.level(xp) : _dartLevel(xp);
-  int getXpForNextLevel(int xp) => _native ? _b!.xpNext(xp) : _dartXpSum(_dartLevel(xp));
+  int getLevel(int xp) {
+    final l = _native ? _b!.level(xp) : _dartLevel(xp);
+    return l.clamp(1, _maxLevel);
+  }
+
+  int getXpForNextLevel(int xp) {
+    return _native ? _b!.xpNext(xp) : _dartXpSum(_dartLevel(xp));
+  }
+
   int getXpForCurrentLevel(int xp) {
     if (_native) return _b!.xpCurrent(xp);
     final l = _dartLevel(xp);
     return l == 1 ? 0 : _dartXpSum(l - 1);
   }
+
   double getLevelProgress(int xp) {
+    if (xp <= 0) return 0.0;
     if (_native) return _b!.levelProgress(xp);
     final cur = getXpForCurrentLevel(xp);
     final nxt = getXpForNextLevel(xp);
@@ -198,25 +207,34 @@ class ProfileFFI {
     return ptr;
   }
 
-  // ═══ DART FALLBACK ═══
-  static const int _baseXp = 100;
-  static const double _growth = 1.15;
+  // ═══ DART FALLBACK (МАКСИМАЛЬНО СЛОЖНАЯ ПРОКАЧКА) ═══
+  static const int _baseXp = 200;
+  static const double _growth = 1.25;
+  static const int _maxLevel = 100;
 
   int _dartLevel(int xp) {
-    var level = 1, total = 0;
-    while (level <= 100) {
+    if (xp <= 0) return 1;
+    var level = 1;
+    var total = 0;
+    while (level <= _maxLevel) {
       final need = (_baseXp * math.pow(_growth, level - 1)).round();
       if (total + need > xp) break;
       total += need;
       level++;
     }
-    return level;
+    return level.clamp(1, _maxLevel);
   }
 
   int _dartXpSum(int level) {
+    if (level <= 0) return 0;
     var t = 0;
     for (var i = 1; i <= level; i++) {
-      t += (_baseXp * math.pow(_growth, i - 1)).round();
+      final need = (_baseXp * math.pow(_growth, i - 1)).round();
+      final newTotal = t + need;
+      if (newTotal > 2147483647) {
+        return 2147483647;
+      }
+      t = newTotal;
     }
     return t;
   }

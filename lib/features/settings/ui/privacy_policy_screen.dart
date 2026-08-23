@@ -475,13 +475,13 @@ class _Strings {
 
   String get introBody => switch (lang) {
     'ru' =>
-    'Köpri («Мы», «Правообладатель») обязуется обеспечивать максимальный уровень защиты вашей частной жизни и безопасности ваших данных. Настоящая Политика конфиденциальности (далее «Политика») разъясняет, какие данные обрабатываются, какие не обрабатываются, где хранятся ваши данные и как осуществляется взаимодействие с третьими сторонами. Используя Köpri, вы соглашаетесь с методами обработки данных, описанными в настоящей Политике.',
+      'Köpri («Мы», «Правообладатель») обязуется обеспечивать максимальный уровень защиты вашей частной жизни и безопасности ваших данных. Настоящая Политика конфиденциальности (далее «Политика») разъясняет, какие данные обрабатываются, какие не обрабатываются, где хранятся ваши данные и как осуществляется взаимодействие с третьими сторонами. Используя Köpri, вы соглашаетесь с методами обработки данных, описанными в настоящей Политике.',
     'tk' =>
-    'Köpri («Biz», «Önümi eýesi») siziň şahsy durmuşyňyzyň elde degirmesizligini we maglumatlaryňyzyň howpsuzlygyny iň ýokary derejede goramaga borçlanýar. Şu Gizlinlik syýasaty (mundan beýläk «Syýasat») haýsy maglumatlaryň işlenýändigini, haýsylarynyň işlenmeýändigini, maglumatlaryňyzyň nirede saklanýandygyny we üçünji taraplar bilen nähili gatnaşykda bolýandygyny düşündirýär. Köpri ulanmak bilen, şu Syýasatda beýan edilen maglumat işläp taýýarlamak usullaryna razylyk berýärsiňiz.',
+      'Köpri («Biz», «Önümi eýesi») siziň şahsy durmuşyňyzyň elde degirmesizligini we maglumatlaryňyzyň howpsuzlygyny iň ýokary derejede goramaga borçlanýar. Şu Gizlinlik syýasaty (mundan beýläk «Syýasat») haýsy maglumatlaryň işlenýändigini, haýsylarynyň işlenmeýändigini, maglumatlaryňyzyň nirede saklanýandygyny we üçünji taraplar bilen nähili gatnaşykda bolýandygyny düşündirýär. Köpri ulanmak bilen, şu Syýasatda beýan edilen maglumat işläp taýýarlamak usullaryna razylyk berýärsiňiz.',
     'tr' =>
-    'Köpri ("Biz", "Sahip") gizliliğinizin ve veri güvenliğinizin en yüksek düzeyde korunmasını taahhüt eder. Bu Gizlilik Politikası (bundan sonra "Politika"), hangi verilerin işlendiğini, hangilerinin işlenmediğini, verilerinizin nerede saklandığını ve üçüncü taraflarla etkileşimin nasıl gerçekleştiğini açıklar. Köpri\'yi kullanarak, bu Politikada açıklanan veri işleme yöntemlerini kabul etmiş olursunuz.',
+      'Köpri ("Biz", "Sahip") gizliliğinizin ve veri güvenliğinizin en yüksek düzeyde korunmasını taahhüt eder. Bu Gizlilik Politikası (bundan sonra "Politika"), hangi verilerin işlendiğini, hangilerinin işlenmediğini, verilerinizin nerede saklandığını ve üçüncü taraflarla etkileşimin nasıl gerçekleştiğini açıklar. Köpri\'yi kullanarak, bu Politikada açıklanan veri işleme yöntemlerini kabul etmiş olursunuz.',
     _ =>
-    'Köpri ("We", "the Owner") is committed to ensuring the highest level of protection for your privacy and data security. This Privacy Policy (hereinafter "the Policy") explains what data is processed, what is not processed, where your data is stored, and how interaction with third parties occurs. By using Köpri, you agree to the data processing methods described in this Policy.',
+      'Köpri ("We", "the Owner") is committed to ensuring the highest level of protection for your privacy and data security. This Privacy Policy (hereinafter "the Policy") explains what data is processed, what is not processed, where your data is stored, and how interaction with third parties occurs. By using Köpri, you agree to the data processing methods described in this Policy.',
   };
 
   String get sec1Title => switch (lang) {
@@ -493,13 +493,13 @@ class _Strings {
 
   String get sec1Body => switch (lang) {
     'ru' =>
-    'Köpri построен по принципу «приватность по умолчанию» (privacy-by-design). Мы никогда и ни в какой форме не собираем следующие данные:',
+      'Köpri построен по принципу «приватность по умолчанию» (privacy-by-design). Мы никогда и ни в какой форме не собираем следующие данные:',
     'tk' =>
-    'Köpri «ilki bilen gizlinlik» (privacy-by-design) ýörelgesi esasynda guruldy. Biz aşakdaky maglumatlary hiç haçan we hiç hili görnüşde ýygnamaýarys:',
+      'Köpri «ilki bilen gizlinlik» (privacy-by-design) ýörelgesi esasynda guruldy. Biz aşakdaky maglumatlary hiç haçan we hiç hili görnüşde ýygnamaýarys:',
     'tr' =>
-    'Köpri, "tasarımla gizlilik" (privacy-by-design) ilkesi üzerine kuruludur. Aşağıdaki verileri asla ve hiçbir biçimde toplamayız:',
+      'Köpri, "tasarımla gizlilik" (privacy-by-design) ilkesi üzerine kuruludur. Aşağıdaki verileri asla ve hiçbir biçimde toplamayız:',
     _ =>
-    'Köpri is built on a "privacy-by-design" principle. We never, in any form, collect the following data:',
+      'Köpri is built on a "privacy-by-design" principle. We never, in any form, collect the following data:',
   };
 
   List<String> get sec1Bullets => switch (lang) {
@@ -546,13 +546,13 @@ class _Strings {
 
   String get sec2Body => switch (lang) {
     'ru' =>
-    'Вся ваша активность остаётся только на вашем личном устройстве и не передаётся в интернет. К локально хранимым данным относятся:',
+      'Вся ваша активность остаётся только на вашем личном устройстве и не передаётся в интернет. К локально хранимым данным относятся:',
     'tk' =>
-    'Ähli siziň işjeňligiňiz diňe siziň şahsy enjamyňyzda galýar we internete iberilmeýär. Ýerli (lokal) saklanýan maglumatlara şular degişli:',
+      'Ähli siziň işjeňligiňiz diňe siziň şahsy enjamyňyzda galýar we internete iberilmeýär. Ýerli (lokal) saklanýan maglumatlara şular degişli:',
     'tr' =>
-    'Tüm etkinliğiniz yalnızca kişisel cihazınızda kalır ve internete iletilmez. Yerel olarak saklanan veriler şunları içerir:',
+      'Tüm etkinliğiniz yalnızca kişisel cihazınızda kalır ve internete iletilmez. Yerel olarak saklanan veriler şunları içerir:',
     _ =>
-    'All your activity remains only on your personal device and is not transmitted to the internet. Locally stored data includes:',
+      'All your activity remains only on your personal device and is not transmitted to the internet. Locally stored data includes:',
   };
 
   List<String> get sec2Bullets => switch (lang) {
@@ -595,39 +595,39 @@ class _Strings {
 
   String get sec3Body => switch (lang) {
     'ru' =>
-    'Приложение запрашивает следующие разрешения, каждое из которых предназначено исключительно для конкретной функции и может быть отозвано в любой момент в системных настройках Android:',
+      'Приложение запрашивает следующие разрешения, каждое из которых предназначено исключительно для конкретной функции и может быть отозвано в любой момент в системных настройках Android:',
     'tk' =>
-    'Programma aşakdaky rugsatlary talap edýär, olaryň her biri diňe anyk funksiýa üçin niýetlenen we islendik wagt Android ulgam sazlamalarynda yzyna alynyp bilner:',
+      'Programma aşakdaky rugsatlary talap edýär, olaryň her biri diňe anyk funksiýa üçin niýetlenen we islendik wagt Android ulgam sazlamalarynda yzyna alynyp bilner:',
     'tr' =>
-    'Uygulama, her biri yalnızca belirli bir işlev için tasarlanmış ve Android sistem ayarlarından istenildiği zaman geri alınabilen aşağıdaki izinleri ister:',
+      'Uygulama, her biri yalnızca belirli bir işlev için tasarlanmış ve Android sistem ayarlarından istenildiği zaman geri alınabilen aşağıdaki izinleri ister:',
     _ =>
-    'The App requests the following permissions, each of which is intended solely for a specific function and can be revoked at any time in Android system settings:',
+      'The App requests the following permissions, each of which is intended solely for a specific function and can be revoked at any time in Android system settings:',
   };
 
   List<String> get sec3Bullets => switch (lang) {
     'ru' => [
-      'КАМЕРА — перевод текста с фото через OCR (оптическое распознавание); данные обрабатываются только на устройстве',
+      'КАМЕРА (Скоро в v2.0.0) — перевод текста с фото через OCR (оптическое распознавание); данные обрабатываются только на устройстве. Функция находится в активной разработке',
       'МИКРОФОН — голосовой ввод и режим диалога; звук используется только для локального распознавания',
       'ОТОБРАЖЕНИЕ ПОВЕРХ ОКОН — пузырёк перевода из буфера обмена (overlay bubble)',
       'УВЕДОМЛЕНИЯ — работа фоновой службы мониторинга буфера обмена',
       'ИНТЕРНЕТ — исключительно для подключения к онлайн-сервисам перевода',
     ],
     'tk' => [
-      'KAMERA — suratlardaky teksti OCR (optiki nyşan tanamak) arkaly terjime etmek; maglumat diňe enjamda işlenýär',
+      'KAMERA (v2.0.0-de ýakyn wagtda) — suratlardaky teksti OCR (optiki nyşan tanamak) arkaly terjime etmek; maglumat diňe enjamda işlenýär. Funksiýa işjeň işlenip düzülýär',
       'MIKROFON — ses bilen girizmek we dialog režimi; ses diňe ýerli tanama üçin ulanylýar',
       'PENJIRELERIŇ ÜSTÜNDE GÖRKEZMEK — buferden terjime köpügi (overlay bubble)',
       'HABARNAMALAR — arka plandaky bufer gözegçilik hyzmatynyň işlemegi',
       'INTERNET — diňe onlaýn terjime hyzmatlaryna baglanmak üçin',
     ],
     'tr' => [
-      'KAMERA — OCR (optik karakter tanıma) aracılığıyla fotoğraflardaki metni çevirme; veriler yalnızca cihazda işlenir',
+      'KAMERA (v2.0.0\'de Yakında) — OCR (optik karakter tanıma) aracılığıyla fotoğraflardaki metni çevirme; veriler yalnızca cihazda işlenir. Özellik aktif olarak geliştirilmektedir',
       'MİKROFON — sesli giriş ve diyalog modu; ses yalnızca yerel tanıma için kullanılır',
       'DİĞER UYGULAMALARIN ÜZERİNDE GÖSTERME — pano çeviri balonu (overlay bubble)',
       'BİLDİRİMLER — arka plan pano izleme hizmetinin çalışması',
       'İNTERNET — yalnızca çevrimiçi çeviri hizmetlerine bağlanmak için',
     ],
     _ => [
-      'CAMERA — translating text from photos via OCR (optical character recognition); data is processed only on the device',
+      'CAMERA (Coming Soon in v2.0.0) — translating text from photos via OCR (optical character recognition); data is processed only on the device. Feature is under active development',
       'MICROPHONE — voice input and dialogue mode; audio is used only for local recognition',
       'DISPLAY OVER OTHER APPS — clipboard translation bubble (overlay bubble)',
       'NOTIFICATIONS — operation of the background clipboard monitoring service',
@@ -644,13 +644,13 @@ class _Strings {
 
   String get sec4Body => switch (lang) {
     'ru' =>
-    'Для онлайн-перевода Приложение подключается к интернету, и переводимый вами текст может отправляться в следующие сторонние сервисы. У каждого сервиса есть собственная политика конфиденциальности:',
+      'Для онлайн-перевода Приложение подключается к интернету, и переводимый вами текст может отправляться в следующие сторонние сервисы. У каждого сервиса есть собственная политика конфиденциальности:',
     'tk' =>
-    'Onlaýn terjime üçin Programma internete birigýär we terjime edýän tekstiňiz aşakdaky üçünji tarap hyzmatlaryna iberilip bilner. Her hyzmat öz gizlinlik syýasatyna eýedir:',
+      'Onlaýn terjime üçin Programma internete birigýär we terjime edýän tekstiňiz aşakdaky üçünji tarap hyzmatlaryna iberilip bilner. Her hyzmat öz gizlinlik syýasatyna eýedir:',
     'tr' =>
-    'Çevrimiçi çeviri için Uygulama internete bağlanır ve çevirdiğiniz metin aşağıdaki üçüncü taraf hizmetlere gönderilebilir. Her hizmetin kendi gizlilik politikası vardır:',
+      'Çevrimiçi çeviri için Uygulama internete bağlanır ve çevirdiğiniz metin aşağıdaki üçüncü taraf hizmetlere gönderilebilir. Her hizmetin kendi gizlilik politikası vardır:',
     _ =>
-    'For online translation, the App connects to the internet, and the text you translate may be sent to the following third-party services. Each service has its own privacy policy:',
+      'For online translation, the App connects to the internet, and the text you translate may be sent to the following third-party services. Each service has its own privacy policy:',
   };
 
   List<String> get sec4Bullets => switch (lang) {
@@ -689,13 +689,13 @@ class _Strings {
 
   String get sec5Body => switch (lang) {
     'ru' =>
-    'Оффлайн-перевод через Google ML Kit полностью выполняется на вашем устройстве. Загруженные модели нейронных сетей хранятся в локальной файловой системе и не отправляются ни на какой сервер. Встроенный лингвистический словарь туркменско-русского и туркменско-английского также работает полностью оффлайн и не требует подключения к сети. Это обеспечивает полную доступность сервиса перевода даже при отсутствии интернета и гарантирует максимальный уровень конфиденциальности ваших текстов.',
+      'Оффлайн-перевод через Google ML Kit полностью выполняется на вашем устройстве. Загруженные модели нейронных сетей хранятся в локальной файловой системе и не отправляются ни на какой сервер. Встроенный лингвистический словарь туркменско-русского и туркменско-английского также работает полностью оффлайн и не требует подключения к сети. Это обеспечивает полную доступность сервиса перевода даже при отсутствии интернета и гарантирует максимальный уровень конфиденциальности ваших текстов.',
     'tk' =>
-    'Offlaýn terjime Google ML Kit arkaly doly siziň enjamyňyzda işleýär. Ýüklenen neýron tor modelleri ýerli faýl ulgamynda saklanýar we hiç hili serwere iberilmeýär. Gurulan türkmen-rus we türkmen-iňlis lingwistik sözlügi hem doly offlaýn işleýär we tora mätäçlik çekmeýär. Bu, internet ýok wagty hem terjime hyzmatynyň doly elýeter bolmagyny üpjün edýär we siziň tekstleriňiziň gizlinligini iň ýokary derejede goraýar.',
+      'Offlaýn terjime Google ML Kit arkaly doly siziň enjamyňyzda işleýär. Ýüklenen neýron tor modelleri ýerli faýl ulgamynda saklanýar we hiç hili serwere iberilmeýär. Gurulan türkmen-rus we türkmen-iňlis lingwistik sözlügi hem doly offlaýn işleýär we tora mätäçlik çekmeýär. Bu, internet ýok wagty hem terjime hyzmatynyň doly elýeter bolmagyny üpjün edýär we siziň tekstleriňiziň gizlinligini iň ýokary derejede goraýar.',
     'tr' =>
-    'Google ML Kit aracılığıyla çevrimdışı çeviri tamamen cihazınızda gerçekleştirilir. İndirilen sinir ağı modelleri yerel dosya sisteminde saklanır ve hiçbir sunucuya gönderilmez. Yerleşik Türkmen-Rus ve Türkmen-İngiliz dilbilimsel sözlükler de tamamen çevrimdışı çalışır ve ağ bağlantısı gerektirmez. Bu, internet olmasa bile çeviri hizmetinin tam olarak kullanılabilirliğini sağlar ve metinlerinizin azami gizliliğini garanti eder.',
+      'Google ML Kit aracılığıyla çevrimdışı çeviri tamamen cihazınızda gerçekleştirilir. İndirilen sinir ağı modelleri yerel dosya sisteminde saklanır ve hiçbir sunucuya gönderilmez. Yerleşik Türkmen-Rus ve Türkmen-İngiliz dilbilimsel sözlükler de tamamen çevrimdışı çalışır ve ağ bağlantısı gerektirmez. Bu, internet olmasa bile çeviri hizmetinin tam olarak kullanılabilirliğini sağlar ve metinlerinizin azami gizliliğini garanti eder.',
     _ =>
-    'Offline translation via Google ML Kit is performed entirely on your device. Downloaded neural network models are stored in the local file system and are not sent to any server. The built-in Turkmen-Russian and Turkmen-English linguistic dictionaries also work completely offline and do not require a network connection. This ensures full availability of the translation service even without internet access and guarantees the maximum level of confidentiality for your texts.',
+      'Offline translation via Google ML Kit is performed entirely on your device. Downloaded neural network models are stored in the local file system and are not sent to any server. The built-in Turkmen-Russian and Turkmen-English linguistic dictionaries also work completely offline and do not require a network connection. This ensures full availability of the translation service even without internet access and guarantees the maximum level of confidentiality for your texts.',
   };
 
   String get sec6Title => switch (lang) {
@@ -707,13 +707,13 @@ class _Strings {
 
   String get sec6Body => switch (lang) {
     'ru' =>
-    'Köpri не собирает намеренно персональные данные от детей младше 13 лет (или возраста, установленного в соответствующей юрисдикции — например, 16 лет в ЕС). Мы не требуем заверенного согласия родителей или опекунов на сбор, использование или раскрытие персональных данных детей. Если родитель или опекун считает, что ребёнок предоставил нам персональные данные, ему следует немедленно связаться с нами — мы удалим данные в течение 24 часов как с наших серверов (если они там есть), так и с локальных устройств.',
+      'Köpri не собирает намеренно персональные данные от детей младше 13 лет (или возраста, установленного в соответствующей юрисдикции — например, 16 лет в ЕС). Мы не требуем заверенного согласия родителей или опекунов на сбор, использование или раскрытие персональных данных детей. Если родитель или опекун считает, что ребёнок предоставил нам персональные данные, ему следует немедленно связаться с нами — мы удалим данные в течение 24 часов как с наших серверов (если они там есть), так и с локальных устройств.',
     'tk' =>
-    'Köpri 13 ýaşdan kiçi çagalardan (ýa-da degişli ýurisdiksiýada kesgitlenen san — mysal üçin, ÝB-de 16 ýaş) bilkastlaýyn şahsy maglumat ýygnamaýar. Biz çagalaryň şahsy maglumatlaryny ýygnamak, ulanmak ýa-da açmak üçin ene-ata ýa-da howandaryň tassyklanylýan razylygyny talap etmeýäris. Eger ene-ata ýa-da howandar çagasynyň bize şahsy maglumat berendigine ynanýan bolsa, dessine bize ýüz tutsun — biz maglumatlary 24 sagadyň dowamynda serwerlermizden (bar bolsa) we ýerli enjamlardan hem pozarys.',
+      'Köpri 13 ýaşdan kiçi çagalardan (ýa-da degişli ýurisdiksiýada kesgitlenen san — mysal üçin, ÝB-de 16 ýaş) bilkastlaýyn şahsy maglumat ýygnamaýar. Biz çagalaryň şahsy maglumatlaryny ýygnamak, ulanmak ýa-da açmak üçin ene-ata ýa-da howandaryň tassyklanylýan razylygyny talap etmeýäris. Eger ene-ata ýa-da howandar çagasynyň bize şahsy maglumat berendigine ynanýan bolsa, dessine bize ýüz tutsun — biz maglumatlary 24 sagadyň dowamynda serwerlermizden (bar bolsa) we ýerli enjamlardan hem pozarys.',
     'tr' =>
-    'Köpri, 13 yaşın altındaki çocuklardan (veya ilgili yargı bölgesinde belirlenen yaştan — örneğin AB\'de 16) bilerek kişisel veri toplamaz. Çocukların kişisel verilerini toplamak, kullanmak veya ifşa etmek için ebeveyn veya vasisinin doğrulanabilir onayını istemeyiz. Bir ebeveyn veya vasi, çocuğunun bize kişisel veri sağladığına inanıyorsa, derhal bizimle iletişime geçmelidir — verileri 24 saat içinde hem sunucularımızdan (varsa) hem de yerel cihazlardan sileceğiz.',
+      'Köpri, 13 yaşın altındaki çocuklardan (veya ilgili yargı bölgesinde belirlenen yaştan — örneğin AB\'de 16) bilerek kişisel veri toplamaz. Çocukların kişisel verilerini toplamak, kullanmak veya ifşa etmek için ebeveyn veya vasisinin doğrulanabilir onayını istemeyiz. Bir ebeveyn veya vasi, çocuğunun bize kişisel veri sağladığına inanıyorsa, derhal bizimle iletişime geçmelidir — verileri 24 saat içinde hem sunucularımızdan (varsa) hem de yerel cihazlardan sileceğiz.',
     _ =>
-    'Köpri does not knowingly collect personal data from children under 13 years of age (or the age established in the relevant jurisdiction — for example, 16 in the EU). We do not require verifiable parental or guardian consent to collect, use, or disclose children\'s personal data. If a parent or guardian believes that their child has provided us with personal data, they should contact us immediately — we will delete the data within 24 hours from both our servers (if present) and local devices.',
+      'Köpri does not knowingly collect personal data from children under 13 years of age (or the age established in the relevant jurisdiction — for example, 16 in the EU). We do not require verifiable parental or guardian consent to collect, use, or disclose children\'s personal data. If a parent or guardian believes that their child has provided us with personal data, they should contact us immediately — we will delete the data within 24 hours from both our servers (if present) and local devices.',
   };
 
   String get sec7Title => switch (lang) {
@@ -725,13 +725,13 @@ class _Strings {
 
   String get sec7Body => switch (lang) {
     'ru' =>
-    'Мы можем время от времени обновлять настоящую Политику. О существенных изменениях (новые виды сбора данных, изменение сторонних сервисов, изменение правовых оснований) мы уведомим вас заранее: через уведомление в Приложении или на стартовом экране. Продолжая использовать обновлённую Политику на регулярной основе, вы принимаете изменения.',
+      'Мы можем время от времени обновлять настоящую Политику. О существенных изменениях (новые виды сбора данных, изменение сторонних сервисов, изменение правовых оснований) мы уведомим вас заранее: через уведомление в Приложении или на стартовом экране. Продолжая использовать обновлённую Политику на регулярной основе, вы принимаете изменения.',
     'tk' =>
-    'Biz şu Syýasaty wagtal-wagtal täzeläp bileris. Mazmunly üýtgeşmeler (maglumat ýygnamagyň täze görnüşleri, üçünji tarap hyzmatlarynyň üýtgemegi, hukuk esaslarynyň üýtgemegi) barada öňünden habar bereris: Programma içindäki habarnama ýa-da açylyş ekrany arkaly. Täzelenen Syýasaty yzygiderli ulanmagy dowam etseňiz, üýtgeşmeleri kabul edýärsiňiz.',
+      'Biz şu Syýasaty wagtal-wagtal täzeläp bileris. Mazmunly üýtgeşmeler (maglumat ýygnamagyň täze görnüşleri, üçünji tarap hyzmatlarynyň üýtgemegi, hukuk esaslarynyň üýtgemegi) barada öňünden habar bereris: Programma içindäki habarnama ýa-da açylyş ekrany arkaly. Täzelenen Syýasaty yzygiderli ulanmagy dowam etseňiz, üýtgeşmeleri kabul edýärsiňiz.',
     'tr' =>
-    'Bu Politikayı zaman zaman güncelleyebiliriz. Önemli değişiklikler (yeni veri toplama türleri, üçüncü taraf hizmetlerindeki değişiklikler, yasal gerekçelerdeki değişiklikler) hakkında önceden bildirimde bulunacağız: uygulama içi bildirim veya başlangıç ekranı aracılığıyla. Güncellenmiş Politikayı düzenli olarak kullanmaya devam ederek değişiklikleri kabul etmiş olursunuz.',
+      'Bu Politikayı zaman zaman güncelleyebiliriz. Önemli değişiklikler (yeni veri toplama türleri, üçüncü taraf hizmetlerindeki değişiklikler, yasal gerekçelerdeki değişiklikler) hakkında önceden bildirimde bulunacağız: uygulama içi bildirim veya başlangıç ekranı aracılığıyla. Güncellenmiş Politikayı düzenli olarak kullanmaya devam ederek değişiklikleri kabul etmiş olursunuz.',
     _ =>
-    'We may update this Policy from time to time. Material changes (new types of data collection, changes to third-party services, changes to legal grounds) will be notified in advance: via an in-app notification or a startup screen. By continuing to use the updated Policy on a regular basis, you accept the changes.',
+      'We may update this Policy from time to time. Material changes (new types of data collection, changes to third-party services, changes to legal grounds) will be notified in advance: via an in-app notification or a startup screen. By continuing to use the updated Policy on a regular basis, you accept the changes.',
   };
 
   String get contactTitle => switch (lang) {
@@ -743,13 +743,13 @@ class _Strings {
 
   String get contactBody => switch (lang) {
     'ru' =>
-    'Чтобы запросить доступ к вашим данным, их исправление, экспорт или полное удаление, а также по любым вопросам или предложениям касательно настоящей Политики — напишите нам в Telegram:',
+      'Чтобы запросить доступ к вашим данным, их исправление, экспорт или полное удаление, а также по любым вопросам или предложениям касательно настоящей Политики — напишите нам в Telegram:',
     'tk' =>
-    'Maglumatlaryňyza girişi, düzedişleri, göçürilmegini ýa-da doly pozulmagyny haýyş etmek üçin, şeýle hem şu Syýasat boýunça islendik sorag ýa-da teklip üçin Telegram arkaly habarlaşyň:',
+      'Maglumatlaryňyza girişi, düzedişleri, göçürilmegini ýa-da doly pozulmagyny haýyş etmek üçin, şeýle hem şu Syýasat boýunça islendik sorag ýa-da teklip üçin Telegram arkaly habarlaşyň:',
     'tr' =>
-    'Verilerinize erişim, düzeltme, dışa aktarma veya tamamen silme talebinde bulunmak, ayrıca bu Politika ile ilgili herhangi bir soru veya öneri için Telegram üzerinden bize ulaşın:',
+      'Verilerinize erişim, düzeltme, dışa aktarma veya tamamen silme talebinde bulunmak, ayrıca bu Politika ile ilgili herhangi bir soru veya öneri için Telegram üzerinden bize ulaşın:',
     _ =>
-    'To request access to your data, correction, export, or complete deletion, as well as for any questions or suggestions regarding this Policy — contact us on Telegram:',
+      'To request access to your data, correction, export, or complete deletion, as well as for any questions or suggestions regarding this Policy — contact us on Telegram:',
   };
 
   String get footer => switch (lang) {

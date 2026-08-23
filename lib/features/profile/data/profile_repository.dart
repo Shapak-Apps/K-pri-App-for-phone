@@ -45,8 +45,6 @@ class ProfileRepository extends ChangeNotifier {
   File get avatarFile => File('$_dir/profile_avatar.jpg');
   bool get hasAvatar => avatarFile.existsSync() && avatarFile.lengthSync() > 0;
 
-  /// Версия аватара — меняется при каждом сохранении/удалении.
-  /// Используется как key в Image.file, чтобы Flutter не показывал старый кэш.
   int get avatarVersion =>
       (_box?.get('avatarVersion', defaultValue: 0) as int?) ?? 0;
 
@@ -61,12 +59,10 @@ class ProfileRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Ресайз в фоновом isolate — UI-поток не блокируется.
   static String? _resizeInBackground(Map<String, String> args) {
     return ProfileFFI().resizeAvatar(args['src']!, args['dst']!);
   }
 
-  /// Выбиваем старый битмап из кэша Flutter (иначе будет старое фото).
   void _evictAvatarCache() {
     try {
       PaintingBinding.instance.imageCache.evict(FileImage(avatarFile));
@@ -77,7 +73,6 @@ class ProfileRepository extends ChangeNotifier {
     await ensureInit();
     final tmp = '$_dir/profile_avatar_tmp.jpg';
 
-    // тяжёлая работа (decode + resize + jpg) — НЕ в UI-потоке
     String? resized;
     try {
       resized = await compute(_resizeInBackground, {'src': path, 'dst': tmp});
@@ -149,7 +144,7 @@ class ProfileRepository extends ChangeNotifier {
       await _box!.put('lastActiveDate', today);
     }
 
-    await _box!.put('xp', xp + 10);
+    await _box!.put('xp', xp + 5);
     await logActivity('translation', 1);
     notifyListeners();
   }

@@ -13,6 +13,7 @@ import '../../history/data/history_repository.dart';
 import '../../translate/data/languages.dart';
 import '../../translate/data/offline_translator.dart';
 import '../../camera/data/camera_repository.dart';
+import '../../camera/presentation/camera_screen.dart' show kCameraEnabled, showComingSoonAnywhere;
 import '../ui/privacy_policy_screen.dart';
 import '../ui/terms_screen.dart';
 
@@ -288,7 +289,15 @@ class SettingsScreen extends StatelessWidget {
                       c,
                       Icons.photo_library_rounded,
                       l10n.t('clear_photos'),
-                          () => _clearPhotos(context),
+                          () async {
+                        if (!kCameraEnabled) {
+                          showComingSoonAnywhere(context);
+                        } else {
+                          await _clearPhotos(context);
+                        }
+                      },
+                      showBadge: !kCameraEnabled,
+                      lang: s.lang.name,
                     ),
                   ]),
                   const SizedBox(height: 14),
@@ -1299,10 +1308,23 @@ class _DangerRow extends StatelessWidget {
   final IconData icon;
   final String title;
   final VoidCallback onTap;
-  const _DangerRow(this.c, this.icon, this.title, this.onTap);
+  final bool showBadge;
+  final String lang;
+
+  const _DangerRow(
+      this.c,
+      this.icon,
+      this.title,
+      this.onTap, {
+        this.showBadge = false,
+        this.lang = 'ru',
+      });
+
   @override
   Widget build(BuildContext context) => Material(
-    color: c.warn.withValues(alpha: 0.06),
+    color: showBadge
+        ? c.accent.withValues(alpha: 0.06)
+        : c.warn.withValues(alpha: 0.06),
     borderRadius: BorderRadius.circular(12),
     child: InkWell(
       borderRadius: BorderRadius.circular(12),
@@ -1311,14 +1333,28 @@ class _DangerRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
         child: Row(
           children: [
-            Icon(icon, color: c.warn, size: 20),
+            Icon(
+              icon,
+              color: showBadge ? c.accent : c.warn,
+              size: 20,
+            ),
             const SizedBox(width: 12),
-            Text(
-              title,
-              style: TextStyle(
-                color: c.warn,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
+            Expanded(
+              child: Row(
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: showBadge ? c.accent : c.warn,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                  if (showBadge) ...[
+                    const SizedBox(width: 8),
+                    _SoonBadge(c: c, lang: lang),
+                  ],
+                ],
               ),
             ),
           ],
@@ -1326,6 +1362,41 @@ class _DangerRow extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _SoonBadge extends StatelessWidget {
+  final AppColors c;
+  final String lang;
+
+  const _SoonBadge({required this.c, required this.lang});
+
+  String get _text => switch (lang) {
+    'ru' => 'Скоро',
+    'en' => 'Soon',
+    'tk' => 'Ýakyn',
+    'tr' => 'Yakında',
+    _ => 'Soon',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: c.accent,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        _text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
 }
 
 class _AccentPicker extends StatelessWidget {

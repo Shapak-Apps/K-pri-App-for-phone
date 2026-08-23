@@ -58,3 +58,5 @@ assets/tessdata/*.traineddata
 # Примеры и тестовые картинки плагина — на GitHub не нужны
 plugins/flutter_tesseract_ocr/example/
 plugins/flutter_tesseract_ocr/images/
+android/app/google-services.json
+lib/firebase_options.dart

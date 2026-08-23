@@ -13,6 +13,7 @@
 #define MT_LOG(...) __android_log_print(ANDROID_LOG_INFO, MT_TAG, __VA_ARGS__)
 
 namespace kp {
+
     namespace {
 
         struct Engine {
@@ -25,7 +26,7 @@ namespace kp {
 
         Engine g;
 
-        uint32_t next_cp(const std::string& t, size_t& i) {
+        [[gnu::always_inline]] inline uint32_t next_cp(const std::string& t, size_t& i) noexcept {
             unsigned char c = (unsigned char)t[i];
             uint32_t cp = 0;
             if (c < 0x80) { cp = c; i += 1; }
@@ -34,29 +35,28 @@ namespace kp {
             } else if ((c >> 4) == 0xE && i + 2 < t.size()) {
                 cp = ((c & 0x0F) << 12) | ((t[i + 1] & 0x3F) << 6) | (t[i + 2] & 0x3F); i += 3;
             } else if ((c >> 3) == 0x1E && i + 3 < t.size()) {
-                cp = ((c & 0x07) << 18) | ((t[i + 1] & 0x12) << 12) |
+                cp = ((c & 0x07) << 18) | ((t[i + 1] & 0x3F) << 12) |
                      ((t[i + 2] & 0x3F) << 6) | (t[i + 3] & 0x3F); i += 4;
             } else { i += 1; return 0; }
             return cp;
         }
 
-        void enc_cp(std::string& out, uint32_t cp) {
+        [[gnu::always_inline]] inline void enc_cp(std::string& out, uint32_t cp) noexcept {
             if (cp < 0x80) out += (char)cp;
             else if (cp < 0x800) { out += (char)(0xC0 | (cp >> 6)); out += (char)(0x80 | (cp & 63)); }
             else if (cp < 0x10000) { out += (char)(0xE0 | (cp >> 12)); out += (char)(0x80 | ((cp >> 6) & 63)); out += (char)(0x80 | (cp & 63)); }
             else { out += (char)(0xF0 | (cp >> 18)); out += (char)(0x80 | ((cp >> 12) & 63)); out += (char)(0x80 | ((cp >> 6) & 63)); out += (char)(0x80 | (cp & 63)); }
         }
 
-        uint32_t cp_lower(uint32_t cp) {
+        [[gnu::always_inline]] inline uint32_t cp_lower(uint32_t cp) noexcept {
             if (cp >= 'A' && cp <= 'Z') return cp + 32;
             if (cp >= 0x410 && cp <= 0x42F) return cp + 0x20;
             if (cp == 0x401) return 0x451;
             if (cp == 0x3C2) return 0x3C3;
-
             switch (cp) {
-                case 0xC4: return 0xE4;   case 0xC7: return 0xE7;
-                case 0xD6: return 0xF6;   case 0xDC: return 0xFC;
-                case 0xDD: return 0xFD;   case 0x17D: return 0x17E;
+                case 0xC4: return 0xE4; case 0xC7: return 0xE7;
+                case 0xD6: return 0xF6; case 0xDC: return 0xFC;
+                case 0xDD: return 0xFD; case 0x17D: return 0x17E;
                 case 0x147: return 0x148; case 0x15E: return 0x15F;
                 case 0x11E: return 0x11F; case 0x130: return 0x69;
                 case 0x391: return 0x3B1; case 0x392: return 0x3B2;
@@ -75,7 +75,7 @@ namespace kp {
             return cp;
         }
 
-        bool cp_skip(uint32_t cp) {
+        [[gnu::always_inline]] inline bool cp_skip(uint32_t cp) noexcept {
             switch (cp) {
                 case '.': case ',': case '!': case '?': case ';': case ':':
                 case '"': case '\'': case '(': case ')': case '[': case ']':
@@ -87,12 +87,13 @@ namespace kp {
             return false;
         }
 
-        bool cp_space(uint32_t cp) {
+        [[gnu::always_inline]] inline bool cp_space(uint32_t cp) noexcept {
             return cp == ' ' || cp == '\t' || cp == '\n' || cp == '\r';
         }
 
         std::string norm_key(const std::string& s) {
             std::string out;
+            out.reserve(s.size());
             bool sp = false;
             size_t i = 0;
             while (i < s.size()) {
@@ -109,18 +110,19 @@ namespace kp {
 
         std::vector<std::string> tokenize(const std::string& s) {
             std::vector<std::string> toks;
+            toks.reserve(8);
             std::string cur;
             size_t i = 0;
             while (i < s.size()) {
                 uint32_t cp = next_cp(s, i);
                 if (cp == 0) continue;
                 if (cp_space(cp) || cp_skip(cp) || cp == '-') {
-                    if (!cur.empty()) { toks.push_back(cur); cur.clear(); }
+                    if (!cur.empty()) { toks.push_back(std::move(cur)); cur.clear(); }
                     continue;
                 }
                 enc_cp(cur, cp_lower(cp));
             }
-            if (!cur.empty()) toks.push_back(cur);
+            if (!cur.empty()) toks.push_back(std::move(cur));
             return toks;
         }
 
@@ -153,7 +155,7 @@ namespace kp {
                 const std::unordered_map<std::string, std::unordered_map<std::string, int32_t>>& cooc,
                 const std::unordered_map<std::string, int32_t>& tot,
                 std::unordered_map<std::string, std::string>& out) {
-            for (auto& kv : tot) {
+            for (const auto& kv : tot) {
                 const std::string& s = kv.first;
                 int32_t t = kv.second;
                 if (t <= 0) continue;
@@ -161,14 +163,14 @@ namespace kp {
                 if (it == cooc.end()) continue;
                 const std::string* best = nullptr;
                 int32_t bc = 0;
-                for (auto& cw : it->second) {
+                for (const auto& cw : it->second) {
                     if (cw.second > bc) { bc = cw.second; best = &cw.first; }
                 }
                 if (best && bc * 2 >= t && t >= 2) out[s] = *best;
             }
         }
 
-    }
+    } // namespace
 
     int32_t mt_load(int32_t n, const char** ru, const char** en, const char** tk, const char** tr) {
         std::lock_guard<std::mutex> lk(g.load_mu);
@@ -176,8 +178,15 @@ namespace kp {
 
         auto t0 = std::chrono::steady_clock::now();
         Engine e;
+
         std::unordered_map<std::string, std::unordered_map<std::string, int32_t>> cooc_ru, cooc_en, cooc_tr;
         std::unordered_map<std::string, int32_t> tot_ru, tot_en, tot_tr;
+
+        if (n > 0) {
+            const size_t est = static_cast<size_t>(n);
+            e.ph_ru.reserve(est); e.ph_en.reserve(est); e.ph_tr.reserve(est);
+            e.keys_ru.reserve(est); e.keys_en.reserve(est); e.keys_tr.reserve(est);
+        }
 
         for (int32_t i = 0; i < n; ++i) {
             if (!tk[i]) continue;
@@ -264,7 +273,6 @@ namespace kp {
 
         const bool is_ru = std::strcmp(from, "ru") == 0;
         const bool is_tr = std::strcmp(from, "tr") == 0;
-
         const auto& ph = is_ru ? g.ph_ru : (is_tr ? g.ph_tr : g.ph_en);
         const auto& keys = is_ru ? g.keys_ru : (is_tr ? g.keys_tr : g.keys_en);
         const auto& wd = is_ru ? g.w_ru : (is_tr ? g.w_tr : g.w_en);
@@ -272,7 +280,7 @@ namespace kp {
         const std::string k = norm_key(text);
         if (k.empty()) return -1;
 
-        auto put = [&](const std::string& s, int32_t q) {
+        auto put = [&](const std::string& s, int q) {
             if ((int32_t)s.size() + 1 > out_sz) return false;
             std::memcpy(out, s.data(), s.size());
             out[s.size()] = '\0';
@@ -290,6 +298,7 @@ namespace kp {
         const int cap = (int)(k.size() / 4) + 2;
         int best = 0;
         const std::string* best_key = nullptr;
+
         for (const auto& key : keys) {
             size_t d1 = key.size() > k.size() ? key.size() - k.size() : k.size() - key.size();
             if ((int)d1 > cap) continue;
@@ -300,6 +309,7 @@ namespace kp {
             int score = 1000 - d * 1000 / mx;
             if (score > best) { best = score; best_key = &key; }
         }
+
         if (best >= 800 && best_key) {
             auto it2 = ph.find(*best_key);
             if (it2 != ph.end() && put(it2->second, 2)) {
@@ -310,9 +320,12 @@ namespace kp {
 
         auto toks = tokenize(text);
         if (toks.empty()) return -1;
+
         std::string res;
+        res.reserve(std::strlen(text) + 16);
         int matched = 0;
         size_t i = 0;
+
         while (i < toks.size()) {
             bool done = false;
             for (int len = 3; len >= 1 && !done; --len) {
@@ -334,12 +347,14 @@ namespace kp {
                 i += 1;
             }
         }
+
         if (matched == 0) { MT_LOG("miss"); return -1; }
         if (!put(res, 3)) return -1;
+
         auto us = std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::steady_clock::now() - t0).count();
-        MT_LOG("rough matched=%d/%zu in %lld µs", matched, toks.size(), (long long)us);
+        MT_LOG("rough matched=%d/%zu in %lld us", matched, toks.size(), (long long)us);
         return (int32_t)res.size();
     }
 
-}
+} // namespace kp

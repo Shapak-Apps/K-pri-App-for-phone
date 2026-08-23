@@ -79,6 +79,15 @@ class TermsScreen extends StatelessWidget {
                       body: t.sec6Body,
                       index: 5,
                     ),
+                    const SizedBox(height: 12),
+                    _Section(
+                      c: c,
+                      icon: Icons.rocket_launch_rounded,
+                      title: t.sec7Title,
+                      body: t.sec7Body,
+                      bullets: t.sec7Bullets,
+                      index: 6,
+                    ),
                     const SizedBox(height: 18),
                     _AcceptanceCard(c: c, t: t),
                     const SizedBox(height: 24),
@@ -449,13 +458,13 @@ class _Strings {
 
   String get introBody => switch (lang) {
     'ru' =>
-    'Загружая, устанавливая или используя мобильное приложение Köpri («Приложение»), вы («Пользователь») полностью и безоговорочно принимаете настоящие условия. Если вы не согласны с каким-либо пунктом настоящих условий, мы просим вас немедленно прекратить использование Приложения и удалить его с вашего устройства. Настоящий документ регулирует правовые отношения между вами и разработчиком Köpri («Мы», «Правообладатель»).',
+      'Загружая, устанавливая или используя мобильное приложение Köpri («Приложение»), вы («Пользователь») полностью и безоговорочно принимаете настоящие условия. Если вы не согласны с каким-либо пунктом настоящих условий, мы просим вас немедленно прекратить использование Приложения и удалить его с вашего устройства. Настоящий документ регулирует правовые отношения между вами и разработчиком Köpri («Мы», «Правообладатель»).',
     'tk' =>
-    'Köpri mobil programmasyny («Programma») ýükläp, gurnap ýa-da ulanyp, siz («Ulanyjy») şu şertleri doly we çäklendirilmedik kabul edýärsiňiz. Eger şu şertleriň haýsydyr bir bölegi bilen razy bolmasaňyz, Programmany derrew ulanmagy bes etmegiňizi we enjamyňyzdan aýyrmagyňyzy haýyş edýäris. Şu resminama siziň bilen Köpri döredijisiniň («Biz», «Önümi eýesi») arasyndaky baglanyşykly hukuk gatnaşyklaryny düzgünleşdirýär.',
+      'Köpri mobil programmasyny («Programma») ýükläp, gurnap ýa-da ulanyp, siz («Ulanyjy») şu şertleri doly we çäklendirilmedik kabul edýärsiňiz. Eger şu şertleriň haýsydyr bir bölegi bilen razy bolmasaňyz, Programmany derrew ulanmagy bes etmegiňizi we enjamyňyzdan aýyrmagyňyzy haýyş edýäris. Şu resminama siziň bilen Köpri döredijisiniň («Biz», «Önümi eýesi») arasyndaky baglanyşykly hukuk gatnaşyklaryny düzgünleşdirýär.',
     'tr' =>
-    'Köpri mobil uygulamasını ("Uygulama") indirerek, kurarak veya kullanarak, siz ("Kullanıcı") bu koşulları tam ve şartsız olarak kabul etmiş olursunuz. Bu koşulların herhangi bir bölümüne katılmıyorsanız, Uygulamayı kullanmayı derhal bırakmanızı ve cihazınızdan kaldırmanızı rica ederiz. Bu belge, siz ve Köpri geliştiricisi ("Biz", "Sahip") arasındaki yasal ilişkiyi düzenler.',
+      'Köpri mobil uygulamasını ("Uygulama") indirerek, kurarak veya kullanarak, siz ("Kullanıcı") bu koşulları tam ve şartsız olarak kabul etmiş olursunuz. Bu koşulların herhangi bir bölümüne katılmıyorsanız, Uygulamayı kullanmayı derhal bırakmanızı ve cihazınızdan kaldırmanızı rica ederiz. Bu belge, siz ve Köpri geliştiricisi ("Biz", "Sahip") arasındaki yasal ilişkiyi düzenler.',
     _ =>
-    'By downloading, installing, or using the Köpri mobile application (the "App"), you (the "User") fully and unconditionally accept these terms. If you do not agree with any part of these terms, we request that you immediately cease using the App and uninstall it from your device. This document governs the legal relationship between you and the Köpri developer ("We", "the Owner").',
+      'By downloading, installing, or using the Köpri mobile application (the "App"), you (the "User") fully and unconditionally accept these terms. If you do not agree with any part of these terms, we request that you immediately cease using the App and uninstall it from your device. This document governs the legal relationship between you and the Köpri developer ("We", "the Owner").',
   };
 
   String get sec1Title => switch (lang) {
@@ -467,13 +476,13 @@ class _Strings {
 
   String get sec1Body => switch (lang) {
     'ru' =>
-    'Мы предоставляем вам личную, неисключительную, непередаваемую, безвозмездную и ограниченную лицензию на использование Приложения исключительно на вашем личном устройстве. Все права интеллектуальной собственности, включая авторское право, товарные знаки, исходный код, дизайн, логотипы и алгоритмы перевода, остаются нашей собственностью. Без нашего прямого письменного разрешения категорически запрещается:',
+      'Мы предоставляем вам личную, неисключительную, непередаваемую, безвозмездную и ограниченную лицензию на использование Приложения исключительно на вашем личном устройстве. Все права интеллектуальной собственности, включая авторское право, товарные знаки, исходный код, дизайн, логотипы и алгоритмы перевода, остаются нашей собственностью. Без нашего прямого письменного разрешения категорически запрещается:',
     'tk' =>
-    'Biz size şahsy, aýratyn däl, gaýtadan berlip bilinmeýän, mugt we çäkli lisenziýa berýäris — diňe Programmany öz şahsy enjamyňyzda ulanmak üçin. Ähli intellektual eýeçilik hukuklary, şol sanda awtorlyk hukugy, söwda belligi, Programma kody, dizaýn, nyşanlar we terjime algoritmleri — biziň eýeçiligimizde galýar. Biziň açyk ýazmaça rugsadymyzsyz şu hereketler düýbünden gadagan:',
+      'Biz size şahsy, aýratyn däl, gaýtadan berlip bilinmeýän, mugt we çäkli lisenziýa berýäris — diňe Programmany öz şahsy enjamyňyzda ulanmak üçin. Ähli intellektual eýeçilik hukuklary, şol sanda awtorlyk hukugy, söwda belligi, Programma kody, dizaýn, nyşanlar we terjime algoritmleri — biziň eýeçiligimizde galýar. Biziň açyk ýazmaça rugsadymyzsyz şu hereketler düýbünden gadagan:',
     'tr' =>
-    'Size, Uygulamayı yalnızca kişisel cihazınızda kullanmak üzere kişisel, münhasır olmayan, devredilemez, ücretsiz ve sınırlı bir lisans veriyoruz. Telif hakkı, ticari markalar, kaynak kodu, tasarım, logolar ve çeviri algoritmaları dahil tüm fikri mülkiyet hakları bizim mülkiyetimizde kalır. Açık yazılı iznimiz olmadan aşağıdaki işlemler kesinlikle yasaktır:',
+      'Size, Uygulamayı yalnızca kişisel cihazınızda kullanmak üzere kişisel, münhasır olmayan, devredilemez, ücretsiz ve sınırlı bir lisans veriyoruz. Telif hakkı, ticari markalar, kaynak kodu, tasarım, logolar ve çeviri algoritmaları dahil tüm fikri mülkiyet hakları bizim mülkiyetimizde kalır. Açık yazılı iznimiz olmadan aşağıdaki işlemler kesinlikle yasaktır:',
     _ =>
-    'We grant you a personal, non-exclusive, non-transferable, free and limited license to use the App solely on your personal device. All intellectual property rights, including copyright, trademarks, source code, design, logos, and translation algorithms, remain our property. Without our express written permission, the following actions are strictly prohibited:',
+      'We grant you a personal, non-exclusive, non-transferable, free and limited license to use the App solely on your personal device. All intellectual property rights, including copyright, trademarks, source code, design, logos, and translation algorithms, remain our property. Without our express written permission, the following actions are strictly prohibited:',
   };
 
   List<String> get sec1Bullets => switch (lang) {
@@ -512,13 +521,13 @@ class _Strings {
 
   String get sec2Body => switch (lang) {
     'ru' =>
-    'Переводы генерируются автоматически с помощью моделей машинного обучения (Google ML Kit, Google Translate API, MyMemory Translation Memory), нейронных сетей и встроенного лингвистического словаря. Машинный перевод по своей природе не может гарантировать абсолютную точность — он может содержать семантические, грамматические, прагматические и культурные ошибки. Мы предупреждаем:',
+      'Переводы генерируются автоматически с помощью моделей машинного обучения (Google ML Kit, Google Translate API, MyMemory Translation Memory), нейронных сетей и встроенного лингвистического словаря. Машинный перевод по своей природе не может гарантировать абсолютную точность — он может содержать семантические, грамматические, прагматические и культурные ошибки. Мы предупреждаем:',
     'tk' =>
-    'Terjimeler awtomatiki maşyn öwreniş modelleri (Google ML Kit, Google Translate API, MyMemory Translation Memory), neýron torlary we gurulan lingwistik sözlük arkaly döredilýär. Maşyn terjimesi tebigaty boýunça doly takyklygy kepillendirip bilmeýär — ol semantik, grammatik, pragmatik we medeniýet ýalňyşlyklary öz içine alyp biler. Biz aşakdakylary duýdurýarys:',
+      'Terjimeler awtomatiki maşyn öwreniş modelleri (Google ML Kit, Google Translate API, MyMemory Translation Memory), neýron torlary we gurulan lingwistik sözlük arkaly döredilýär. Maşyn terjimesi tebigaty boýunça doly takyklygy kepillendirip bilmeýär — ol semantik, grammatik, pragmatik we medeniýet ýalňyşlyklary öz içine alyp biler. Biz aşakdakylary duýdurýarys:',
     'tr' =>
-    'Çeviriler, makine öğrenimi modelleri (Google ML Kit, Google Translate API, MyMemory Translation Memory), sinir ağları ve yerleşik dilbilimsel sözlük kullanılarak otomatik olarak oluşturulur. Makine çevirisi doğası gereği mutlak doğruluğu garanti edemez — anlamsal, dilbilgisel, pragmatik ve kültürel hatalar içerebilir. Uyarıyoruz:',
+      'Çeviriler, makine öğrenimi modelleri (Google ML Kit, Google Translate API, MyMemory Translation Memory), sinir ağları ve yerleşik dilbilimsel sözlük kullanılarak otomatik olarak oluşturulur. Makine çevirisi doğası gereği mutlak doğruluğu garanti edemez — anlamsal, dilbilgisel, pragmatik ve kültürel hatalar içerebilir. Uyarıyoruz:',
     _ =>
-    'Translations are automatically generated using machine learning models (Google ML Kit, Google Translate API, MyMemory Translation Memory), neural networks, and a built-in linguistic dictionary. Machine translation by its nature cannot guarantee absolute accuracy — it may contain semantic, grammatical, pragmatic, and cultural errors. We warn:',
+      'Translations are automatically generated using machine learning models (Google ML Kit, Google Translate API, MyMemory Translation Memory), neural networks, and a built-in linguistic dictionary. Machine translation by its nature cannot guarantee absolute accuracy — it may contain semantic, grammatical, pragmatic, and cultural errors. We warn:',
   };
 
   List<String> get sec2Bullets => switch (lang) {
@@ -557,13 +566,13 @@ class _Strings {
 
   String get sec3Body => switch (lang) {
     'ru' =>
-    'Приложение предоставляется на принципах «КАК ЕСТЬ» (AS IS) и «ПО МЕРЕ ДОСТУПНОСТИ» (AS AVAILABLE) без каких-либо прямых или косвенных гарантий. В максимальной степени, допускаемой законом, Мы не несём ответственности за:',
+      'Приложение предоставляется на принципах «КАК ЕСТЬ» (AS IS) и «ПО МЕРЕ ДОСТУПНОСТИ» (AS AVAILABLE) без каких-либо прямых или косвенных гарантий. В максимальной степени, допускаемой законом, Мы не несём ответственности за:',
     'tk' =>
-    'Programma «BAR BOLŞY ÝALY» (AS IS) we «ELÝETER BOLŞY ÝALY» (AS AVAILABLE) ýörelgeleri esasynda, hiç hili göni ýa-da gytaklaýyn kepilliksiz berilýär. Kanunyň iň ýokary rugsat berýän çäginde Biz aşakdakylar üçin jogapkärçilik çekmeýäris:',
+      'Programma «BAR BOLŞY ÝALY» (AS IS) we «ELÝETER BOLŞY ÝALY» (AS AVAILABLE) ýörelgeleri esasynda, hiç hili göni ýa-da gytaklaýyn kepilliksiz berilýär. Kanunyň iň ýokary rugsat berýän çäginde Biz aşakdakylar üçin jogapkärçilik çekmeýäris:',
     'tr' =>
-    'Uygulama "OLDUĞU GİBİ" (AS IS) ve "MEVCUT OLDUĞU GİBİ" (AS AVAILABLE) esasına göre, herhangi bir açık veya zımni garanti olmaksızın sunulur. Yasaların izin verdiği azami ölçüde, aşağıdakilerden sorumlu değiliz:',
+      'Uygulama "OLDUĞU GİBİ" (AS IS) ve "MEVCUT OLDUĞU GİBİ" (AS AVAILABLE) esasına göre, herhangi bir açık veya zımni garanti olmaksızın sunulur. Yasaların izin verdiği azami ölçüde, aşağıdakilerden sorumlu değiliz:',
     _ =>
-    'The App is provided on an "AS IS" and "AS AVAILABLE" basis without any express or implied warranties. To the maximum extent permitted by law, We are not liable for:',
+      'The App is provided on an "AS IS" and "AS AVAILABLE" basis without any express or implied warranties. To the maximum extent permitted by law, We are not liable for:',
   };
 
   List<String> get sec3Bullets => switch (lang) {
@@ -602,13 +611,13 @@ class _Strings {
 
   String get sec4Body => switch (lang) {
     'ru' =>
-    'Используя Приложение, вы обязуетесь воздерживаться от следующих действий:',
+      'Используя Приложение, вы обязуетесь воздерживаться от следующих действий:',
     'tk' =>
-    'Programmany ulanyp, siz aşakdaky hereketlerden saklanmaga borçlanýarsyňyz:',
+      'Programmany ulanyp, siz aşakdaky hereketlerden saklanmaga borçlanýarsyňyz:',
     'tr' =>
-    'Uygulamayı kullanarak aşağıdaki faaliyetlerden kaçınmayı taahhüt edersiniz:',
+      'Uygulamayı kullanarak aşağıdaki faaliyetlerden kaçınmayı taahhüt edersiniz:',
     _ =>
-    'By using the App, you undertake to refrain from the following activities:',
+      'By using the App, you undertake to refrain from the following activities:',
   };
 
   List<String> get sec4Bullets => switch (lang) {
@@ -651,13 +660,13 @@ class _Strings {
 
   String get sec5Body => switch (lang) {
     'ru' =>
-    'Köpri использует следующие сторонние библиотеки и компоненты с открытым исходным кодом, каждый из которых предоставляется на условиях собственной лицензии:',
+      'Köpri использует следующие сторонние библиотеки и компоненты с открытым исходным кодом, каждый из которых предоставляется на условиях собственной лицензии:',
     'tk' =>
-    'Köpri aşakdaky üçünji tarap kitapханalary we açyk çeşme komponentleri ulanýar, olaryň her biri öz lisenziýa şertleri bilen berilýär:',
+      'Köpri aşakdaky üçünji tarap kitapханalary we açyk çeşme komponentleri ulanýar, olaryň her biri öz lisenziýa şertleri bilen berilýär:',
     'tr' =>
-    'Köpri, her biri kendi lisans koşulları altında sağlanan aşağıdaki üçüncü taraf kütüphaneleri ve açık kaynak bileşenleri kullanır:',
+      'Köpri, her biri kendi lisans koşulları altında sağlanan aşağıdaki üçüncü taraf kütüphaneleri ve açık kaynak bileşenleri kullanır:',
     _ =>
-    'Köpri uses the following third-party libraries and open-source components, each provided under its own license terms:',
+      'Köpri uses the following third-party libraries and open-source components, each provided under its own license terms:',
   };
 
   List<String> get sec5Bullets => switch (lang) {
@@ -696,13 +705,54 @@ class _Strings {
 
   String get sec6Body => switch (lang) {
     'ru' =>
-    'Настоящие Условия толкуются и регулируются в соответствии с законодательством страны вашего проживания. Любой спор или разногласие сначала предпринимаются попытки решить путём переговоров в разумные сроки. Если переговоры не приносят результата, спор рассматривается в компетентном суде соответствующей юрисдикции. Если какое-либо положение настоящих Условий будет признано противоречащим закону, остальные положения сохраняют полную силу.',
+      'Настоящие Условия толкуются и регулируются в соответствии с законодательством страны вашего проживания. Любой спор или разногласие сначала предпринимаются попытки решить путём переговоров в разумные сроки. Если переговоры не приносят результата, спор рассматривается в компетентном суде соответствующей юрисдикции. Если какое-либо положение настоящих Условий будет признано противоречащим закону, остальные положения сохраняют полную силу.',
     'tk' =>
-    'Şu Şertler siziň ýaşaýan ýurduňyzyň kanunlaryna laýyklykda düşündirilýär we düzgünleşdirilýär. Islendik dawa ýa-da düşünişmezlik ilki bilen gepleşikler arkaly, ýazmaça habarlaşma arkaly, makul möhletlerde çözülmäge synanyşylýar. Eger gepleşikler netije bermese, dawa degişli ýurisdiksiýanyň ygtyýarly kazyýetinde serediler. Şu Şertleriň haýsydyr bir maddasy kanuna garşy gelýän diýlip ykrar edilse, beýleki maddalar doly güýjünde galýar.',
+      'Şu Şertler siziň ýaşaýan ýurduňyzyň kanunlaryna laýyklykda düşündirilýär we düzgünleşdirilýär. Islendik dawa ýa-da düşünişmezlik ilki bilen gepleşikler arkaly, ýazmaça habarlaşma arkaly, makul möhletlerde çözülmäge synanyşylýar. Eger gepleşikler netije bermese, dawa degişli ýurisdiksiýanyň ygtyýarly kazyýetinde serediler. Şu Şertleriň haýsydyr bir maddasy kanuna garşy gelýän diýlip ykrar edilse, beýleki maddalar doly güýjünde galýar.',
     'tr' =>
-    'Bu Koşullar, ikamet ettiğiniz ülkenin yasalarına göre yorumlanır ve yönetilir. Herhangi bir anlaşmazlık veya uyuşmazlık ilk olarak makul bir süre içinde müzakereler yoluyla çözülmeye çalışılır. Müzakereler başarısız olursa, uyuşmazlık yetkili mahkemede görülür. Bu Koşulların herhangi bir hükmü yasaya aykırı bulunursa, kalan hükümler tam yürürlükte kalır.',
+      'Bu Koşullar, ikamet ettiğiniz ülkenin yasalarına göre yorumlanır ve yönetilir. Herhangi bir anlaşmazlık veya uyuşmazlık ilk olarak makul bir süre içinde müzakereler yoluyla çözülmeye çalışılır. Müzakereler başarısız olursa, uyuşmazlık yetkili mahkemede görülür. Bu Koşulların herhangi bir hükmü yasaya aykırı bulunursa, kalan hükümler tam yürürlükte kalır.',
     _ =>
-    'These Terms are interpreted and governed in accordance with the laws of your country of residence. Any dispute or disagreement shall first be attempted to be resolved through negotiation within a reasonable timeframe. If negotiations fail, the dispute shall be heard in a court of competent jurisdiction. If any provision of these Terms is found to be contrary to law, the remaining provisions shall remain in full force and effect.',
+      'These Terms are interpreted and governed in accordance with the laws of your country of residence. Any dispute or disagreement shall first be attempted to be resolved through negotiation within a reasonable timeframe. If negotiations fail, the dispute shall be heard in a court of competent jurisdiction. If any provision of these Terms is found to be contrary to law, the remaining provisions shall remain in full force and effect.',
+  };
+
+  String get sec7Title => switch (lang) {
+    'ru' => '7. Будущие функции и обновления',
+    'tk' => '7. Geljekki aýratynlyklar we täzelenmeler',
+    'tr' => '7. Gelecek özellikler ve güncellemeler',
+    _ => '7. Future features and updates',
+  };
+
+  String get sec7Body => switch (lang) {
+    'ru' =>
+      'Köpri постоянно развивается, и мы работаем над новыми функциями, которые будут добавлены в будущих версиях приложения. Некоторые функции, упомянутые в текущей версии, находятся в активной разработке:',
+    'tk' =>
+      'Köpri yzygiderli ösýär we biz programma geljekki wersiýalaryna goşuljak täze aýratynlyklaryň üstünde işleýäris. Häzirki wersiýada agzalan käbir aýratynlyklar işjeň işlenip düzülýär:',
+    'tr' =>
+      'Köpri sürekli gelişmektedir ve uygulamanın gelecekteki sürümlerine eklenecek yeni özellikler üzerinde çalışıyoruz. Mevcut sürümde bahsedilen bazı özellikler aktif olarak geliştirilmektedir:',
+    _ =>
+      'Köpri is constantly evolving, and we are working on new features that will be added in future versions of the app. Some features mentioned in the current version are under active development:',
+  };
+
+  List<String> get sec7Bullets => switch (lang) {
+    'ru' => [
+      'Камера (Скоро в v2.0.0) — перевод текста с фотографий через гибридный OCR (Google ML Kit + Tesseract). Функция находится в активной разработке и будет доступна в следующем крупном обновлении',
+      'Все будущие функции будут предоставляться на тех же условиях конфиденциальности и отсутствия гарантий, что и текущая версия',
+      'Мы уведомим вас о новых функциях через уведомления в приложении',
+    ],
+    'tk' => [
+      'Kamera (v2.0.0-de ýakyn wagtda) — gibrid OCR (Google ML Kit + Tesseract) arkaly suratlardaky teksti terjime etmek. Funksiýa işjeň işlenip düzülýär we indiki uly täzelenişde elýeterli bolar',
+      'Ähli geljekki aýratynlyklar häzirki wersiýa bilen birmeňzeş gizlinlik we kepillik ýok şertleri bilen berler',
+      'Täze aýratynlyklar barada programma içindäki habarnamalar arkaly habar bereris',
+    ],
+    'tr' => [
+      'Kamera (v2.0.0\'de Yakında) — hibrit OCR (Google ML Kit + Tesseract) aracılığıyla fotoğraflardaki metni çevirme. Özellik aktif olarak geliştirilmektedir ve bir sonraki büyük güncellemede kullanılabilir olacak',
+      'Tüm gelecek özellikler, mevcut sürümle aynı gizlilik ve garanti verilmez koşulları altında sağlanacaktır',
+      'Yeni özellikler hakkında uygulama içi bildirimler aracılığıyla sizi bilgilendireceğiz',
+    ],
+    _ => [
+      'Camera (Coming Soon in v2.0.0) — translating text from photos via hybrid OCR (Google ML Kit + Tesseract). Feature is under active development and will be available in the next major update',
+      'All future features will be provided under the same privacy and no-warranty terms as the current version',
+      'We will notify you about new features through in-app notifications',
+    ],
   };
 
   String get acceptanceTitle => switch (lang) {
@@ -714,13 +764,13 @@ class _Strings {
 
   String get acceptanceBody => switch (lang) {
     'ru' =>
-    'Используя Köpri, вы подтверждаете, что полностью прочитали, поняли и согласны соблюдать настоящие Условия использования и Политику конфиденциальности.',
+      'Используя Köpri, вы подтверждаете, что полностью прочитали, поняли и согласны соблюдать настоящие Условия использования и Политику конфиденциальности.',
     'tk' =>
-    'Köpri ulanyp, siz şu Ulanyş şertlerini we Gizlinlik syýasatyny doly okandygyňyzy, düşünýändigiňizi we olary ýerine ýetirmäge razydygyňyzy tassyklaýarsyňyz.',
+      'Köpri ulanyp, siz şu Ulanyş şertlerini we Gizlinlik syýasatyny doly okandygyňyzy, düşünýändigiňizi we olary ýerine ýetirmäge razydygyňyzy tassyklaýarsyňyz.',
     'tr' =>
-    'Köpri\'yi kullanarak, bu Kullanım Koşullarını ve Gizlilik Politikasını tamamen okuduğunuzu, anladığınızı ve bunlara uymayı kabul ettiğinizi onaylarsınız.',
+      'Köpri\'yi kullanarak, bu Kullanım Koşullarını ve Gizlilik Politikasını tamamen okuduğunuzu, anladığınızı ve bunlara uymayı kabul ettiğinizi onaylarsınız.',
     _ =>
-    'By using Köpri, you confirm that you have fully read, understood, and agreed to comply with these Terms of Service and the Privacy Policy.',
+      'By using Köpri, you confirm that you have fully read, understood, and agreed to comply with these Terms of Service and the Privacy Policy.',
   };
 
   String get footer => switch (lang) {

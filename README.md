@@ -4,7 +4,7 @@
 
 # Köpri Translator
 
-Offline translator with hybrid camera OCR, huge phrasebook and text-to-text translation
+Offline translator with hybrid camera OCR (coming soon), huge phrasebook and text-to-text translation
 
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B.svg?logo=flutter)
@@ -19,7 +19,7 @@ Offline translator with hybrid camera OCR, huge phrasebook and text-to-text tran
 
 ---
 
-**Köpri** is a free, offline-first translator built with Flutter. Point your camera at any text, translate text-to-text, or open the huge phrasebook — everything works without internet.
+**Köpri** is a free, offline-first translator built with Flutter. Translate text-to-text or open the huge phrasebook — everything works without internet. **Camera translation is under active development and will ship in v2.0.0.**
 
 ## 📱 Screenshots
 
@@ -34,14 +34,15 @@ Offline translator with hybrid camera OCR, huge phrasebook and text-to-text tran
 
 ## ✨ Features
 
-- 📸 **Camera translation (Hybrid OCR)** — ultra-fast text recognition using **Google ML Kit** (Latin scripts, ~0.3s) + **Tesseract OCR** (Cyrillic, Arabic, CJK, Devanagari) as fallback
+- 🚧 **Camera translation (Hybrid OCR) — Coming Soon in v2.0.0** — ultra-fast text recognition using **Google ML Kit** (Latin scripts, ~0.3s) + **Tesseract OCR** (Cyrillic, Arabic, CJK, Devanagari) as fallback. Currently under active development — available only in the upcoming major update.
 - 💬 **Text-to-text translation** — instant translation between 50+ languages
 - 📖 **Huge phrasebook** — thousands of phrases in dozens of categories and subcategories
 - 📴 **Fully offline** — no internet required, your data never leaves the device
 - 🕘 **History** — all translations are saved locally
 - ⭐ **Favorites** — save the phrases you use often
 - 🎨 **Modern UI** — clean design with dark mode support
-- 👤 Profile — easily track your activity, usage statistics, and completed work
+- 👤 **Profile** — easily track your activity, usage statistics, and completed work
+- 🎮 **Hardcore progression** — XP levels (1–100), daily streaks, badges and the title "Translation Legend" for the most dedicated users
 - 🚀 **Native performance** — heavy calculations (XP, streaks, statistics, JSON parsing, avatar resize) run in **C++17 via FFI** — 10–60× faster than pure Dart
 
 ### 🌍 Supported languages
@@ -50,32 +51,46 @@ Offline translator with hybrid camera OCR, huge phrasebook and text-to-text tran
 
 ## 🛠 Tech Stack
 
-| Layer | Technology                                                                                         |
-| --- |----------------------------------------------------------------------------------------------------|
-| Framework | [Flutter](https://flutter.dev) 3.x                                                                 |
-| Language | [Dart](https://dart.dev) 3.x                                                                       |
-| **Native core** | **C++17 (via FFI)** — XP, streaks, stats, JSON/CSV, avatar resize, translate parsing and more      |
-| OCR (Latin) | [Google ML Kit](https://developers.google.com/ml-kit/vision/text-recognition) (offline, on-device) |
-| OCR (Cyrillic / Arabic / CJK / Devanagari) | [Tesseract OCR](https://tesseract-ocr.github.io) (flutter_tesseract_ocr)                           |
-| Camera | [camera](https://pub.dev/packages/camera)                                                          |
-| Storage | SharedPreferences / Hive                                                                           |
-| Architecture | Feature-first, clean architecture                                                                  |
+| Layer | Technology |
+| --- | --- |
+| Framework | [Flutter](https://flutter.dev) 3.x |
+| Language | [Dart](https://dart.dev) 3.x |
+| **Native core** | **C++17 (via FFI)** — XP, streaks, stats, JSON/CSV, avatar resize, translate parsing and more |
+| OCR (Latin) | [Google ML Kit](https://developers.google.com/ml-kit/vision/text-recognition) (offline, on-device) — _coming soon_ |
+| OCR (Cyrillic / Arabic / CJK / Devanagari) | [Tesseract OCR](https://tesseract-ocr.github.io) (flutter_tesseract_ocr) — _coming soon_ |
+| Camera | [camera](https://pub.dev/packages/camera) — _coming soon in v2.0.0_ |
+| Storage | SharedPreferences / Hive |
+| Architecture | Feature-first, clean architecture |
 
-> **Why hybrid OCR?** ML Kit is 10–20× faster on Latin scripts (signs, menus, documents), while Tesseract covers scripts ML Kit doesn't support yet (Cyrillic, Arabic, Devanagari).
+> **Why hybrid OCR?** ML Kit is 10–20× faster on Latin scripts (signs, menus, documents), while Tesseract covers scripts ML Kit doesn't support yet (Cyrillic, Arabic, Devanagari). This engine is fully implemented in C++ and will be enabled in v2.0.0.
 
 ### ⚡ C++ Modules (native performance)
 
-| Module             | Purpose                                                                             |
-|--------------------|-------------------------------------------------------------------------------------|
-| `xp_engine`        | XP, levels, progress (20× faster than Dart `math.pow` loops)                        |
-| `streak_engine`    | Current/best streak with Hinnant's civil days algorithm (exact across months/years) |
-| `stats_engine`     | Weekly chart (O(n)), peak hour, average length, top phrases — all in C++            |
-| `json_lite`        | Hand-written recursive JSON parser for profile export                               |
-| `csv_engine`       | Native JSON→CSV conversion for history export                                       |
-| `image_fast`       | Instant avatar resize via `stb_image` (512px) — no UI lag on photo apply            |
-| `translate_engine` | Native script detection, Google GTX response parsing, long-text chunking            |
-| `ffi_bridge`       | FFI bridge between Dart and native library                                          |
-| `And more`         | Like this                                                                           |
+| Module | Purpose |
+|---|---|
+| `xp_engine` | XP, levels, progress with exponential difficulty (BASE 200, GROWTH 1.25) — 20× faster than Dart |
+| `streak_engine` | Current/best streak with Hinnant's civil days algorithm (exact across months/years) |
+| `stats_engine` | Weekly chart (O(n)), peak hour, average length, top phrases — all in C++ |
+| `ocr_engine` | Native image preprocessing & rotation for OCR — _ships with camera in v2.0.0_ |
+| `json_lite` | Hand-written recursive JSON parser for profile export |
+| `csv_engine` | Native JSON→CSV conversion for history export |
+| `image_fast` | Instant avatar resize via `stb_image` (512px) — no UI lag on photo apply |
+| `translate_engine` | Native script detection, Google GTX response parsing, long-text chunking |
+| `tm_engine` | Translation memory with exact + fuzzy (Levenshtein) lookup |
+| `mt_tk_engine` | Offline Turkmen translation engine (phrase + word-level matching) |
+| `clip_filter` | Smart clipboard filter (skips URLs, emails, code, hashes, emoji-only text) |
+| `splash_engine` | Splash-screen particles/streaks/letters computed in C++ |
+| `crash_handler` | Native crash handler with backtrace logging |
+| `ffi_bridge` | FFI bridge between Dart and native library |
+
+## 🎮 Progression system
+
+Köpri uses a **hardcore** leveling curve so that every level is earned:
+
+- **+5 XP** per completed translation
+- Exponential cost: **BASE 200, GROWTH 1.25** — each level needs ~25% more XP than the previous one
+- **100 levels**, level 100 = "Translation Legend"
+- Daily streaks, best streak, badges and daily goals
 
 ## 🚀 Getting Started
 
@@ -107,9 +122,11 @@ cd K-pri-App-for-phone
 flutter pub get
 ```
 
-**3. ⚠️ IMPORTANT: add OCR models to `assets/tessdata/`**
+**3. ⚠️ IMPORTANT: add OCR models to `assets/tessdata/` (for v2.0.0 camera)**
 
 Latin scripts are recognized by **Google ML Kit** (auto-downloaded by Google Play Services), so you only need Tesseract models for **Cyrillic, Arabic, CJK and Devanagari**. `eng` and `tur` are kept as fallbacks for devices without Google Play Services. The app needs **38 model files**.
+
+> **Note:** These models are currently excluded from the APK build to reduce size (camera is Coming Soon). Uncomment `- assets/tessdata/` in `pubspec.yaml` when v2.0.0 is released.
 
 Download all of them with one command:
 
@@ -166,10 +183,13 @@ Make sure `pubspec.yaml` contains:
 ```yaml
 flutter:
   assets:
-    - assets/tessdata/
     - assets/icon/
+    - assets/tessdata_config.json
+    - assets/google_fonts/
+    # - assets/tessdata/  # ← uncomment when v2.0.0 is released
 ```
-Before run app please read two files build.gradle(andorid) and build.gradle(:app)
+
+Before running the app, please read `build.gradle` (android) and `build.gradle` (:app).
 
 ## 🏃 Running (Debug)
 
@@ -204,7 +224,8 @@ flutter build appbundle --release
 
 ## 🔧 Troubleshooting
 
-- **"tessdata not found"** — make sure the `.traineddata` files are inside `assets/tessdata/`, then run `flutter pub get` again.
+- **"tessdata not found"** — make sure the `.traineddata` files are inside `assets/tessdata/` and the line is uncommented in `pubspec.yaml`, then run `flutter pub get` again.
+- **Camera shows "Coming Soon"** — this is expected in v1.x. Camera translation will be enabled in v2.0.0 (flip `kCameraEnabled` to `true` in `camera_screen.dart` for early testing).
 - **First camera OCR run is slow** — Google Play Services downloads the ML Kit model once (~5 MB); after that recognition takes ~0.3s.
 - **Camera not working** — grant the camera permission when Android asks for it on first launch.
 - **Build errors after cloning** — run `flutter clean && flutter pub get`.
