@@ -13,7 +13,8 @@ import '../../history/data/history_repository.dart';
 import '../../translate/data/languages.dart';
 import '../../translate/data/offline_translator.dart';
 import '../../camera/data/camera_repository.dart';
-import '../../camera/presentation/camera_screen.dart' show kCameraEnabled, showComingSoonAnywhere;
+import '../../camera/presentation/camera_screen.dart'
+    show kCameraEnabled, showComingSoonAnywhere;
 import '../ui/privacy_policy_screen.dart';
 import '../ui/terms_screen.dart';
 
@@ -82,7 +83,7 @@ class SettingsScreen extends StatelessWidget {
                       Icons.input_rounded,
                       l10n.t('default_source'),
                       AppLanguages.nameOf(s.defaultFrom),
-                          () => _pickLang(
+                      () => _pickLang(
                         context,
                         AppLanguages.sources,
                         s.setDefaultFrom,
@@ -93,7 +94,7 @@ class SettingsScreen extends StatelessWidget {
                       Icons.translate_rounded,
                       l10n.t('default_target'),
                       AppLanguages.nameOf(s.defaultTo),
-                          () =>
+                      () =>
                           _pickLang(context, AppLanguages.all, s.setDefaultTo),
                     ),
                     _SwitchRow(
@@ -113,7 +114,7 @@ class SettingsScreen extends StatelessWidget {
                         300,
                         2000,
                         17,
-                            (v) => s.setTranslateDelayMs(v.round()),
+                        (v) => s.setTranslateDelayMs(v.round()),
                       ),
                     const ClipboardSwitchRow(),
                   ]),
@@ -165,7 +166,7 @@ class SettingsScreen extends StatelessWidget {
                       Icons.play_circle_outline_rounded,
                       l10n.t('listen_preview'),
                       c.accent,
-                          () => TtsService().speak(_example(s.lang), s.lang.name),
+                      () => TtsService().speak(_example(s.lang), s.lang.name),
                     ),
                     _SliderRow(
                       c,
@@ -175,7 +176,7 @@ class SettingsScreen extends StatelessWidget {
                       10,
                       120,
                       22,
-                          (v) => s.setListenSeconds(v.round()),
+                      (v) => s.setListenSeconds(v.round()),
                     ),
                     _SliderRow(
                       c,
@@ -185,7 +186,7 @@ class SettingsScreen extends StatelessWidget {
                       1,
                       6,
                       5,
-                          (v) => s.setPauseSeconds(v.round()),
+                      (v) => s.setPauseSeconds(v.round()),
                     ),
                   ]),
                   const SizedBox(height: 14),
@@ -198,8 +199,8 @@ class SettingsScreen extends StatelessWidget {
                       [
                         (PhraseSpeakMode.iface, l10n.t('phrase_speak_iface')),
                         (
-                        PhraseSpeakMode.english,
-                        l10n.t('phrase_speak_english'),
+                          PhraseSpeakMode.english,
+                          l10n.t('phrase_speak_english'),
                         ),
                         (PhraseSpeakMode.both, l10n.t('phrase_speak_both')),
                       ],
@@ -258,38 +259,38 @@ class SettingsScreen extends StatelessWidget {
                       Icons.file_download_rounded,
                       l10n.t('export_history'),
                       c.accent,
-                          () => _exportFile(context),
+                      () => _exportFile(context),
                     ),
                     _ActionRow(
                       c,
                       Icons.file_upload_rounded,
                       l10n.t('import_history'),
                       c.accent,
-                          () => _importClipboard(context),
+                      () => _importClipboard(context),
                     ),
                     _DangerRow(
                       c,
                       Icons.history_rounded,
                       l10n.t('clear_history'),
-                          () => _clearHistory(context),
+                      () => _clearHistory(context),
                     ),
                     _DangerRow(
                       c,
                       Icons.star_outline_rounded,
                       l10n.t('clear_favorites'),
-                          () => _clearFavorites(context),
+                      () => _clearFavorites(context),
                     ),
                     _DangerRow(
                       c,
                       Icons.delete_forever_rounded,
                       l10n.t('clear_all'),
-                          () => _clearAll(context),
+                      () => _clearAll(context),
                     ),
                     _DangerRow(
                       c,
                       Icons.photo_library_rounded,
                       l10n.t('clear_photos'),
-                          () async {
+                      () async {
                         if (!kCameraEnabled) {
                           showComingSoonAnywhere(context);
                         } else {
@@ -368,7 +369,7 @@ class SettingsScreen extends StatelessWidget {
                       Icons.privacy_tip_rounded,
                       l10n.t('privacy_policy'),
                       c.sub,
-                          () => Navigator.of(context).push(
+                      () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const PrivacyPolicyScreen(),
                         ),
@@ -379,7 +380,7 @@ class SettingsScreen extends StatelessWidget {
                       Icons.gavel_rounded,
                       l10n.t('terms_of_service'),
                       c.sub,
-                          () => Navigator.of(context).push(
+                      () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const TermsScreen()),
                       ),
                     ),
@@ -388,7 +389,7 @@ class SettingsScreen extends StatelessWidget {
                       Icons.description_rounded,
                       l10n.t('licenses'),
                       c.sub,
-                          () => Navigator.of(context).push(
+                      () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const LicensesScreen(),
                         ),
@@ -399,20 +400,20 @@ class SettingsScreen extends StatelessWidget {
                       Icons.share_rounded,
                       l10n.t('share_app'),
                       c.sub,
-                          () => _shareApp(context),
+                      () => _shareApp(context),
                     ),
                     _ActionRow(
                       c,
-                      Icons.telegram_rounded,
+                      Icons.feedback_outlined,
                       l10n.t('feedback'),
                       c.sub,
-                          () => _openTelegram(context),
+                      () => _openFeedback(context),
                     ),
                   ]),
                   const SizedBox(height: 20),
                   Center(
                     child: Text(
-                      'Köpri · ${l10n.t('version')} 1.0.1',
+                      'Köpri · ${l10n.t('version')} 1.0.2',
                       style: AppTheme.caption(color: c.faint, size: 11),
                     ),
                   ),
@@ -465,6 +466,67 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  void _openFeedback(BuildContext context) {
+    final c = context.c;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: c.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.telegram, color: Color(0xFF0088CC)),
+                title: Text(
+                  'Telegram',
+                  style: TextStyle(color: c.text, fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text(
+                  '@kopri_support_bot',
+                  style: TextStyle(color: c.faint, fontSize: 12),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _openTelegram(context);
+                },
+              ),
+              const Divider(height: 8),
+              ListTile(
+                leading: Icon(Icons.mail_outline_rounded, color: c.accent),
+                title: Text(
+                  'Email',
+                  style: TextStyle(color: c.text, fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text(
+                  'shapak.apps@gmail.com',
+                  style: TextStyle(color: c.faint, fontSize: 12),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _openEmail(context);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openEmail(BuildContext context) async {
+    final l10n = context.settings.l10n;
+    try {
+      await launchUrl(Uri.parse('mailto:shapak.apps@gmail.com'));
+    } catch (_) {
+      if (context.mounted) _snack(context, l10n.t('telegram_failed'));
+    }
+  }
+
   Future<void> _openTelegram(BuildContext context) async {
     final l10n = context.settings.l10n;
     try {
@@ -478,10 +540,10 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _pickLang(
-      BuildContext context,
-      Map<String, String> opts,
-      ValueChanged<String> on,
-      ) async {
+    BuildContext context,
+    Map<String, String> opts,
+    ValueChanged<String> on,
+  ) async {
     final c = context.c;
     final code = await showModalBottomSheet<String>(
       context: context,
@@ -497,10 +559,10 @@ class SettingsScreen extends StatelessWidget {
           children: opts.entries
               .map(
                 (e) => ListTile(
-              title: Text(e.value, style: TextStyle(color: c.text)),
-              onTap: () => Navigator.pop(context, e.key),
-            ),
-          )
+                  title: Text(e.value, style: TextStyle(color: c.text)),
+                  onTap: () => Navigator.pop(context, e.key),
+                ),
+              )
               .toList(),
         ),
       ),
@@ -1044,13 +1106,13 @@ class _SwitchRow extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
   const _SwitchRow(
-      this.c,
-      this.icon,
-      this.title,
-      this.desc,
-      this.value,
-      this.onChanged,
-      );
+    this.c,
+    this.icon,
+    this.title,
+    this.desc,
+    this.value,
+    this.onChanged,
+  );
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 6),
@@ -1091,15 +1153,15 @@ class _SliderRow extends StatelessWidget {
   final int divisions;
   final ValueChanged<double> onChanged;
   const _SliderRow(
-      this.c,
-      this.title,
-      this.valueLabel,
-      this.value,
-      this.min,
-      this.max,
-      this.divisions,
-      this.onChanged,
-      );
+    this.c,
+    this.title,
+    this.valueLabel,
+    this.value,
+    this.min,
+    this.max,
+    this.divisions,
+    this.onChanged,
+  );
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1143,13 +1205,13 @@ class _SegRow<T> extends StatelessWidget {
   final List<(T, String)> options;
   final ValueChanged<T> on;
   const _SegRow(
-      this.c,
-      this.icon,
-      this.title,
-      this.value,
-      this.options,
-      this.on,
-      );
+    this.c,
+    this.icon,
+    this.title,
+    this.value,
+    this.options,
+    this.on,
+  );
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 6),
@@ -1312,13 +1374,13 @@ class _DangerRow extends StatelessWidget {
   final String lang;
 
   const _DangerRow(
-      this.c,
-      this.icon,
-      this.title,
-      this.onTap, {
-        this.showBadge = false,
-        this.lang = 'ru',
-      });
+    this.c,
+    this.icon,
+    this.title,
+    this.onTap, {
+    this.showBadge = false,
+    this.lang = 'ru',
+  });
 
   @override
   Widget build(BuildContext context) => Material(
@@ -1333,11 +1395,7 @@ class _DangerRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: showBadge ? c.accent : c.warn,
-              size: 20,
-            ),
+            Icon(icon, color: showBadge ? c.accent : c.warn, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Row(
@@ -1441,11 +1499,11 @@ class _AccentPicker extends StatelessWidget {
           ),
           boxShadow: index == i
               ? [
-            BoxShadow(
-              color: accents[i].dAccent.withValues(alpha: 0.5),
-              blurRadius: 12,
-            ),
-          ]
+                  BoxShadow(
+                    color: accents[i].dAccent.withValues(alpha: 0.5),
+                    blurRadius: 12,
+                  ),
+                ]
               : null,
         ),
         child: index == i
@@ -1536,12 +1594,12 @@ class _ClipboardSwitchRowState extends State<ClipboardSwitchRow> {
 
   String get _desc => switch (context.settings.lang) {
     AppLang.ru =>
-    'Копируй текст в любом приложении — Köpri покажет перевод поверх экрана',
+      'Копируй текст в любом приложении — Köpri покажет перевод поверх экрана',
     AppLang.en => 'Copy text in any app — Köpri shows the translation on top',
     AppLang.tk =>
-    'Islendik programmada tekst göçür — Köpri terjimäni ekranyň üstünde görkezer',
+      'Islendik programmada tekst göçür — Köpri terjimäni ekranyň üstünde görkezer',
     AppLang.tr =>
-    'Herhangi bir uygulamada metni kopyala — Köpri çeviriyi ekranın üstünde gösterir',
+      'Herhangi bir uygulamada metni kopyala — Köpri çeviriyi ekranın üstünde gösterir',
   };
 
   Future<void> _toggle(bool v) async {
@@ -1557,13 +1615,13 @@ class _ClipboardSwitchRowState extends State<ClipboardSwitchRow> {
               SnackBar(
                 content: Text(switch (context.settings.lang) {
                   AppLang.ru =>
-                  'Разреши «Показ поверх окон», затем включи снова',
+                    'Разреши «Показ поверх окон», затем включи снова',
                   AppLang.en =>
-                  'Allow "Display over other apps", then turn on again',
+                    'Allow "Display over other apps", then turn on again',
                   AppLang.tk =>
-                  '"Beýleki programmalaryň üstünde" rugsadyny ber, soň ýene aç',
+                    '"Beýleki programmalaryň üstünde" rugsadyny ber, soň ýene aç',
                   AppLang.tr =>
-                  '"Diğer uygulamaların üzerinde göster" iznini ver, sonra tekrar aç',
+                    '"Diğer uygulamaların üzerinde göster" iznini ver, sonra tekrar aç',
                 }),
                 backgroundColor: context.c.warn,
               ),

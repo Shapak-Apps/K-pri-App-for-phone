@@ -21,7 +21,7 @@ import 'widgets/stats_overview.dart';
 import 'widgets/streak_card.dart';
 import 'widgets/weekly_chart.dart';
 import 'widgets/xp_level_bar.dart';
-import 'screens/about_authors_screen.dart';
+import '../../about/about_screen.dart';
 
 const _apkChannel = MethodChannel('kopri/apk');
 
@@ -357,7 +357,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-
                 Container(
                   width: 80,
                   height: 80,
@@ -365,35 +364,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFF0088CC),
-                        const Color(0xFF0066AA),
-                      ],
+                      colors: [c.accent, c.accentDeep],
                     ),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0088CC).withValues(alpha: 0.3),
+                        color: c.accent.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
                     ],
                   ),
                   child: const Icon(
-                    Icons.telegram,
+                    Icons.feedback_outlined,
                     color: Colors.white,
-                    size: 48,
+                    size: 44,
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 Text(
                   l10n.t('profile_feedback_title'),
                   style: AppTheme.display(size: 22, color: c.text),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
-
                 Text(
                   l10n.t('profile_feedback_desc'),
                   style: TextStyle(color: c.sub, fontSize: 14, height: 1.5),
@@ -401,76 +395,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                Container(
-                  width: double.infinity,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFF0088CC),
-                        const Color(0xFF0066AA),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0088CC).withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () async {
-                        Navigator.pop(ctx);
-                        final uri = Uri.parse('https://t.me/kopri_support_bot');
-                        try {
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(
-                              uri,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          } else {
-                            if (mounted) {
-                              _snack(
-                                l10n.t('profile_feedback_error'),
-                                warn: true,
-                              );
-                            }
-                          }
-                        } catch (e) {
-                          if (mounted) {
-                            _snack(
-                              '${l10n.t('profile_feedback_error')}: $e',
-                              warn: true,
-                            );
-                          }
-                        }
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.telegram,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            l10n.t('profile_feedback_open'),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                _feedbackOption(
+                  color: const Color(0xFF0088CC),
+                  icon: Icons.telegram,
+                  label: 'Telegram · @kopri_support_bot',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _launch(
+                      'https://t.me/kopri_support_bot',
+                      l10n.t('profile_feedback_error'),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                _feedbackOption(
+                  color: c.accent,
+                  icon: Icons.mail_outline_rounded,
+                  label: 'shapak.apps@gmail.com',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _launch(
+                      'mailto:shapak.apps@gmail.com',
+                      l10n.t('profile_feedback_error'),
+                    );
+                  },
                 ),
                 const SizedBox(height: 12),
 
@@ -506,6 +454,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  Widget _feedbackOption({
+    required Color color,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.8)]),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 24),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launch(String url, String errText) async {
+    try {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (_) {
+      try {
+        await launchUrl(Uri.parse(url));
+      } catch (e) {
+        if (mounted) _snack('$errText: $e', warn: true);
+      }
+    }
   }
 
   void _confirmClear() {
@@ -663,7 +670,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               warn: true,
             ),
             const SizedBox(height: 18),
-            const AboutAuthorsCard(),
+            const AboutEntryCard(),
             const SizedBox(height: 24),
             Center(
               child: Text(

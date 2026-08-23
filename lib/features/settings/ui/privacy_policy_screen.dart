@@ -432,20 +432,46 @@ class _ContactCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.telegram_rounded,
-                color: Colors.white.withValues(alpha: 0.9),
-                size: 16,
+              Column(
+                children: [
+                  Icon(
+                    Icons.telegram_rounded,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    size: 16,
+                  ),
+                  const SizedBox(height: 4),
+                  Icon(
+                    Icons.email_rounded,
+                    color: Colors.white.withValues(alpha: 0.7),
+                    size: 14,
+                  ),
+                ],
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Köpri support',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Köpri support',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'shapak.apps@gmail.com',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
