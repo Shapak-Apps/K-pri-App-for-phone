@@ -318,6 +318,14 @@ class _KopriCard extends StatelessWidget {
           const SizedBox(height: 8),
           _FeatureRow(
             c: c,
+            icon: Icons.mic_rounded,
+            text: t.featMicrophone,
+            soon: true,
+            soonText: t.soon,
+          ),
+          const SizedBox(height: 8),
+          _FeatureRow(
+            c: c,
             icon: Icons.camera_alt_rounded,
             text: t.featCamera,
             soon: true,

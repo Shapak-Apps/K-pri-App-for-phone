@@ -175,6 +175,13 @@ class AboutStrings {
     _ => 'Clipboard translation',
   };
 
+  String get featMicrophone => switch (lang) {
+    'ru' => 'Голосовой переводчик',
+    'tk' => 'Ses terjimeçisi',
+    'tr' => 'Sesli çevirmen',
+    _ => 'Voice translator',
+  };
+
   String get featCamera => switch (lang) {
     'ru' => 'Визуальный переводчик (камера)',
     'tk' => 'Wizual terjimeçi (kamera)',
