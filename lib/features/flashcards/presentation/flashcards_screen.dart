@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../conversation/data/tts_service.dart';
 import '../../history/data/history_models.dart';
 import '../../history/data/history_repository.dart';
+import '../data/srs_scheduler.dart';
 
 class FlashcardsScreen extends StatefulWidget {
   final HistoryRepository repo;
@@ -60,13 +61,43 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     super.dispose();
   }
 
-  void _load() {
+  Future<void> _load() async {
     if (!mounted) return;
     final s = context.settings;
     _lastSession = s.flashcardSession;
     _lastSpaced = s.spacedRep;
+
     final fav = widget.repo.getFavorites()..shuffle();
-    final session = fav.take(s.flashcardSession).toList();
+
+    List<HistoryEntry> session;
+    if (s.spacedRep && fav.isNotEmpty) {
+      final ids = [for (final e in fav) e.id];
+      List<String> picked = [];
+      try {
+        picked = await SrsScheduler.pickSession(ids, s.flashcardSession);
+      } catch (_) {
+        picked = [];
+      }
+
+      final byId = {for (final e in fav) e.id: e};
+      session = [
+        for (final id in picked)
+          if (byId[id] != null) byId[id]!,
+      ];
+
+      if (session.length < s.flashcardSession) {
+        final pickedSet = picked.toSet();
+        for (final e in fav) {
+          if (session.length >= s.flashcardSession) break;
+          if (!pickedSet.contains(e.id)) session.add(e);
+        }
+      }
+      if (session.isEmpty) session = fav.take(s.flashcardSession).toList();
+    } else {
+      session = fav.take(s.flashcardSession).toList();
+    }
+
+    if (!mounted) return;
     setState(() {
       _cards = session;
       _i = 0;
@@ -78,6 +109,14 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   void _next({required bool remembered}) {
     if (_cards.isEmpty) return;
     final current = _cards[_i % _cards.length];
+
+    if (context.settings.spacedRep) {
+      SrsScheduler.review(
+        current.id,
+        remembered ? 5 : 1,
+      ).then((_) {}).catchError((_) {});
+    }
+
     setState(() {
       if (!remembered && context.settings.spacedRep) {
         _repeated.add(current.id);
@@ -252,7 +291,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                   l10n.t('forgot'),
                   Icons.close_rounded,
                   c.warn,
-                      () => _next(remembered: false),
+                  () => _next(remembered: false),
                 ),
               ),
               const SizedBox(width: 12),
@@ -262,7 +301,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                   l10n.t('remember'),
                   Icons.check_rounded,
                   c.accent,
-                      () => _next(remembered: true),
+                  () => _next(remembered: true),
                 ),
               ),
             ],

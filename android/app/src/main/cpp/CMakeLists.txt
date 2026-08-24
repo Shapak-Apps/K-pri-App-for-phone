@@ -35,6 +35,7 @@ add_library(profile_native SHARED
         src/clip_filter.cpp
         src/mt_tk_engine.cpp
         src/crash_handler.cpp
+        src/srs_engine.cpp
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
