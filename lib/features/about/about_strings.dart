@@ -145,13 +145,13 @@ class AboutStrings {
 
   String get featPhrasebook => switch (lang) {
     'ru' =>
-      'Сценарный разговорник для реальных жизненных ситуаций с готовыми ответами и полным офлайн-режимом',
+      'Озвученный разговорник с готовыми фразами для реальных жизненных ситуаций — озвучка на всех языках и полный офлайн-режим',
     'tk' =>
-      'Hakyky durmuş ýagdaýlary üçin taýýar jogaplar we doly oflaýn režim bilen ssenariýaly gepleşik kitaby',
+      'Hakyky durmuş ýagdaýlary üçin taýýar sözlemler bilen sesli gepleşik kitaby — ähli dillerde seslendirme we doly oflaýn režim',
     'tr' =>
-      'Gerçek hayat durumları için hazır yanıtlar ve tam çevrimdışı modlu senaryo konuşma kılavuzu',
+      'Gerçek hayat durumları için hazır ifadelerle seslendirilmiş konuşma kılavuzu — tüm dillerde seslendirme ve tam çevrimdışı mod',
     _ =>
-      'Scenario phrasebook for real-life situations with ready answers and full offline mode',
+      'Voiced phrasebook with ready phrases for real-life situations — voice output in all languages and full offline mode',
   };
 
   String get featText => switch (lang) {
