@@ -734,21 +734,25 @@ class _Strings {
 
   List<String> get sec7Bullets => switch (lang) {
     'ru' => [
+      'Голосовой ввод (Скоро в v2.0.0) — перевод голоса и режим диалога через микрофон. Функция находится в активной разработке и будет доступна в следующем крупном обновлении',
       'Камера (Скоро в v2.0.0) — перевод текста с фотографий через гибридный OCR (Google ML Kit + Tesseract). Функция находится в активной разработке и будет доступна в следующем крупном обновлении',
       'Все будущие функции будут предоставляться на тех же условиях конфиденциальности и отсутствия гарантий, что и текущая версия',
       'Мы уведомим вас о новых функциях через уведомления в приложении',
     ],
     'tk' => [
+      'Ses bilen girizmek (v2.0.0-de ýakyn wagtda) — mikrofon arkaly ses terjimesi we dialog režimi. Funksiýa işjeň işlenip düzülýär we indiki uly täzelenişde elýeterli bolar',
       'Kamera (v2.0.0-de ýakyn wagtda) — gibrid OCR (Google ML Kit + Tesseract) arkaly suratlardaky teksti terjime etmek. Funksiýa işjeň işlenip düzülýär we indiki uly täzelenişde elýeterli bolar',
       'Ähli geljekki aýratynlyklar häzirki wersiýa bilen birmeňzeş gizlinlik we kepillik ýok şertleri bilen berler',
       'Täze aýratynlyklar barada programma içindäki habarnamalar arkaly habar bereris',
     ],
     'tr' => [
+      'Sesli giriş (v2.0.0\'de Yakında) — mikrofon aracılığıyla ses çevirisi ve diyalog modu. Özellik aktif olarak geliştirilmektedir ve bir sonraki büyük güncellemede kullanılabilir olacak',
       'Kamera (v2.0.0\'de Yakında) — hibrit OCR (Google ML Kit + Tesseract) aracılığıyla fotoğraflardaki metni çevirme. Özellik aktif olarak geliştirilmektedir ve bir sonraki büyük güncellemede kullanılabilir olacak',
       'Tüm gelecek özellikler, mevcut sürümle aynı gizlilik ve garanti verilmez koşulları altında sağlanacaktır',
       'Yeni özellikler hakkında uygulama içi bildirimler aracılığıyla sizi bilgilendireceğiz',
     ],
     _ => [
+      'Voice input (Coming Soon in v2.0.0) — voice translation and dialogue mode via microphone. Feature is under active development and will be available in the next major update',
       'Camera (Coming Soon in v2.0.0) — translating text from photos via hybrid OCR (Google ML Kit + Tesseract). Feature is under active development and will be available in the next major update',
       'All future features will be provided under the same privacy and no-warranty terms as the current version',
       'We will notify you about new features through in-app notifications',

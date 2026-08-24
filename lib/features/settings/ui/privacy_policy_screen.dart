@@ -633,28 +633,28 @@ class _Strings {
   List<String> get sec3Bullets => switch (lang) {
     'ru' => [
       'КАМЕРА (Скоро в v2.0.0) — перевод текста с фото через OCR (оптическое распознавание); данные обрабатываются только на устройстве. Функция находится в активной разработке',
-      'МИКРОФОН — голосовой ввод и режим диалога; звук используется только для локального распознавания',
+      'МИКРОФОН (Скоро в v2.0.0) — голосовой ввод и режим диалога; звук используется только для локального распознавания. Функция находится в активной разработке',
       'ОТОБРАЖЕНИЕ ПОВЕРХ ОКОН — пузырёк перевода из буфера обмена (overlay bubble)',
       'УВЕДОМЛЕНИЯ — работа фоновой службы мониторинга буфера обмена',
       'ИНТЕРНЕТ — исключительно для подключения к онлайн-сервисам перевода',
     ],
     'tk' => [
       'KAMERA (v2.0.0-de ýakyn wagtda) — suratlardaky teksti OCR (optiki nyşan tanamak) arkaly terjime etmek; maglumat diňe enjamda işlenýär. Funksiýa işjeň işlenip düzülýär',
-      'MIKROFON — ses bilen girizmek we dialog režimi; ses diňe ýerli tanama üçin ulanylýar',
+      'MIKROFON (v2.0.0-de ýakyn wagtda) — ses bilen girizmek we dialog režimi; ses diňe ýerli tanama üçin ulanylýar. Funksiýa işjeň işlenip düzülýär',
       'PENJIRELERIŇ ÜSTÜNDE GÖRKEZMEK — buferden terjime köpügi (overlay bubble)',
       'HABARNAMALAR — arka plandaky bufer gözegçilik hyzmatynyň işlemegi',
       'INTERNET — diňe onlaýn terjime hyzmatlaryna baglanmak üçin',
     ],
     'tr' => [
       'KAMERA (v2.0.0\'de Yakında) — OCR (optik karakter tanıma) aracılığıyla fotoğraflardaki metni çevirme; veriler yalnızca cihazda işlenir. Özellik aktif olarak geliştirilmektedir',
-      'MİKROFON — sesli giriş ve diyalog modu; ses yalnızca yerel tanıma için kullanılır',
+      'MİKROFON (v2.0.0\'de Yakında) — sesli giriş ve diyalog modu; ses yalnızca yerel tanıma için kullanılır. Özellik aktif olarak geliştirilmektedir',
       'DİĞER UYGULAMALARIN ÜZERİNDE GÖSTERME — pano çeviri balonu (overlay bubble)',
       'BİLDİRİMLER — arka plan pano izleme hizmetinin çalışması',
       'İNTERNET — yalnızca çevrimiçi çeviri hizmetlerine bağlanmak için',
     ],
     _ => [
       'CAMERA (Coming Soon in v2.0.0) — translating text from photos via OCR (optical character recognition); data is processed only on the device. Feature is under active development',
-      'MICROPHONE — voice input and dialogue mode; audio is used only for local recognition',
+      'MICROPHONE (Coming Soon in v2.0.0) — voice input and dialogue mode; audio is used only for local recognition. Feature is under active development',
       'DISPLAY OVER OTHER APPS — clipboard translation bubble (overlay bubble)',
       'NOTIFICATIONS — operation of the background clipboard monitoring service',
       'INTERNET — solely for connecting to online translation services',
