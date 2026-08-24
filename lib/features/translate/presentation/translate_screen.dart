@@ -20,6 +20,9 @@ import '../../../core/widgets/analyzing_wave.dart';
 import '../../../core/l10n/app_strings.dart';
 import 'package:flutter/foundation.dart';
 
+const bool kMicEnabled = false;
+const String kMicComingSoonVersion = '2.0.0';
+
 class TranslateScreen extends StatefulWidget {
   final HistoryRepository repo;
   final ValueListenable<IncomingText?> incomingText;
@@ -260,6 +263,17 @@ class _TranslateScreenState extends State<TranslateScreen> {
   }
 
   Future<void> _toggleMic() async {
+    if (!kMicEnabled) {
+      if (!mounted) return;
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => const _MicComingSoonPage(),
+        ),
+      );
+      return;
+    }
+
     if (_listening) {
       setState(() {
         _listening = false;
@@ -392,7 +406,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               children: [
-                // 🚀 НОВЫЙ БАННЕР: видно скачивание и ошибку оффлайн-модели
                 const _ModelDownloadBanner(),
 
                 InputCard(
@@ -476,9 +489,248 @@ class _TranslateScreenState extends State<TranslateScreen> {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// 🚀 НОВЫЙ ВИДЖЕТ: Баннер скачивания/ошибки оффлайн-модели
-// ═══════════════════════════════════════════════════════════════════════
+class _MicComingSoonPage extends StatefulWidget {
+  const _MicComingSoonPage();
+  @override
+  State<_MicComingSoonPage> createState() => _MicComingSoonPageState();
+}
+
+class _MicComingSoonPageState extends State<_MicComingSoonPage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  String _title(String lang) => switch (lang) {
+    'ru' => 'Скоро в v$kMicComingSoonVersion',
+    'tk' => 'v$kMicComingSoonVersion-de ýakyn wagtda',
+    'tr' => 'v$kMicComingSoonVersion\'de Yakında',
+    _ => 'Coming Soon in v$kMicComingSoonVersion',
+  };
+
+  String _subtitle(String lang) => switch (lang) {
+    'ru' => 'Голосовой ввод',
+    'tk' => 'Ses bilen girizmek',
+    'tr' => 'Sesli giriş',
+    _ => 'Voice input',
+  };
+
+  String _msg(String lang) => switch (lang) {
+    'ru' =>
+      'Голосовой перевод находится в активной разработке и появится в следующем крупном обновлении.',
+    'tk' =>
+      'Ses terjimesi işjeň işlenip düzülýär we indiki uly täzelenişde peýda bolar.',
+    'tr' =>
+      'Sesli çeviri aktif olarak geliştirilmektedir ve bir sonraki büyük güncellemede kullanılabilir olacak.',
+    _ =>
+      'Voice translation is under active development and will be available in the next major update.',
+  };
+
+  String _hint(String lang) => switch (lang) {
+    'ru' => 'Следите за обновлениями!',
+    'tk' => 'Täzelenmelere garaşyň!',
+    'tr' => 'Güncellemeleri takip edin!',
+    _ => 'Stay tuned for updates!',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final lang = context.settings.lang.name;
+
+    return Scaffold(
+      backgroundColor: c.bg,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [c.accent.withValues(alpha: 0.18), c.surface],
+                ),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: c.accent.withValues(alpha: 0.35),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: c.accent.withValues(alpha: 0.25),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedBuilder(
+                    animation: _pulse,
+                    builder: (_, __) {
+                      final scale =
+                          1.0 + 0.08 * Curves.easeInOut.transform(_pulse.value);
+                      final glow =
+                          0.25 +
+                          0.35 * Curves.easeInOut.transform(_pulse.value);
+                      return Transform.scale(
+                        scale: scale,
+                        child: Container(
+                          width: 90,
+                          height: 90,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [c.accent, c.accentDeep],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: c.accent.withValues(alpha: glow),
+                                blurRadius: 30,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.mic_rounded,
+                            color: Colors.white,
+                            size: 46,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 22),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: c.accent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: c.accent.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.record_voice_over_rounded,
+                          color: c.accent,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _subtitle(lang),
+                          style: TextStyle(
+                            color: c.accent,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    _title(lang),
+                    style: TextStyle(
+                      color: c.text,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 22,
+                      height: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _msg(lang),
+                    style: TextStyle(color: c.sub, height: 1.5, fontSize: 13),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: c.surfaceHi,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: c.line),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline_rounded,
+                          color: c.accent,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _hint(lang),
+                            style: TextStyle(
+                              color: c.text,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: c.accent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'OK',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ModelDownloadBanner extends StatelessWidget {
   const _ModelDownloadBanner();
 
