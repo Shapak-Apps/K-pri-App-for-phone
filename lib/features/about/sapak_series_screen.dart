@@ -96,9 +96,7 @@ class _SapakSeriesScreenState extends State<SapakSeriesScreen>
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(34),
                   child: Image.asset(
-                    dark
-                        ? 'assets/about/sapak_dark.png'
-                        : 'assets/about/sapak_light.png',
+                    'assets/about/sapak_dark.png',
                     fit: BoxFit.cover,
                   ),
                 ),
