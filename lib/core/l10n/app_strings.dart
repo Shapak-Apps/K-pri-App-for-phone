@@ -386,6 +386,7 @@ const Map<AppLang, Map<String, String>> appStrings = {
     'privacy_contact_body':
         'Maglumatlaryňyza girişi, düzedişleri, göçürilmegini ýa-da doly pozulmagyny haýyş etmek üçin, şeýle hem şu Syýasat boýunça islendik sorag ýa-da teklip üçin Telegram arkaly habarlaşyň:',
     'privacy_footer': 'Köpri · Soňky täzelenme: awgust 2026',
+    'danger_zone': 'Howply ýer',
   },
   AppLang.ru: {
     'app_name': 'Köpri',
@@ -758,6 +759,7 @@ const Map<AppLang, Map<String, String>> appStrings = {
     'privacy_contact_body':
         'Чтобы запросить доступ к вашим данным, их исправление, экспорт или полное удаление, а также по любым вопросам или предложениям касательно настоящей Политики — напишите нам в Telegram:',
     'privacy_footer': 'Köpri · Последнее обновление: август 2026',
+    'danger_zone': 'Опасная зона',
   },
   AppLang.en: {
     'app_name': 'Köpri',
@@ -1129,6 +1131,7 @@ const Map<AppLang, Map<String, String>> appStrings = {
     'privacy_contact_body':
         'To request access to your data, correction, export, or complete deletion, as well as for any questions or suggestions regarding this Policy — contact us on Telegram:',
     'privacy_footer': 'Köpri · Last updated: August 2026',
+    'danger_zone': 'Danger Zone',
   },
   AppLang.tr: {
     'app_name': 'Köpri',
@@ -1497,5 +1500,6 @@ const Map<AppLang, Map<String, String>> appStrings = {
     'privacy_contact_body':
         'Verilerinize erişim, düzeltme, dışa aktarma veya tamamen silme talebinde bulunmak, ayrıca bu Politika ile ilgili herhangi bir soru veya öneri için Telegram üzerinden bize ulaşın:',
     'privacy_footer': 'Köpri · Son güncelleme: Ağustos 2026',
+    'danger_zone': 'Tehlikeli Bölge',
   },
 };
