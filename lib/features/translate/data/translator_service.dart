@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -9,7 +10,11 @@ class TranslationResult {
   final String text;
   final String? detected;
   final bool approx;
-  const TranslationResult({required this.text, this.detected, this.approx = false});
+  const TranslationResult({
+    required this.text,
+    this.detected,
+    this.approx = false,
+  });
 }
 
 class TranslationFailedException implements Exception {
@@ -21,10 +26,10 @@ class TranslationFailedException implements Exception {
 
 abstract interface class TranslatorService {
   Future<TranslationResult> translate(
-      String text, {
-        required String from,
-        required String to,
-      });
+    String text, {
+    required String from,
+    required String to,
+  });
 }
 
 class OnlineTranslator implements TranslatorService {
@@ -33,13 +38,13 @@ class OnlineTranslator implements TranslatorService {
   static final TranslateFFI _nffi = TranslateFFI();
 
   OnlineTranslator({
-    this.timeout = const Duration(seconds: 10),
+    this.timeout = const Duration(seconds: 7),
     http.Client? client,
   }) : _client = client ?? http.Client();
 
   static const _headers = {
     'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
     'Accept': 'application/json',
   };
 
@@ -51,10 +56,10 @@ class OnlineTranslator implements TranslatorService {
 
   @override
   Future<TranslationResult> translate(
-      String text, {
-        required String from,
-        required String to,
-      }) async {
+    String text, {
+    required String from,
+    required String to,
+  }) async {
     final src = _nffi.normalize(text) ?? text.trim();
     if (src.isEmpty) return const TranslationResult(text: '');
     if (from == to && from != 'auto') return TranslationResult(text: src);
@@ -82,22 +87,28 @@ class OnlineTranslator implements TranslatorService {
   }
 
   Future<TranslationResult> _translateChunked(
-      String text,
-      String from,
-      String to,
-      ) async {
+    String text,
+    String from,
+    String to,
+  ) async {
     final chunks = _nffi.splitChunks(text, 1500) ?? _dartSplit(text, 1500);
+    final futures = chunks.map((ch) => _translateSingle(ch, from, to)).toList();
+    final results = await Future.wait(futures, eagerError: true);
+
     final sb = StringBuffer();
     String? detected;
     bool anyApprox = false;
-    for (final ch in chunks) {
-      final r = await _translateSingle(ch, from, to);
+    for (final r in results) {
       detected ??= r.detected;
       anyApprox = anyApprox || r.approx;
       if (sb.isNotEmpty) sb.writeln();
       sb.write(r.text);
     }
-    return TranslationResult(text: sb.toString(), detected: detected, approx: anyApprox);
+    return TranslationResult(
+      text: sb.toString(),
+      detected: detected,
+      approx: anyApprox,
+    );
   }
 
   List<String> _dartSplit(String text, int max) {
@@ -117,55 +128,58 @@ class OnlineTranslator implements TranslatorService {
     return out;
   }
 
+  Future<TranslationResult> _raceTasks(
+    List<Future<TranslationResult>> tasks,
+  ) async {
+    final completer = Completer<TranslationResult>();
+    int pending = tasks.length;
+
+    for (var task in tasks) {
+      task
+          .timeout(timeout)
+          .then((res) {
+            if (!completer.isCompleted && res.text.isNotEmpty) {
+              completer.complete(res);
+            }
+          })
+          .catchError((_) {})
+          .whenComplete(() {
+            pending--;
+            if (pending == 0 && !completer.isCompleted) {
+              completer.completeError(
+                const TranslationFailedException(
+                  'Terjime başa barmady. Interneti barlaň.',
+                ),
+              );
+            }
+          });
+    }
+    return completer.future;
+  }
+
   Future<TranslationResult> _translateSingle(
-      String src,
-      String from,
-      String to,
-      ) async {
+    String src,
+    String from,
+    String to,
+  ) async {
     try {
       final off = await OfflineTranslator.instance
           .translate(src, from: from, to: to)
-          .timeout(timeout);
+          .timeout(const Duration(milliseconds: 800));
       if (off != null && off.text.isNotEmpty) return off;
     } catch (_) {}
 
-    final errors = <String>[];
+    final srcLang = from == 'auto' ? _detectLang(src, to) : from;
 
-    // 1) Google
-    try {
-      final r = await _googleGtx(src, from, to).timeout(timeout);
-      if (r.text.isNotEmpty) return r;
-    } catch (e) {
-      errors.add('google:$e');
-    }
+    final tasks = <Future<TranslationResult>>[
+      _googleGtx(src, from, to),
+      _lingva(_lingvaHosts[0], src, from, to),
+      _lingva(_lingvaHosts[1], src, from, to),
+      _lingva(_lingvaHosts[2], src, from, to),
+      _myMemory(src, srcLang, to),
+    ];
 
-    // 2) Lingva
-    for (final host in _lingvaHosts) {
-      try {
-        final r = await _lingva(host, src, from, to).timeout(timeout);
-        if (r.text.isNotEmpty) return r;
-      } catch (e) {
-        errors.add('lingva($host):$e');
-      }
-    }
-
-    // 3) MyMemory
-    try {
-      final srcLang = from == 'auto' ? _detectLang(src, to) : from;
-      final r = await _myMemory(src, srcLang, to).timeout(timeout);
-      if (r.text.isNotEmpty) {
-        return TranslationResult(
-          text: r.text,
-          detected: from == 'auto' ? srcLang : null,
-        );
-      }
-    } catch (e) {
-      errors.add('mymemory:$e');
-    }
-
-    throw const TranslationFailedException(
-      'Terjime başa barmady. Interneti barlaň.',
-    );
+    return _raceTasks(tasks);
   }
 
   String _detectLang(String text, String target) {
@@ -188,10 +202,10 @@ class OnlineTranslator implements TranslatorService {
   }
 
   Future<TranslationResult> _googleGtx(
-      String text,
-      String from,
-      String to,
-      ) async {
+    String text,
+    String from,
+    String to,
+  ) async {
     final uri = Uri.https('translate.googleapis.com', '/translate_a/single', {
       'client': 'gtx',
       'sl': from,
@@ -218,7 +232,7 @@ class OnlineTranslator implements TranslatorService {
       }
     }
     final detected =
-    (from == 'auto' && decoded.length > 2 && decoded[2] is String)
+        (from == 'auto' && decoded.length > 2 && decoded[2] is String)
         ? decoded[2] as String
         : null;
     final out = buf.toString().trim();
@@ -227,11 +241,11 @@ class OnlineTranslator implements TranslatorService {
   }
 
   Future<TranslationResult> _lingva(
-      String host,
-      String text,
-      String from,
-      String to,
-      ) async {
+    String host,
+    String text,
+    String from,
+    String to,
+  ) async {
     final uri = Uri.https(
       host,
       '/api/v1/$from/$to/${Uri.encodeComponent(text)}',
@@ -242,7 +256,7 @@ class OnlineTranslator implements TranslatorService {
     final tr = (j['translation'] ?? '').toString().trim();
     final info = j['info'] as Map<String, dynamic>?;
     final detected =
-    (from == 'auto' && info != null && info['detectedSource'] is String)
+        (from == 'auto' && info != null && info['detectedSource'] is String)
         ? info['detectedSource'] as String
         : null;
     if (tr.isEmpty) throw 'empty';
@@ -250,10 +264,10 @@ class OnlineTranslator implements TranslatorService {
   }
 
   Future<TranslationResult> _myMemory(
-      String text,
-      String from,
-      String to,
-      ) async {
+    String text,
+    String from,
+    String to,
+  ) async {
     final uri = Uri.https('api.mymemory.translated.net', '/get', {
       'q': text,
       'langpair': '$from|$to',
