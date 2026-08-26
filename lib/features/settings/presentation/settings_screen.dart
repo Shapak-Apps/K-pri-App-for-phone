@@ -123,7 +123,7 @@ class SettingsScreen extends StatelessWidget {
             slivers: [
               _buildHeader(c, l10n, isDark),
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 40),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     _GlassSection(
