@@ -12,7 +12,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/analyzing_wave.dart';
 import '../../translate/data/languages.dart';
 import '../../translate/data/translator_service.dart';
-import '../../translate/presentation/widgets/language_selector.dart';
+import '../../../core/widgets/linkage_language_picker.dart';
 import '../data/camera_photo_model.dart';
 import '../data/camera_repository.dart';
 import '../data/ocr_service.dart';
@@ -1493,10 +1493,10 @@ class _RealCameraPageState extends State<_RealCameraPage>
 
   Future<void> _process(String path, String id) async {
     try {
-      final to = await showLanguagePicker(
+      final to = await LinkageLanguagePicker.show(
         context,
-        opts: AppLanguages.all,
-        current: context.settings.defaultTo,
+        currentCode: context.settings.defaultTo,
+        includeAuto: false,
       );
       if (!mounted) return;
       if (to == null) {
