@@ -103,6 +103,8 @@ class _AboutAuthorsScreenState extends State<AboutAuthorsScreen>
           _stagger(0.35, _MissionCard(c: c, t: t, heart: _heart)),
           const SizedBox(height: 16),
           _stagger(0.5, _TelegramCard(c: c, t: t)),
+          const SizedBox(height: 16),
+          _stagger(0.65, _GmailCard(c: c, t: t)),
         ],
       ),
     );
@@ -354,6 +356,91 @@ class _TelegramCard extends StatelessWidget {
                 size: 16,
                 color: Colors.white.withValues(alpha: 0.8),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GmailCard extends StatelessWidget {
+  final AppColors c;
+  final AboutStrings t;
+  const _GmailCard({required this.c, required this.t});
+
+  static const _email = 'shapak.apps@gmail.com';
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () async {
+          try {
+            await launchUrl(Uri.parse('mailto:$_email'));
+          } catch (_) {}
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: c.line),
+            boxShadow: [
+              BoxShadow(
+                color: c.accent.withValues(alpha: 0.10),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      c.accent.withValues(alpha: 0.90),
+                      c.accentDeep.withValues(alpha: 0.80),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.mail_rounded, color: Colors.white, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      t.supportTitle,
+                      style: TextStyle(
+                        color: c.faint,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _email,
+                      style: TextStyle(
+                        color: c.text,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.open_in_new_rounded, size: 14, color: c.sub),
             ],
           ),
         ),
