@@ -18,6 +18,7 @@ import '../../camera/presentation/camera_screen.dart'
     show kCameraEnabled, showComingSoonAnywhere;
 import '../ui/privacy_policy_screen.dart';
 import '../ui/terms_screen.dart';
+import '../../../core/widgets/linkage_language_picker.dart';
 
 const _telegramUrl = 'https://t.me/kopri_support_bot';
 const _apkChannel = MethodChannel('kopri/apk');
@@ -142,7 +143,8 @@ class SettingsScreen extends StatelessWidget {
                           flag: _langFlag(s.defaultFrom),
                           onTap: () => _pickLang(
                             context,
-                            AppLanguages.sources,
+                            true,
+                            s.defaultFrom,
                             s.setDefaultFrom,
                           ),
                         ),
@@ -156,7 +158,8 @@ class SettingsScreen extends StatelessWidget {
                           flag: _langFlag(s.defaultTo),
                           onTap: () => _pickLang(
                             context,
-                            AppLanguages.all,
+                            false,
+                            s.defaultTo,
                             s.setDefaultTo,
                           ),
                         ),
@@ -788,17 +791,16 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _pickLang(
     BuildContext context,
-    Map<String, String> opts,
+    bool includeAuto,
+    String current,
     ValueChanged<String> on,
   ) async {
-    final c = context.c;
-    final code = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _LanguageBottomSheet(c: c, opts: opts),
+    final picked = await LinkageLanguagePicker.show(
+      context,
+      currentCode: current,
+      includeAuto: includeAuto,
     );
-    if (code != null) on(code);
+    if (picked != null && picked != current) on(picked);
   }
 
   Future<bool> _askConfirm(BuildContext context, String title) async {
@@ -3573,119 +3575,6 @@ class _FeedbackOption extends StatelessWidget {
               Icon(Icons.arrow_outward_rounded, color: c.faint, size: 20),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LanguageBottomSheet extends StatelessWidget {
-  final AppColors c;
-  final Map<String, String> opts;
-  const _LanguageBottomSheet({required this.c, required this.opts});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final entries = opts.entries.toList();
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.55,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0A0F1E) : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.10)
-              : Colors.black.withValues(alpha: 0.06),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.15),
-            blurRadius: 40,
-            offset: const Offset(0, -10),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 48,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.15)
-                    : Colors.black.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Select Language',
-              style: AppTheme.display(
-                size: 18,
-                color: c.text,
-              ).copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.3),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: entries.length,
-                itemBuilder: (context, i) {
-                  final e = entries[i];
-                  return Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: () => Navigator.pop(context, e.key),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.05)
-                              : Colors.black.withValues(alpha: 0.03),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.08)
-                                : Colors.black.withValues(alpha: 0.05),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              _langFlag(e.key),
-                              style: const TextStyle(fontSize: 20),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                e.value,
-                                style: TextStyle(
-                                  color: c.text,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
         ),
       ),
     );
