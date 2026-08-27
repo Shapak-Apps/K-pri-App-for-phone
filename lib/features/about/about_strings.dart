@@ -23,6 +23,14 @@ class AboutStrings {
     _ => 'About the Authors',
   };
 
+  String get supportTitle => switch (lang) {
+    'ru' => 'ПОДДЕРЖКА',
+    'tk' => 'GOLDAW',
+    'tr' => 'DESTEK',
+    'en' => 'SUPPORT',
+    _ => 'SUPPORT',
+  };
+
   String get authorsSub => switch (lang) {
     'ru' => 'Кто создал приложение',
     'tk' => 'Programmany kim döretdi',
