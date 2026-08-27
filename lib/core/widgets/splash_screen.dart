@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../native/splash_native.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
@@ -16,6 +17,8 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   static const _minShow = Duration(milliseconds: 1500);
+  static const _iconAsset = 'assets/icon/app_icon.png';
+  static const _iconSize = 112.0;
 
   late final AnimationController _ctrl;
   late final Animation<double> _fade;
@@ -26,6 +29,7 @@ class _SplashScreenState extends State<SplashScreen>
   bool _taskDone = false;
   bool _waited = false;
   bool _leaving = false;
+  bool _imageReady = false;
 
   @override
   void initState() {
@@ -33,6 +37,23 @@ class _SplashScreenState extends State<SplashScreen>
 
     SplashNative.instance.particles(0.0, 0);
     SplashNative.instance.letters(0.0, 0.0, 0);
+
+    precacheImage(
+          const AssetImage(_iconAsset),
+          context,
+          size: const Size(_iconSize * 3, _iconSize * 3),
+        )
+        .then((_) {
+          if (!mounted) return;
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() => _imageReady = true);
+          });
+        })
+        .catchError((_) {
+          if (!mounted) return;
+          setState(() => _imageReady = true);
+        });
 
     _ctrl = AnimationController(
       vsync: this,
@@ -99,6 +120,7 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     final c = context.c;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final splashBg = isDark ? const Color(0xFF0A0F1E) : Colors.white;
     final iconSurface = isDark
         ? const Color(0xFF1A1F2E)
@@ -124,8 +146,8 @@ class _SplashScreenState extends State<SplashScreen>
               child: ScaleTransition(
                 scale: _scale,
                 child: Container(
-                  width: 112,
-                  height: 112,
+                  width: _iconSize,
+                  height: _iconSize,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(26),
                     border: Border.all(color: iconBorder, width: 1.5),
@@ -140,15 +162,21 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
-                    child: Image.asset(
-                      'assets/icon/app_icon.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.translate_rounded,
-                        color: c.accent,
-                        size: 54,
-                      ),
-                    ),
+                    child: _imageReady
+                        ? Image.asset(
+                            _iconAsset,
+                            fit: BoxFit.cover,
+                            cacheWidth: (_iconSize * 3).round(),
+                            cacheHeight: (_iconSize * 3).round(),
+                            gaplessPlayback: true,
+                            filterQuality: FilterQuality.medium,
+                            isAntiAlias: true,
+                          )
+                        : Icon(
+                            Icons.translate_rounded,
+                            color: c.accent,
+                            size: 54,
+                          ),
                   ),
                 ),
               ),
