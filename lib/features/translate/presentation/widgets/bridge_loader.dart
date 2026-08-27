@@ -42,7 +42,9 @@ class _BridgeLoaderState extends State<BridgeLoader>
           child: SizedBox(
             height: 88,
             width: double.infinity,
-            child: CustomPaint(painter: _BridgePainter(f: _frame, c: c)),
+            child: CustomPaint(
+              painter: _BridgePainter(f: _frame, c: c),
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -115,7 +117,9 @@ class _BridgePainter extends CustomPainter {
       canvas.drawLine(
         top,
         Offset(top.dx, BridgeLayout.deck * H),
-        Paint()..color = c.line.withValues(alpha: 0.6)..strokeWidth = 1,
+        Paint()
+          ..color = c.line.withValues(alpha: 0.6)
+          ..strokeWidth = 1,
       );
     }
 
@@ -158,17 +162,16 @@ class _BridgePainter extends CustomPainter {
             colors: [c.accentHi, c.sub],
           ).createShader(Rect.fromLTRB(x, yTop, x, yDeck)),
       );
-      canvas.drawCircle(
-        Offset(x, yTop - 4),
-        2.2,
-        Paint()..color = c.accentHi,
-      );
+      canvas.drawCircle(Offset(x, yTop - 4), 2.2, Paint()..color = c.accentHi);
     }
 
     canvas.drawLine(
       Offset(0.04 * W, BridgeLayout.deck * H),
       Offset(0.96 * W, BridgeLayout.deck * H),
-      Paint()..color = c.sub..strokeWidth = 3..strokeCap = StrokeCap.round,
+      Paint()
+        ..color = c.sub
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round,
     );
 
     for (var k = BridgeLayout.trail - 1; k >= 1; k--) {
@@ -181,7 +184,11 @@ class _BridgePainter extends CustomPainter {
     }
 
     final dot = pt(BridgeLayout.trailOff, 0);
-    canvas.drawCircle(dot, 9, Paint()..color = c.accent.withValues(alpha: 0.25));
+    canvas.drawCircle(
+      dot,
+      9,
+      Paint()..color = c.accent.withValues(alpha: 0.25),
+    );
     canvas.drawCircle(dot, 4.5, Paint()..color = c.accent);
     canvas.drawCircle(dot, 2, Paint()..color = Colors.white);
   }
