@@ -30,11 +30,11 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
+        multiDexEnabled = true
+
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a")
         }
-
-        multiDexEnabled = true
 
         externalNativeBuild {
             cmake {
@@ -46,6 +46,7 @@ android {
             }
         }
     }
+
 
     externalNativeBuild {
         cmake {
