@@ -30,23 +30,22 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
-        multiDexEnabled = true
-
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a")
         }
+
+        multiDexEnabled = true
 
         externalNativeBuild {
             cmake {
                 cppFlags += listOf("-O3", "-std=c++17", "-ffast-math")
                 arguments += listOf(
-                    "-DANDROID_STL=c++_shared",
+                    "-DANDROID_STL=c++_static",
                     "-DCMAKE_BUILD_TYPE=Release"
                 )
             }
         }
     }
-
 
     externalNativeBuild {
         cmake {
@@ -67,6 +66,14 @@ android {
                 "META-INF/notice.txt",
                 "META-INF/ASL2.0",
                 "META-INF/INDEX.LIST"
+            )
+        }
+
+        jniLibs {
+            pickFirsts += listOf(
+                "**/libc++_shared.so",
+                "**/libflutter.so",
+                "**/libapp.so"
             )
         }
     }
