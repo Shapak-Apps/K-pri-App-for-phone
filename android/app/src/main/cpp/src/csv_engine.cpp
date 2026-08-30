@@ -49,7 +49,8 @@ namespace kp {
     } // namespace
 
     [[nodiscard]] std::string json_to_csv(const std::string& json) {
-        const auto& list = kj::as_list(kj::parse(json));
+        auto root = kj::parse(json);
+        const auto& list = kj::as_list(root);
 
         std::string out;
         out.reserve(list.size() * 128 + 64);
@@ -74,7 +75,8 @@ namespace kp {
     }
 
     [[nodiscard]] int32_t json_count(const std::string& json) {
-        return static_cast<int32_t>(kj::as_list(kj::parse(json)).size());
+        auto root = kj::parse(json);
+        return static_cast<int32_t>(kj::as_list(root).size());
     }
 
 } // namespace kp
