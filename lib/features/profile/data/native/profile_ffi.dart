@@ -26,7 +26,6 @@ class ProfileFFI {
   bool _native = false;
   bool get isNativeAvailable => _native;
 
-  // ═══ XP ═══
   int getLevel(int xp) {
     final l = _native ? _b!.level(xp) : _dartLevel(xp);
     return l.clamp(1, _maxLevel);
@@ -52,10 +51,10 @@ class ProfileFFI {
     return ((xp - cur) / need).clamp(0.0, 1.0);
   }
 
-  // ═══ STREAK ═══
   int calculateStreak(List<int> ymd, int todayYmd) {
     if (ymd.isEmpty) return 0;
-    if (_native) return _withI32(ymd, (p) => _b!.streakCurrent(p, ymd.length, todayYmd));
+    if (_native)
+      return _withI32(ymd, (p) => _b!.streakCurrent(p, ymd.length, todayYmd));
     return _dartStreak(ymd, todayYmd);
   }
 
@@ -65,10 +64,10 @@ class ProfileFFI {
     return _dartBestStreak(ymd);
   }
 
-  // ═══ СТАТИСТИКА ═══
   int getPeakHour(List<int> epochSec) {
     if (epochSec.isEmpty) return 0;
-    if (_native) return _withI32(epochSec, (p) => _b!.peakHour(p, epochSec.length));
+    if (_native)
+      return _withI32(epochSec, (p) => _b!.peakHour(p, epochSec.length));
     return _dartPeak(epochSec);
   }
 
@@ -78,8 +77,12 @@ class ProfileFFI {
       final out = calloc<Int32>(7);
       try {
         for (var i = 0; i < epochSec.length; i++) inp[i] = epochSec[i];
-        _b!.weeklyCounts(inp, epochSec.length,
-            DateTime.now().millisecondsSinceEpoch ~/ 1000, out);
+        _b!.weeklyCounts(
+          inp,
+          epochSec.length,
+          DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          out,
+        );
         return List.generate(7, (i) => out[i]);
       } finally {
         calloc.free(inp);
@@ -126,21 +129,34 @@ class ProfileFFI {
     if (_native) {
       final keep = <Pointer<Utf8>>[];
       final arr = _allocStrings(srcs, keep);
-      final out = calloc<Uint8>(8192).cast<Utf8>();
+      var size = 8192;
       try {
-        _b!.topPhrases(arr, srcs.length, k, out, 8192);
-        final s = out.toDartString();
-        return s.isEmpty ? const [] : s.split('\n');
+        for (var attempt = 0; attempt < 6; attempt++) {
+          final out = calloc<Uint8>(size).cast<Utf8>();
+          try {
+            final r = _b!.topPhrases(arr, srcs.length, k, out, size);
+            if (r >= 0) {
+              final s = out.toDartString();
+              return s.isEmpty ? const [] : s.split('\n');
+            }
+            if (r == -2) {
+              size *= 2;
+              continue;
+            }
+            return const [];
+          } finally {
+            calloc.free(out);
+          }
+        }
+        return const [];
       } finally {
         calloc.free(arr);
-        calloc.free(out);
         for (final p in keep) calloc.free(p);
       }
     }
     return _dartTopPhrases(srcs, k);
   }
 
-  // ═══ JSON → CSV (полностью в C++) ═══
   String? jsonToCsv(String json) {
     if (!_native) return null;
     final inp = json.toNativeUtf8();
@@ -151,7 +167,10 @@ class ProfileFFI {
         try {
           final r = _b!.jsonToCsv(inp, out, size);
           if (r >= 0) return out.cast<Utf8>().toDartString();
-          if (r == -2) { size *= 2; continue; }
+          if (r == -2) {
+            size *= 2;
+            continue;
+          }
           return null;
         } finally {
           calloc.free(out);
@@ -173,8 +192,12 @@ class ProfileFFI {
     }
   }
 
-  // ═══ Ресайз аватара в C++ (мгновенное применение фото) ═══
-  String? resizeAvatar(String src, String dst, {int maxSide = 512, int quality = 88}) {
+  String? resizeAvatar(
+    String src,
+    String dst, {
+    int maxSide = 512,
+    int quality = 88,
+  }) {
     if (!_native) return null;
     final s = src.toNativeUtf8();
     final d = dst.toNativeUtf8();
@@ -186,7 +209,6 @@ class ProfileFFI {
     }
   }
 
-  // ═══ helpers ═══
   int _withI32(List<int> data, int Function(Pointer<Int32>) fn) {
     final p = calloc<Int32>(data.length);
     try {
@@ -197,7 +219,10 @@ class ProfileFFI {
     }
   }
 
-  Pointer<Pointer<Utf8>> _allocStrings(List<String> strs, List<Pointer<Utf8>> keep) {
+  Pointer<Pointer<Utf8>> _allocStrings(
+    List<String> strs,
+    List<Pointer<Utf8>> keep,
+  ) {
     final ptr = calloc<Pointer<Utf8>>(strs.length);
     for (var i = 0; i < strs.length; i++) {
       final p = strs[i].toNativeUtf8();
@@ -207,7 +232,6 @@ class ProfileFFI {
     return ptr;
   }
 
-  // ═══ DART FALLBACK (МАКСИМАЛЬНО СЛОЖНАЯ ПРОКАЧКА) ═══
   static const int _baseXp = 200;
   static const double _growth = 1.25;
   static const int _maxLevel = 100;
@@ -240,8 +264,11 @@ class ProfileFFI {
   }
 
   int _addDays(int ymd, int days) {
-    final dt = DateTime(ymd ~/ 10000, (ymd ~/ 100) % 100, ymd % 100)
-        .add(Duration(days: days));
+    final dt = DateTime(
+      ymd ~/ 10000,
+      (ymd ~/ 100) % 100,
+      ymd % 100,
+    ).add(Duration(days: days));
     return dt.year * 10000 + dt.month * 100 + dt.day;
   }
 
@@ -251,7 +278,10 @@ class ProfileFFI {
     if (!set.contains(start)) start = _addDays(today, -1);
     if (!set.contains(start)) return 0;
     var s = 0, cur = start;
-    while (set.contains(cur)) { s++; cur = _addDays(cur, -1); }
+    while (set.contains(cur)) {
+      s++;
+      cur = _addDays(cur, -1);
+    }
     return s;
   }
 
@@ -261,7 +291,10 @@ class ProfileFFI {
     for (final d in set) {
       if (set.contains(_addDays(d, -1))) continue;
       var cur = d, len = 0;
-      while (set.contains(cur)) { len++; cur = _addDays(cur, 1); }
+      while (set.contains(cur)) {
+        len++;
+        cur = _addDays(cur, 1);
+      }
       if (len > best) best = len;
     }
     return best;
@@ -302,6 +335,8 @@ class ProfileFFI {
     final m = <String, int>{};
     for (final s in srcs) if (s.isNotEmpty) m[s] = (m[s] ?? 0) + 1;
     return (m.entries.toList()..sort((a, b) => b.value.compareTo(a.value)))
-        .take(k).map((e) => e.key).toList();
+        .take(k)
+        .map((e) => e.key)
+        .toList();
   }
 }

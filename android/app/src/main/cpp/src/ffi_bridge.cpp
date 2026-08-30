@@ -26,7 +26,7 @@ namespace {
         }
     }
 
-} // namespace
+}
 
 extern "C" {
 
@@ -82,8 +82,9 @@ KP_EXPORT int32_t pn_top_phrases(const char** srcs, int32_t n, int32_t k, char* 
     }
 
     if (!out_buf || out_sz <= 0) return -1;
-    strncpy(out_buf, joined.c_str(), (size_t)(out_sz - 1));
-    out_buf[out_sz - 1] = '\0';
+    if ((int32_t)joined.size() + 1 > out_sz) return -2;
+    memcpy(out_buf, joined.data(), joined.size());
+    out_buf[joined.size()] = '\0';
     return (int32_t)tops.size();
 }
 
@@ -193,4 +194,4 @@ KP_EXPORT int32_t pn_mt_translate(const char* text, const char* from,
     return kp::mt_translate(text, from, out, out_sz, quality);
 }
 
-} // extern "C"
+}
