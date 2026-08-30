@@ -493,13 +493,21 @@ addv    h16, v16.8h
 addv    h18, v18.8h
 addv    h20, v20.8h
 addv    h22, v22.8h
-umov    w5, v16.h[0]
+ldr     w5, [x2]
+umov    w6, v16.h[0]
+add     w5, w5, w6
 str     w5, [x2]
-umov    w5, v18.h[0]
+ldr     w5, [x2, #4]
+umov    w6, v18.h[0]
+add     w5, w5, w6
 str     w5, [x2, #4]
-umov    w5, v20.h[0]
+ldr     w5, [x2, #8]
+umov    w6, v20.h[0]
+add     w5, w5, w6
 str     w5, [x2, #8]
-umov    w5, v22.h[0]
+ldr     w5, [x2, #12]
+umov    w6, v22.h[0]
+add     w5, w5, w6
 str     w5, [x2, #12]
 ret
 .size kp_asm_clip_stats, .-kp_asm_clip_stats

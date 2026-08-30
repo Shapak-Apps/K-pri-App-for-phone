@@ -522,13 +522,21 @@ vpadd.u32   d8, d8, d8
 vpadd.u32   d10, d10, d10
 vpadd.u32   d12, d12, d12
 vpadd.u32   d14, d14, d14
-vmov.32     r5, d8[0]
+ldr         r5, [r2]
+vmov.32     r6, d8[0]
+add         r5, r5, r6
 str         r5, [r2]
-vmov.32     r5, d10[0]
+ldr         r5, [r2, #4]
+vmov.32     r6, d10[0]
+add         r5, r5, r6
 str         r5, [r2, #4]
-vmov.32     r5, d12[0]
+ldr         r5, [r2, #8]
+vmov.32     r6, d12[0]
+add         r5, r5, r6
 str         r5, [r2, #8]
-vmov.32     r5, d14[0]
+ldr         r5, [r2, #12]
+vmov.32     r6, d14[0]
+add         r5, r5, r6
 str         r5, [r2, #12]
 vpop        {d8, d9, d10, d11, d12, d13, d14, d15}
 pop         {r4, r5, r6, r7, lr}
