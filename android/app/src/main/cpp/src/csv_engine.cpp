@@ -37,10 +37,10 @@ namespace kp {
             }
 #else
             for (char c : v) {
-        if (c == '"') out += "\"\"";
-        else if (c == '\n' || c == '\r') out += '\\';
-        else out += c;
-    }
+                if (c == '"') out += "\"\"";
+                else if (c == '\n' || c == '\r') out += '\\';
+                else out += c;
+            }
 #endif
 
             out += '"';
@@ -67,7 +67,7 @@ namespace kp {
             out += ',';
             esc(out, e->as_string("to"));
             out += ',';
-            out += e->as_bool("starred") ? "true" : "false";
+            out += e->as_bool("fav") ? "true" : "false";
             out += '\n';
         }
 
