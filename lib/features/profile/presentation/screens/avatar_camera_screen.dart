@@ -31,16 +31,34 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
 
   Future<void> _initCamera() async {
     final cameras = await availableCameras();
+    if (!mounted) return;
+
     final front = cameras.firstWhere(
-          (c) => c.lensDirection == CameraLensDirection.front,
+      (c) => c.lensDirection == CameraLensDirection.front,
       orElse: () => cameras.first,
     );
-    _controller = CameraController(
+
+    final ctrl = CameraController(
       front,
       ResolutionPreset.high,
       enableAudio: false,
     );
-    await _controller!.initialize();
+
+    try {
+      await ctrl.initialize();
+    } catch (e) {
+      await ctrl.dispose();
+      if (mounted) rethrow;
+      return;
+    }
+
+    if (!mounted) {
+      await ctrl.dispose();
+      return;
+    }
+
+    _controller = ctrl;
+    setState(() {});
   }
 
   Future<void> _takePicture() async {
@@ -54,7 +72,10 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка: $e'), backgroundColor: context.c.warn),
+          SnackBar(
+            content: Text('Ошибка: $e'),
+            backgroundColor: context.c.warn,
+          ),
         );
         setState(() => _takingPicture = false);
       }
@@ -81,8 +102,10 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
                   const SizedBox(height: 16),
                   Text('Ошибка камеры', style: TextStyle(color: c.text)),
                   const SizedBox(height: 8),
-                  Text('${snapshot.error}',
-                      style: TextStyle(color: c.sub, fontSize: 12)),
+                  Text(
+                    '${snapshot.error}',
+                    style: TextStyle(color: c.sub, fontSize: 12),
+                  ),
                 ],
               ),
             );
@@ -102,7 +125,6 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
                 ),
               ),
 
-              // Затемнение сверху
               Positioned(
                 top: 0,
                 left: 0,
@@ -123,7 +145,6 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
                   ),
                 ),
               ),
-              // Затемнение снизу
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -145,7 +166,6 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
                 ),
               ),
 
-              // Кнопка назад
               Positioned(
                 top: MediaQuery.of(context).padding.top + 12,
                 left: 12,
@@ -158,21 +178,25 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
                     child: const SizedBox(
                       width: 44,
                       height: 44,
-                      child: Icon(Icons.arrow_back_rounded, color: Colors.white),
+                      child: Icon(
+                        Icons.arrow_back_rounded,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
               ),
 
-              // Подсказка
               Positioned(
                 top: MediaQuery.of(context).padding.top + 12,
                 left: 0,
                 right: 0,
                 child: Center(
                   child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(20),
@@ -185,7 +209,6 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
                 ),
               ),
 
-              // Кнопка съёмки
               Positioned(
                 bottom: MediaQuery.of(context).padding.bottom + 30,
                 left: 0,
@@ -221,7 +244,8 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
 
               if (_takingPicture)
                 const Center(
-                    child: CircularProgressIndicator(color: Colors.white)),
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
             ],
           );
         },
@@ -230,9 +254,6 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ✅ Cover-превью: заполняет экран и ОБРЕЗАЕТ лишнее, а не растягивает
-// ═══════════════════════════════════════════════════════════════════════════
 class _AvatarCoverPreview extends StatelessWidget {
   final CameraController controller;
   const _AvatarCoverPreview({required this.controller});
@@ -276,9 +297,6 @@ class _AvatarCoverPreview extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ✅ Круг-рамка: затемнение снаружи + акцентное кольцо
-// ═══════════════════════════════════════════════════════════════════════════
 class _CircleGuidePainter extends CustomPainter {
   final Color ringColor;
   const _CircleGuidePainter(this.ringColor);
@@ -288,7 +306,6 @@ class _CircleGuidePainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.shortestSide * 0.38;
 
-    // Затемнение ВСЕГО кроме круга (evenOdd)
     final path = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
       ..addOval(Rect.fromCircle(center: center, radius: radius))
@@ -299,7 +316,6 @@ class _CircleGuidePainter extends CustomPainter {
       Paint()..color = Colors.black.withValues(alpha: 0.55),
     );
 
-    // Акцентное кольцо
     canvas.drawCircle(
       center,
       radius,
@@ -309,7 +325,6 @@ class _CircleGuidePainter extends CustomPainter {
         ..strokeWidth = 3,
     );
 
-    // Тонкое внешнее свечение
     canvas.drawCircle(
       center,
       radius + 4,
