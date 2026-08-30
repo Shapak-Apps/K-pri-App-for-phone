@@ -1288,23 +1288,27 @@ class _RealCameraPageState extends State<_RealCameraPage>
   }
 
   Future<void> _init() async {
+    CameraController? ctrl;
     try {
       final cams = await availableCameras();
       if (cams.isEmpty) throw Exception('no cameras');
+      if (!mounted) return;
+
       final back = cams.firstWhere(
         (c) => c.lensDirection == CameraLensDirection.back,
         orElse: () => cams.first,
       );
-      final ctrl = CameraController(
+
+      ctrl = CameraController(
         back,
         ResolutionPreset.veryHigh,
         enableAudio: false,
       );
+
       await ctrl.initialize();
-      if (!mounted) {
-        await ctrl.dispose();
-        return;
-      }
+
+      if (!mounted) return;
+
       try {
         _minZoom = await ctrl.getMinZoomLevel();
         _maxZoom = await ctrl.getMaxZoomLevel();
@@ -1315,10 +1319,18 @@ class _RealCameraPageState extends State<_RealCameraPage>
         _minZoom = 1.0;
         _maxZoom = 5.0;
       }
+
       setState(() => _controller = ctrl);
+      ctrl = null;
     } catch (e) {
       debugPrint('[cam] init error: $e');
       if (mounted) setState(() => _initError = true);
+    } finally {
+      if (ctrl != null) {
+        try {
+          await ctrl.dispose();
+        } catch (_) {}
+      }
     }
   }
 
