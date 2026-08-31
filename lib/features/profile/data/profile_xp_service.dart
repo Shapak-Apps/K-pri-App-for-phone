@@ -20,13 +20,14 @@ class ProfileXpService {
   }
 
   static String getLevelTitle(int level) {
-    if (level >= 50) return 'Легенда перевода';
-    if (level >= 40) return 'Мастер слов';
-    if (level >= 30) return 'Профессионал';
-    if (level >= 20) return 'Уверенный переводчик';
-    if (level >= 15) return 'Звезда';
-    if (level >= 10) return 'Практик';
-    if (level >= 5) return 'Ученик';
+    if (level >= 100) return 'Легенда перевода';
+    if (level >= 50) return 'Мастер слов';
+    if (level >= 40) return 'Профессионал';
+    if (level >= 30) return 'Уверенный переводчик';
+    if (level >= 20) return 'Звезда';
+    if (level >= 15) return 'Практик';
+    if (level >= 10) return 'Ученик';
+    if (level >= 5) return 'Продвинутый новичок';
     return 'Новичок';
   }
 }

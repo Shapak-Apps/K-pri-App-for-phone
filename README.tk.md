@@ -15,7 +15,7 @@ Kamera (gibrid OCR) bilen oflaýn terjimeçi (ýakyn wagtda), uly gepleşik kita
 [🇬🇧 English](./README.md) · [🇷🇺 По-русски](./README.ru.md)
 </div>
 
-Köpri — Flutter-da ýasalan mugt, oflaýn terjimeçi. Tekst-tekst terjime ediň ýa-da uly gepleşik kitabyny açyň — hemmesi internetsiz işleýär. Kamera terjimesi işjeň işlenip düzülýär we v2.0.0 wersiýasynda çykar.
+Köpri — Flutter-da ýasalan mugt, oflaýn-ileri terjimeçi. Gepleşik kitaby, taryh, halanlar, XP we statistika doly internetsiz işleýär. Türkmen ↔ rus we türkmen ↔ iňlis tekst terjimesi hem oflaýn, içki sözlük arkaly işleýär. Beýleki dil jüpleri üçin programma onlaýn hyzmatlar (Google Translate, Lingva, MyMemory) arkaly işleýär — tekst olara iberilýär. Kamera terjimesi işjeň işlenip düzülýär we v2.0.0 wersiýasynda çykar.
 
 Köpri [Shapak-Apps](https://github.com/Shapak-Apps) guramasynyň bir bölegi — Türkmenistandan açyk kodly mobil programmalar.
 
@@ -35,7 +35,7 @@ Köpri [Shapak-Apps](https://github.com/Shapak-Apps) guramasynyň bir bölegi �
 - 🚧 **Kamera terjimesi (gibrid OCR) — v2.0.0-da ýakyn wagtda** — Google ML Kit arkaly örän çalt tekst tanamak (latyn elipbiýi, ~0.3 s) + Tesseract OCR (kiril, arap, CJK, dewanagari) ätiýaçlyk hökmünde. Işjeň işlenip düzülýär — diňe indiki uly täzelenişde elýeterli bolar.
 - 💬 **Tekst-tekst terjime** — 50+ diliň arasynda dessine terjime
 - 📖 **Uly gepleşik kitaby** — onlarça kategoriýada müňlerçe fraza
-- 📴 **Doly oflaýn** — internet gerek däl, maglumatlar enjamda galýar
+- 🔵 **Oflaýn-ileri** — gepleşik kitaby, taryh, halanlar, XP we statistika **doly oflaýndyr**; türkmen ↔ rus we türkmen ↔ iňlis üçin içki oflaýn sözlük bar; beýleki dil jüpleri üçin tekst terjimesi onlaýn hyzmatlar (Google Translate, Lingva, MyMemory) arkaly işleýär — tekst olara iberilýär
 - 🕘 **Taryh** — ähli terjimeler lokal ýatda saklanýar
 - ⭐ **Halanlar** — ýygy ulanýan frazalaryňyzy saklaň
 - 🎨 **Häzirki zaman UI** — garaňky režimli arassa dizaýn
