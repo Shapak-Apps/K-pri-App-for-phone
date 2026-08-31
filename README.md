@@ -15,7 +15,7 @@ Offline translator with hybrid camera OCR (coming soon), huge phrasebook and tex
 [🇷🇺 По-русски](./README.ru.md) · [🇹 Türkmençe](./README.tk.md)
 </div>
 
-Köpri is a free, offline-first translator built with Flutter. Translate text-to-text or open the huge phrasebook — everything works without internet. Camera translation is under active development and will ship in v2.0.0.
+Köpri is a free, offline-first translator built with Flutter. The phrasebook, history, favourites, XP and statistics work fully offline. Russian → Turkmen and English → Turkmen text translation works offline via a built-in dictionary. For all other language pairs the app uses online services (Google Translate, Lingva, MyMemory) — text is sent to them. Camera translation is under active development and will ship in v2.0.0.
 
 Köpri is part of the [Shapak-Apps](https://github.com/Shapak-Apps) organization — open-source mobile apps from Turkmenistan.
 
@@ -35,7 +35,7 @@ Köpri is part of the [Shapak-Apps](https://github.com/Shapak-Apps) organization
 - 🚧 **Camera translation (Hybrid OCR) — Coming Soon in v2.0.0** — ultra-fast text recognition using Google ML Kit (Latin scripts, ~0.3s) + Tesseract OCR (Cyrillic, Arabic, CJK, Devanagari) as fallback. Currently under active development — available only in the upcoming major update.
 - 💬 **Text-to-text translation** — instant translation between 50+ languages
 - 📖 **Huge phrasebook** — thousands of phrases in dozens of categories and subcategories
-- 📴 **Fully offline** — no internet required, your data never leaves the device
+- 🔵 **Offline-first** — phrasebook, history, favourites, XP and statistics are **fully offline**; Russian → Turkmen and English → Turkmen text translation works offline via a built-in dictionary; text translation for all other language pairs uses online services (Google Translate, Lingva, MyMemory) — text is sent to them
 - 🕘 **History** — all translations are saved locally
 - ⭐ **Favorites** — save the phrases you use often
 - 🎨 **Modern UI** — clean design with dark mode support
