@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:home_widget/home_widget.dart';
 import 'package:flutter/material.dart';
-import '../../../../main.dart';
+import '../../../core/app/incoming_text.dart';
 import '../../../core/controllers/app_settings_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../conversation/data/tts_service.dart';
