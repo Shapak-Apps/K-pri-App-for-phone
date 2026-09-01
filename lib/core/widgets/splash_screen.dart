@@ -29,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen>
   bool _taskDone = false;
   bool _waited = false;
   bool _leaving = false;
-  bool _imageReady = false;
+  bool _precacheStarted = false;
 
   @override
   void initState() {
@@ -37,23 +37,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     SplashNative.instance.particles(0.0, 0);
     SplashNative.instance.letters(0.0, 0.0, 0);
-
-    precacheImage(
-          const AssetImage(_iconAsset),
-          context,
-          size: const Size(_iconSize * 3, _iconSize * 3),
-        )
-        .then((_) {
-          if (!mounted) return;
-          SchedulerBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            setState(() => _imageReady = true);
-          });
-        })
-        .catchError((_) {
-          if (!mounted) return;
-          setState(() => _imageReady = true);
-        });
 
     _ctrl = AnimationController(
       vsync: this,
@@ -92,6 +75,23 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
       _taskDone = true;
       _tryFinish();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_precacheStarted) return;
+    _precacheStarted = true;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      precacheImage(
+        const AssetImage(_iconAsset),
+        context,
+        size: const Size(_iconSize * 3, _iconSize * 3),
+      ).then((_) {}).catchError((_) {});
     });
   }
 
@@ -162,21 +162,30 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
-                    child: _imageReady
-                        ? Image.asset(
-                            _iconAsset,
-                            fit: BoxFit.cover,
-                            cacheWidth: (_iconSize * 3).round(),
-                            cacheHeight: (_iconSize * 3).round(),
-                            gaplessPlayback: true,
-                            filterQuality: FilterQuality.medium,
-                            isAntiAlias: true,
-                          )
-                        : Icon(
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Center(
+                          child: Icon(
                             Icons.translate_rounded,
                             color: c.accent,
                             size: 54,
                           ),
+                        ),
+                        Image.asset(
+                          _iconAsset,
+                          fit: BoxFit.cover,
+                          cacheWidth: (_iconSize * 3).round(),
+                          cacheHeight: (_iconSize * 3).round(),
+                          gaplessPlayback: true,
+                          filterQuality: FilterQuality.medium,
+                          isAntiAlias: true,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
