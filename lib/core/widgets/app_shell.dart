@@ -7,7 +7,7 @@ import '../../features/phrasebook/presentation/phrasebook_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/translate/presentation/translate_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
-import '../../main.dart';
+import '../app/incoming_text.dart';
 import '../controllers/app_settings_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
@@ -31,13 +31,11 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  // ← стартуем сразу на нужной вкладке
   late int _i = widget.initialScreen.clamp(0, 5);
 
   @override
   void initState() {
     super.initState();
-    // тёплый старт
     openScreen.addListener(_onOpenScreen);
 
     if (widget.initialScreen == 1) {
