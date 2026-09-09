@@ -1,6 +1,10 @@
 <div align="center">
 <img src="./assets/icon/app_icon.png" alt="Köpri" width="120" />
 
+<p align="center">
+  <img src="assets/cover.png" alt="Köpri terjimeçi" width="100%">
+</p>
+
 # Köpri Translator
 
 Kamera (gibrid OCR) bilen oflaýn terjimeçi (ýakyn wagtda), uly gepleşik kitaby we tekst-tekst terjime

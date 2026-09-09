@@ -1,6 +1,10 @@
 <div align="center">
 <img src="./assets/icon/app_icon.png" alt="Köpri" width="120" />
 
+<p align="center">
+  <img src="assets/cover.png" alt="Köpri переводчик" width="100%">
+</p>
+
 # Köpri Translator
 
 Оффлайн-переводчик с гибридным OCR через камеру (скоро), огромным разговорником и переводом текста
