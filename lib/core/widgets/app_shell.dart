@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../features/camera/presentation/camera_screen.dart';
 import '../../features/flashcards/presentation/flashcards_screen.dart';
@@ -14,7 +15,6 @@ import '../theme/app_theme.dart';
 import 'ambient_background.dart';
 import 'app_route.dart';
 import 'neon_bottom_nav.dart';
-import 'package:flutter/foundation.dart';
 
 class AppShell extends StatefulWidget {
   final HistoryRepository repo;
@@ -31,11 +31,17 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  late int _i = widget.initialScreen.clamp(0, 5);
+  late final PageController _pageController;
+  late int _i;
+  static const _pageCount = 6;
+  static const _animDuration = Duration(milliseconds: 260);
+  static const _animCurve = Curves.easeOutCubic;
 
   @override
   void initState() {
     super.initState();
+    _i = widget.initialScreen.clamp(0, _pageCount - 1);
+    _pageController = PageController(initialPage: _i);
     openScreen.addListener(_onOpenScreen);
 
     if (widget.initialScreen == 1) {
@@ -48,6 +54,7 @@ class _AppShellState extends State<AppShell> {
   @override
   void dispose() {
     openScreen.removeListener(_onOpenScreen);
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -56,12 +63,34 @@ class _AppShellState extends State<AppShell> {
     if (t == null) return;
     openScreen.value = null;
     if (!mounted) return;
-
-    if (t >= 0 && t <= 5 && t != _i) {
-      setState(() => _i = t);
+    if (t >= 0 && t < _pageCount) {
+      _navigateTo(t, animate: true);
     }
+  }
 
-    if (t == 1) {
+  void _navigateTo(int index, {required bool animate}) {
+    if (index == _i) return;
+    setState(() => _i = index);
+    if (animate) {
+      _pageController.animateToPage(
+        index,
+        duration: _animDuration,
+        curve: _animCurve,
+      );
+    } else {
+      _pageController.jumpToPage(index);
+    }
+    if (index == 1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) CameraScreen.openTranslateCamera(context);
+      });
+    }
+  }
+
+  void _onPageChanged(int index) {
+    if (index == _i) return;
+    setState(() => _i = index);
+    if (index == 1) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) CameraScreen.openTranslateCamera(context);
       });
@@ -72,15 +101,6 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final c = context.c;
     final l10n = context.l10n;
-
-    final pages = <Widget>[
-      TranslateScreen(repo: widget.repo, incomingText: widget.incomingText),
-      const CameraScreen(),
-      const PhrasebookScreen(),
-      FlashcardsScreen(repo: widget.repo),
-      HistoryScreen(repo: widget.repo),
-      ProfileScreen(repo: widget.repo),
-    ];
 
     final items = <NavItem>[
       NavItem(Icons.translate_rounded, l10n.t('nav_translate')),
@@ -114,7 +134,24 @@ class _AppShellState extends State<AppShell> {
                     ),
                   ),
                   Expanded(
-                    child: IndexedStack(index: _i, children: pages),
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: _onPageChanged,
+                      physics: const PageScrollPhysics(),
+                      children: [
+                        _KeepAlivePage(
+                          child: TranslateScreen(
+                            repo: widget.repo,
+                            incomingText: widget.incomingText,
+                          ),
+                        ),
+                        const _KeepAlivePage(child: CameraScreen()),
+                        const _KeepAlivePage(child: PhrasebookScreen()),
+                        _KeepAlivePage(child: FlashcardsScreen(repo: widget.repo)),
+                        _KeepAlivePage(child: HistoryScreen(repo: widget.repo)),
+                        _KeepAlivePage(child: ProfileScreen(repo: widget.repo)),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -126,13 +163,33 @@ class _AppShellState extends State<AppShell> {
             bottom: 0,
             child: NeonBottomNav(
               index: _i,
-              onTap: (v) => setState(() => _i = v),
+              onTap: (v) => _navigateTo(v, animate: true),
               items: items,
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+class _KeepAlivePage extends StatefulWidget {
+  final Widget child;
+  const _KeepAlivePage({required this.child});
+
+  @override
+  State<_KeepAlivePage> createState() => _KeepAlivePageState();
+}
+
+class _KeepAlivePageState extends State<_KeepAlivePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
 
