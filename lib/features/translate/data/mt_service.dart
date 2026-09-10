@@ -34,7 +34,7 @@ class MtService {
           ru.add(p.ru);
           en.add(p.en);
           tk.add(p.tk);
-          tr.add('');
+          tr.add(p.tr);
         }
       }
     }
@@ -87,16 +87,17 @@ class MtService {
     if (!_loaded) _failed = true;
   }
 
-  MtHit? translate(String text, String srcLang) {
+  MtHit? translate(String text, String srcLang, {String to = 'tk'}) {
     _ensureLoaded();
     if (!_loaded) return null;
 
     final pText = text.toNativeUtf8();
     final pFrom = srcLang.toNativeUtf8();
+    final pTo = to.toNativeUtf8();
     final out = calloc<Uint8>(8192);
     final q = calloc<Int32>(1);
     try {
-      final len = _n.translate(pText, pFrom, out, 8192, q);
+      final len = _n.translate(pText, pFrom, pTo, out, 8192, q);
       if (len < 0) return null;
       return MtHit(out.cast<Utf8>().toDartString(), q.value);
     } catch (e) {
@@ -105,6 +106,7 @@ class MtService {
     } finally {
       calloc.free(pText);
       calloc.free(pFrom);
+      calloc.free(pTo);
       calloc.free(out);
       calloc.free(q);
     }
