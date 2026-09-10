@@ -2,10 +2,7 @@
 #include <cstdint>
 
 namespace kp {
-
     int32_t mt_load(int32_t n, const char** ru, const char** en, const char** tk, const char** tr);
-
-    int32_t mt_translate(const char* text, const char* from,
+    int32_t mt_translate(const char* text, const char* from, const char* to,
                          char* out, int32_t out_sz, int32_t* quality);
-
 }
