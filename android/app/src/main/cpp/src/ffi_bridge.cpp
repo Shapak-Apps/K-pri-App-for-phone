@@ -189,9 +189,9 @@ KP_EXPORT int32_t pn_mt_load(int32_t n, const char** ru, const char** en, const 
     return kp::mt_load(n, ru, en, tk, tr);
 }
 
-KP_EXPORT int32_t pn_mt_translate(const char* text, const char* from,
+KP_EXPORT int32_t pn_mt_translate(const char* text, const char* from, const char* to,
                                   char* out, int32_t out_sz, int32_t* quality) {
-    return kp::mt_translate(text, from, out, out_sz, quality);
+    return kp::mt_translate(text, from, to, out, out_sz, quality);
 }
 
 }
