@@ -7,21 +7,15 @@ import '../../data/profile_repository.dart';
 class PresetAvatarsScreen extends StatelessWidget {
   const PresetAvatarsScreen({super.key});
 
-  // ← ИСПРАВЛЕНО: все эмодзи заполнены (без пустых строк)
   static const List<String> _emojis = [
-    // Животные
     '🦊', '🐼', '🐯', '🦁', '🐺', '🦄', '🐨', '🐵',
     '🐰', '🦝', '🐻', '🐸', '🐳', '🦈', '🐙', '🦋',
-    // Персонажи
-    '🧑', '👩', '👨', '🧒', '👧', '👦', '🧙', '🧝',
-    '🧛', '🧚', '🦸', '🦹', '🥷', '👨‍🚀', '👨‍💻', '👩‍🎨',
-    // Лица и эмоции
-    '😎', '🤩', '😇', '🤠', '🥸', '🤓', '🧐', '😺',
-    '🤖', '👽', '👻', '💀', '🎃', '👹', '🤡', '🥳',
-    // Символы и предметы
+    '👩', '👨', '👧', '👦', '🧙', '🧝',
+    '🧛', '🧚', '🦸', '🦹', '👮', '👷', '💂', '👨‍🍳',
+    '😎', '🤩', '😇', '🤠', '🤓', '🧐', '😺', '🤗',
+    '🤖', '👽', '👻', '💀', '🎃', '👹', '🤡', '🎭',
     '🚀', '🌟', '⚡', '🔥', '💎', '🎯', '🎧', '⚽',
     '🏀', '🎮', '🎨', '🎸', '📚', '🧠', '💡', '🏆',
-    // Природа
     '🌸', '🌻', '🌹', '🌺', '🍀', '🌈', '⭐', '🌙',
     '☀️', '🌊', '🏔️', '🌲', '🍁', '🌴', '🌵', '🍃',
   ];
@@ -56,7 +50,6 @@ class PresetAvatarsScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // ── Подсказка сверху ──
           Container(
             margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             padding: const EdgeInsets.all(12),
@@ -79,7 +72,6 @@ class PresetAvatarsScreen extends StatelessWidget {
             ),
           ),
 
-          // ── Счётчик эмодзи ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
@@ -99,7 +91,6 @@ class PresetAvatarsScreen extends StatelessWidget {
             ),
           ),
 
-          // ── Сетка эмодзи ──
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
