@@ -10,10 +10,12 @@ class TranslationResult {
   final String text;
   final String? detected;
   final bool approx;
+  final bool offline;
   const TranslationResult({
     required this.text,
     this.detected,
     this.approx = false,
+    this.offline = false,
   });
 }
 
@@ -54,6 +56,8 @@ class OnlineTranslator implements TranslatorService {
     'lingva.lunar.icu',
   ];
 
+  static const _tkOfflineSupported = {'ru', 'en', 'tr', 'tk'};
+
   @override
   Future<TranslationResult> translate(
     String text, {
@@ -62,28 +66,84 @@ class OnlineTranslator implements TranslatorService {
   }) async {
     final src = _nffi.normalize(text) ?? text.trim();
     if (src.isEmpty) return const TranslationResult(text: '');
-    if (from == to && from != 'auto') return TranslationResult(text: src);
+    if (from == to && from != 'auto')
+      return TranslationResult(text: src, offline: true);
 
-    if (to == 'tk') {
-      String srcLang = from;
-      if (from == 'auto') srcLang = _detectLang(src, to);
-      if (srcLang == 'tk') {
-        return TranslationResult(text: src, detected: 'tk');
-      }
-      if (srcLang == 'ru' || srcLang == 'en') {
-        final hit = MtService.instance.translate(src, srcLang);
-        if (hit != null) {
-          return TranslationResult(
-            text: hit.text,
-            detected: srcLang,
-            approx: hit.quality == 3,
-          );
-        }
+    String srcLang = from;
+    if (from == 'auto') srcLang = _detectLang(src, to);
+
+    if (srcLang == to) {
+      return TranslationResult(text: src, detected: srcLang, offline: true);
+    }
+
+    if (_tkOfflineSupported.contains(srcLang) && _tkOfflineSupported.contains(to)) {
+      final hit = MtService.instance.translate(src, srcLang, to: to);
+      if (hit != null && hit.text.trim().isNotEmpty) {
+        return TranslationResult(
+          text: hit.text,
+          detected: srcLang,
+          approx: hit.quality >= 2,
+          offline: true,
+        );
       }
     }
 
     if (src.length > 1800) return _translateChunked(src, from, to);
     return _translateSingle(src, from, to);
+  }
+
+  bool _isHighQuality(
+    String source,
+    String translated,
+    String from,
+    String to,
+  ) {
+    if (translated.trim().isEmpty) return false;
+
+    final srcWords = source
+        .toLowerCase()
+        .split(RegExp(r'[\s,.!?;:]+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+    if (srcWords.length <= 1) return true;
+
+    final trWords = translated
+        .toLowerCase()
+        .split(RegExp(r'[\s,.!?;:]+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+
+    int untranslated = 0;
+    for (final w in srcWords) {
+      if (trWords.any((tw) => tw == w || _isSameScript(w, tw))) {
+        untranslated++;
+      }
+    }
+
+    final ratio = untranslated / srcWords.length;
+    if (ratio > 0.25) return false;
+
+    if (translated.length < source.length * 0.3) return false;
+
+    return true;
+  }
+
+  bool _isSameScript(String a, String b) {
+    if (a.isEmpty || b.isEmpty) return false;
+    final aRunes = a.runes.toList();
+    final bRunes = b.runes.toList();
+    if (aRunes.isEmpty || bRunes.isEmpty) return false;
+    final aCat = _scriptCat(aRunes.first);
+    final bCat = _scriptCat(bRunes.first);
+    return aCat == bCat && aCat != 'other';
+  }
+
+  String _scriptCat(int rune) {
+    if (rune >= 0x0400 && rune <= 0x04FF) return 'cyr';
+    if (rune >= 0x0041 && rune <= 0x024F) return 'lat';
+    if (rune >= 0x0600 && rune <= 0x06FF) return 'ara';
+    if (rune >= 0x4E00 && rune <= 0x9FFF) return 'cjk';
+    return 'other';
   }
 
   Future<TranslationResult> _translateChunked(
@@ -191,13 +251,125 @@ class OnlineTranslator implements TranslatorService {
         'ara' => 'ar',
         'cjk' => 'zh',
         'dev' => 'hi',
-        _ => target == 'en' ? 'ru' : 'en',
+        _ => _detectLatinLanguage(text, target),
       };
     }
     if (text.runes.any((r) => r >= 0x0400 && r <= 0x04FF)) return 'ru';
     if (RegExp(r'[äçžňöşüýÄÇŽŇÖŞÜÝ]').hasMatch(text)) return 'tk';
     if (text.runes.any((r) => r >= 0x0600 && r <= 0x06FF)) return 'ar';
     if (text.runes.any((r) => r >= 0x4E00 && r <= 0x9FFF)) return 'zh';
+    return _detectLatinLanguage(text, target);
+  }
+
+  String _detectLatinLanguage(String text, String target) {
+    final t = text.toLowerCase();
+
+    final tkWords = {
+      'we',
+      'seniň',
+      'meniň',
+      'biziň',
+      'siziň',
+      'olaryň',
+      'men',
+      'sen',
+      'ol',
+      'biz',
+      'siz',
+      'olar',
+      'nirede',
+      'haçan',
+      'näme',
+      'kim',
+      'nädip',
+      'näçe',
+      'haýsy',
+      'salam',
+      'sagbol',
+      'sagboluň',
+      'hawa',
+      'ýok',
+      'gowy',
+      'erbet',
+      'uly',
+      'kiçi',
+      'täze',
+      'köne',
+      'ýaş',
+      'gary',
+      'näme',
+      'üçin',
+      'sebäbi',
+      'emma',
+      'ýöne',
+      'hem',
+      'ýa',
+      'diňe',
+      'diýip',
+      'diýdi',
+      'barýaryn',
+      'barýar',
+      'geldim',
+      'geldi',
+      'gördüm',
+      'gördi',
+    };
+    int tkCount = 0;
+    for (final w in tkWords) {
+      if (t.contains(RegExp('\\b$w\\b'))) tkCount++;
+    }
+    if (tkCount >= 2 || (tkCount == 1 && RegExp(r'[äžňüý]').hasMatch(text)))
+      return 'tk';
+
+    final trWords = {
+      've',
+      'bir',
+      'bu',
+      'şu',
+      'için',
+      'ile',
+      'çok',
+      'daha',
+      'gibi',
+      'ben',
+      'sen',
+      'biz',
+      'siz',
+      'onlar',
+      'merhaba',
+      'nasıl',
+      'nerede',
+      'ne',
+      'kim',
+      'nasılsın',
+      'teşekkür',
+      'evet',
+      'hayır',
+      'lütfen',
+      'günaydın',
+      'iyi',
+      'kötü',
+      'büyük',
+      'küçük',
+      'yeni',
+      'eski',
+      'güzel',
+      'çirkin',
+      'değil',
+      'mı',
+      'mi',
+      'mu',
+      'mü',
+      'gidiyorum',
+      'geliyorum',
+      'yapıyorum',
+    };
+    int trCount = 0;
+    for (final w in trWords) {
+      if (t.contains(RegExp('\\b$w\\b'))) trCount++;
+    }
+    if (trCount >= 2) return 'tr';
+
     return target == 'en' ? 'ru' : 'en';
   }
 
