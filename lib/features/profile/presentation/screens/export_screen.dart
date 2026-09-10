@@ -18,14 +18,12 @@ class ExportScreen extends StatelessWidget {
     ));
   }
 
-  // ── EXPORT JSON ────────────────────────────────────────
   Future<void> _exportJson(BuildContext context) async {
     final l10n = context.l10n;
     try {
       final json = await ProfileExportService.exportHistoryToJson(repo);
       final list = ProfileExportService.extractList(jsonDecode(json));
 
-      // ← ПРОВЕРКА: история пустая?
       if (list.isEmpty) {
         _snack(context, l10n.t('export_empty'), warn: true);
         return;
@@ -34,14 +32,12 @@ class ExportScreen extends StatelessWidget {
       await ProfileExportService.saveToFile(json, 'kopri_history.json');
       await Clipboard.setData(ClipboardData(text: json));
 
-      // ← ПОНЯТНОЕ сообщение: сколько записей и куда
       _snack(context, '${l10n.t('export_done')} ${list.length} · ${l10n.t('export_clipboard')}');
     } catch (e) {
       _snack(context, l10n.t('export_error'), warn: true);
     }
   }
 
-  // ── EXPORT CSV ─────────────────────────────────────────
   Future<void> _exportCsv(BuildContext context) async {
     final l10n = context.l10n;
     try {
@@ -61,18 +57,15 @@ class ExportScreen extends StatelessWidget {
     }
   }
 
-  // ── IMPORT (с проверками ДО импорта) ───────────────────
   Future<void> _doImport(BuildContext context, String raw) async {
     final l10n = context.l10n;
     final text = raw.trim();
 
-    // 1) Пустое поле
     if (text.isEmpty) {
       _snack(context, l10n.t('import_empty_field'), warn: true);
       return;
     }
 
-    // 2) Это вообще JSON?
     dynamic decoded;
     try {
       decoded = jsonDecode(text);
@@ -81,14 +74,12 @@ class ExportScreen extends StatelessWidget {
       return;
     }
 
-    // 3) Есть ли там записи? (ловим случай с «[]»)
     final list = ProfileExportService.extractList(decoded);
     if (list.isEmpty) {
       _snack(context, l10n.t('import_empty'), warn: true);
       return;
     }
 
-    // 4) Импорт
     try {
       final n = await ProfileExportService.importFromJson(repo, text);
       _snack(context, '${l10n.t('import_done')} ${n > 0 ? n : list.length}');
@@ -111,7 +102,6 @@ class ExportScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ← подсказка «как пользоваться»
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -168,7 +158,6 @@ class ExportScreen extends StatelessWidget {
     );
   }
 
-  // ── ОЧИСТКА СТАРЫХ ─────────────────────────────────────
   void _clearOldDialog(BuildContext context) {
     final c = context.c, l10n = context.l10n;
     showDialog<void>(
