@@ -21,17 +21,17 @@ class AppColors extends ThemeExtension<AppColors> {
   });
 
   static const dark = AppColors(
-    bg: Color(0xFF0E1116),
-    bgSoft: Color(0xFF14181F),
-    surface: Color(0xFF1A1F27),
-    surfaceHi: Color(0xFF222831),
-    line: Color(0xFF2A313C),
-    text: Color(0xFFE6EDF3),
-    sub: Color(0xFF9AA4B2),
-    faint: Color(0xFF5C6675),
-    accent: Color(0xFF5B8DEF),
-    accentHi: Color(0xFF82ACFF),
-    accentDeep: Color(0xFF3F6FD1),
+    bg: Color(0xFF0A0E1A),
+    bgSoft: Color(0xFF0E1424),
+    surface: Color(0xFF141B2D),
+    surfaceHi: Color(0xFF1B2438),
+    line: Color(0xFF26314A),
+    text: Color(0xFFE9EEF6),
+    sub: Color(0xFF9BA7BA),
+    faint: Color(0xFF5E6A7E),
+    accent: Color(0xFF3E7BFA),
+    accentHi: Color(0xFF71A5FF),
+    accentDeep: Color(0xFF2B5EDB),
     warn: Color(0xFFE5736B),
   );
 
