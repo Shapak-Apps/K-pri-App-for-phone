@@ -52,6 +52,27 @@ class AboutStrings {
     _ => 'Other apps',
   };
 
+  String get openSourceTitle => switch (lang) {
+    'ru' => 'Открытый исходный код',
+    'tk' => 'Açyk çeşme kody',
+    'tr' => 'Açık kaynak kodu',
+    _ => 'Open Source Code',
+  };
+
+  String get openSourceSub => switch (lang) {
+    'ru' => 'Исходный код Köpri на GitHub',
+    'tk' => 'Köpri çeşme kody GitHub-da',
+    'tr' => "Köpri kaynak kodu GitHub'da",
+    _ => 'Köpri source code on GitHub',
+  };
+
+  String get openSourceButton => switch (lang) {
+    'ru' => 'Открыть на GitHub',
+    'tk' => 'GitHub-da açmak',
+    'tr' => "GitHub'da aç",
+    _ => 'Open on GitHub',
+  };
+
   String get copyright => '© 2026 Köpri';
 
   String get mobileDev => switch (lang) {
