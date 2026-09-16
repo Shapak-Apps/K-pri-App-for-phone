@@ -119,52 +119,46 @@ class _AppShellState extends State<AppShell> {
           const AmbientBackground(),
           SafeArea(
             bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 86),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _TopBar(
-                    c: c,
-                    onSettings: () => Navigator.of(context).push(
-                      appRoute(
-                        SettingsScreen(repo: widget.repo),
-                        animate: context.settings.animationsOn,
-                      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _TopBar(
+                  c: c,
+                  onSettings: () => Navigator.of(context).push(
+                    appRoute(
+                      SettingsScreen(repo: widget.repo),
+                      animate: context.settings.animationsOn,
                     ),
                   ),
-                  Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      onPageChanged: _onPageChanged,
-                      physics: const PageScrollPhysics(),
-                      children: [
-                        _KeepAlivePage(
-                          child: TranslateScreen(
-                            repo: widget.repo,
-                            incomingText: widget.incomingText,
-                          ),
+                ),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    physics: const PageScrollPhysics(),
+                    children: [
+                      _KeepAlivePage(
+                        child: TranslateScreen(
+                          repo: widget.repo,
+                          incomingText: widget.incomingText,
                         ),
-                        const _KeepAlivePage(child: CameraScreen()),
-                        const _KeepAlivePage(child: PhrasebookScreen()),
-                        _KeepAlivePage(child: FlashcardsScreen(repo: widget.repo)),
-                        _KeepAlivePage(child: HistoryScreen(repo: widget.repo)),
-                        _KeepAlivePage(child: ProfileScreen(repo: widget.repo)),
-                      ],
-                    ),
+                      ),
+                      const _KeepAlivePage(child: CameraScreen()),
+                      const _KeepAlivePage(child: PhrasebookScreen()),
+                      _KeepAlivePage(
+                        child: FlashcardsScreen(repo: widget.repo),
+                      ),
+                      _KeepAlivePage(child: HistoryScreen(repo: widget.repo)),
+                      _KeepAlivePage(child: ProfileScreen(repo: widget.repo)),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: NeonBottomNav(
-              index: _i,
-              onTap: (v) => _navigateTo(v, animate: true),
-              items: items,
+                ),
+                NeonBottomNav(
+                  index: _i,
+                  onTap: (v) => _navigateTo(v, animate: true),
+                  items: items,
+                ),
+              ],
             ),
           ),
         ],
