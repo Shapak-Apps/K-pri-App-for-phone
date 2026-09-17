@@ -439,6 +439,7 @@ class SettingsScreen extends StatelessWidget {
                           value: s.compact,
                           onChanged: s.setCompact,
                         ),
+                        _CameraTabSwitchTile(c: c, isDark: isDark),
                         _AccentLabel(c: c, label: l10n.t('theme')),
                         const SizedBox(height: 10),
                         _ThemeSwitcher(
@@ -3577,6 +3578,41 @@ class _FeedbackOption extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CameraTabSwitchTile extends StatelessWidget {
+  final AppColors c;
+  final bool isDark;
+  const _CameraTabSwitchTile({required this.c, required this.isDark});
+
+  String _title(AppLang l) => switch (l) {
+    AppLang.ru => 'Камера в нижнем меню',
+    AppLang.en => 'Camera tab in bottom nav',
+    AppLang.tk => 'Kamera aşaky menýuda',
+    AppLang.tr => 'Alt menüde kamera sekmesi',
+  };
+
+  String _desc(AppLang l) => switch (l) {
+    AppLang.ru => 'Показывать вкладку камеры в нижней панели',
+    AppLang.en => 'Show the camera tab in the bottom bar',
+    AppLang.tk => 'Kamera sekmesini aşaky panelde görkez',
+    AppLang.tr => 'Kamera sekmesini alt çubukta göster',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.settings;
+    return _NeoSwitchTile(
+      c: c,
+      isDark: isDark,
+      icon: Icons.photo_camera_rounded,
+      iconColor: const Color(0xFF0EA5E9),
+      title: _title(s.lang),
+      subtitle: _desc(s.lang),
+      value: s.showCameraTab,
+      onChanged: s.setShowCameraTab,
     );
   }
 }
