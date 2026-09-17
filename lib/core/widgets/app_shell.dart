@@ -32,40 +32,83 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   late final PageController _pageController;
+  late AppSettingsController _settings;
   late int _i;
-  static const _pageCount = 6;
+  late bool _cameraOn;
+  bool _didInitDeps = false;
   static const _animDuration = Duration(milliseconds: 260);
   static const _animCurve = Curves.easeOutCubic;
 
   @override
   void initState() {
     super.initState();
-    _i = widget.initialScreen.clamp(0, _pageCount - 1);
-    _pageController = PageController(initialPage: _i);
     openScreen.addListener(_onOpenScreen);
+  }
 
-    if (widget.initialScreen == 1) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) CameraScreen.openTranslateCamera(context);
-      });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_didInitDeps) {
+      _didInitDeps = true;
+      _settings = context.settings;
+      _cameraOn = _settings.showCameraTab;
+      _i = _navIndex(widget.initialScreen.clamp(0, 5));
+      _pageController = PageController(initialPage: _i);
+      _settings.addListener(_onSettingsChanged);
+
+      if (widget.initialScreen == 1 && _cameraOn) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) CameraScreen.openTranslateCamera(context);
+        });
+      }
     }
   }
 
   @override
   void dispose() {
     openScreen.removeListener(_onOpenScreen);
-    _pageController.dispose();
+    if (_didInitDeps) {
+      _settings.removeListener(_onSettingsChanged);
+      _pageController.dispose();
+    }
     super.dispose();
+  }
+
+  int _navIndex(int logical) =>
+      (!_cameraOn && logical >= 1) ? logical - 1 : logical;
+
+  void _onSettingsChanged() {
+    if (!mounted) return;
+    final on = _settings.showCameraTab;
+    if (on == _cameraOn) {
+      setState(() {});
+      return;
+    }
+    final old = _i;
+    final int neu;
+    if (_cameraOn && !on) {
+      neu = old == 1 ? 0 : (old > 1 ? old - 1 : old);
+    } else {
+      neu = old >= 1 ? old + 1 : old;
+    }
+    setState(() {
+      _cameraOn = on;
+      _i = neu;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _pageController.hasClients) {
+        _pageController.jumpToPage(neu);
+      }
+    });
   }
 
   void _onOpenScreen() {
     final t = openScreen.value;
     if (t == null) return;
     openScreen.value = null;
-    if (!mounted) return;
-    if (t >= 0 && t < _pageCount) {
-      _navigateTo(t, animate: true);
-    }
+    if (!mounted || !_didInitDeps) return;
+    if (t == 1 && !_cameraOn) return;
+    _navigateTo(_navIndex(t.clamp(0, 5)), animate: true);
   }
 
   void _navigateTo(int index, {required bool animate}) {
@@ -80,7 +123,7 @@ class _AppShellState extends State<AppShell> {
     } else {
       _pageController.jumpToPage(index);
     }
-    if (index == 1) {
+    if (_cameraOn && index == 1) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) CameraScreen.openTranslateCamera(context);
       });
@@ -90,7 +133,7 @@ class _AppShellState extends State<AppShell> {
   void _onPageChanged(int index) {
     if (index == _i) return;
     setState(() => _i = index);
-    if (index == 1) {
+    if (_cameraOn && index == 1) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) CameraScreen.openTranslateCamera(context);
       });
@@ -99,17 +142,22 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_didInitDeps) {
+      return const SizedBox.shrink();
+    }
     final c = context.c;
     final l10n = context.l10n;
 
     final items = <NavItem>[
       NavItem(Icons.translate_rounded, l10n.t('nav_translate')),
-      NavItem(Icons.photo_camera_rounded, l10n.t('nav_camera')),
+      if (_cameraOn) NavItem(Icons.photo_camera_rounded, l10n.t('nav_camera')),
       NavItem(Icons.menu_book_rounded, l10n.t('nav_phrasebook')),
       NavItem(Icons.style_rounded, l10n.t('nav_flashcards')),
       NavItem(Icons.history_rounded, l10n.t('nav_history')),
       NavItem(Icons.person_outline_rounded, l10n.t('nav_profile')),
     ];
+
+    final current = _i.clamp(0, items.length - 1);
 
     return Scaffold(
       backgroundColor: c.bg,
@@ -143,7 +191,8 @@ class _AppShellState extends State<AppShell> {
                           incomingText: widget.incomingText,
                         ),
                       ),
-                      const _KeepAlivePage(child: CameraScreen()),
+                      if (_cameraOn)
+                        const _KeepAlivePage(child: CameraScreen()),
                       const _KeepAlivePage(child: PhrasebookScreen()),
                       _KeepAlivePage(
                         child: FlashcardsScreen(repo: widget.repo),
@@ -154,7 +203,7 @@ class _AppShellState extends State<AppShell> {
                   ),
                 ),
                 NeonBottomNav(
-                  index: _i,
+                  index: current,
                   onTap: (v) => _navigateTo(v, animate: true),
                   items: items,
                 ),
