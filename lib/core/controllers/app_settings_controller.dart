@@ -36,6 +36,7 @@ class AppSettingsController extends ChangeNotifier {
   int _accentIndex = 0;
   bool _animationsOn = true;
   bool _compact = false;
+  bool _showCameraTab = true;
 
   ThemeMode get themeMode => _themeMode;
   AppLang get lang => _lang;
@@ -59,13 +60,14 @@ class AppSettingsController extends ChangeNotifier {
   int get accentIndex => _accentIndex;
   bool get animationsOn => _animationsOn;
   bool get compact => _compact;
+  bool get showCameraTab => _showCameraTab;
 
   Future<void> init() async {
     _box = await Hive.openBox(_boxName);
     _themeMode = ThemeMode
         .values[_box.get('theme', defaultValue: ThemeMode.dark.index) as int];
     _lang =
-    AppLang.values[_box.get('lang', defaultValue: AppLang.tk.index) as int];
+        AppLang.values[_box.get('lang', defaultValue: AppLang.tk.index) as int];
     _fontScale = (_box.get('fontScale', defaultValue: 0.85) as num).toDouble();
     _speechRate = (_box.get('speechRate', defaultValue: 0.5) as num).toDouble();
     _ttsVolume = (_box.get('ttsVolume', defaultValue: 1.0) as num).toDouble();
@@ -78,11 +80,11 @@ class AppSettingsController extends ChangeNotifier {
     _autoTranslate = _box.get('autoTranslate', defaultValue: true) as bool;
     _translateDelayMs = _box.get('translateDelayMs', defaultValue: 700) as int;
     _phraseSpeak =
-    PhraseSpeakMode.values[_box.get(
-      'phraseSpeak',
-      defaultValue: PhraseSpeakMode.both.index,
-    )
-    as int];
+        PhraseSpeakMode.values[_box.get(
+              'phraseSpeak',
+              defaultValue: PhraseSpeakMode.both.index,
+            )
+            as int];
     _flashcardSession = _box.get('flashcardSession', defaultValue: 20) as int;
     _spacedRep = _box.get('spacedRep', defaultValue: true) as bool;
     _autoSaveHistory = _box.get('autoSaveHistory', defaultValue: true) as bool;
@@ -90,6 +92,7 @@ class AppSettingsController extends ChangeNotifier {
     _accentIndex = _box.get('accentIndex', defaultValue: 0) as int;
     _animationsOn = _box.get('animationsOn', defaultValue: true) as bool;
     _compact = _box.get('compact', defaultValue: false) as bool;
+    _showCameraTab = _box.get('showCameraTab', defaultValue: true) as bool;
   }
 
   Future<void> put(String k, dynamic v) async {
@@ -220,6 +223,12 @@ class AppSettingsController extends ChangeNotifier {
   Future<void> setCompact(bool v) async {
     _compact = v;
     await _box.put('compact', v);
+    notifyListeners();
+  }
+
+  Future<void> setShowCameraTab(bool v) async {
+    _showCameraTab = v;
+    await _box.put('showCameraTab', v);
     notifyListeners();
   }
 }
