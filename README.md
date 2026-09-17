@@ -16,7 +16,7 @@ Offline translator with hybrid camera OCR (coming soon), huge phrasebook and tex
 ![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg?logo=android)
 ![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
-[🇷🇺 По-русски](./README.ru.md) · [🇹 Türkmençe](./README.tk.md)
+[🇷🇺 По-русски](./README.ru.md) · [🇹🇲 Türkmençe](./README.tk.md)
 </div>
 
 Köpri is a free, offline-first translator built with Flutter. The phrasebook, history, favourites, XP and statistics work fully offline. Russian → Turkmen and English → Turkmen text translation works offline via a built-in dictionary. For all other language pairs the app uses online services (Google Translate, Lingva, MyMemory) — text is sent to them. Camera translation is under active development and will ship in v2.0.0.
@@ -49,7 +49,7 @@ Köpri is part of the [Shapak-Apps](https://github.com/Shapak-Apps) organization
 
 ## 🌍 Supported languages
 
-🇬🇧 English · 🇷 Russian · 🇲 Turkmen · 🇷 Turkish · 🇿 Kazakh · 🇹🇯 Tajik · 🇺🇿 Uzbek · 🇺 Ukrainian · 🇳 Chinese · 🇵 Japanese · 🇷 Korean · 🇦 Arabic · 🇪 German · 🇷 French · 🇸 Spanish · 🇹 Italian · 🇳 Hindi and more
+🇬 English · 🇷 Russian · 🇲 Turkmen · 🇷 Turkish · 🇿 Kazakh · 🇹🇯 Tajik · 🇺 Uzbek ·  Ukrainian · 🇳 Chinese · 🇵 Japanese ·  Korean · 🇦 Arabic · 🇪 German · 🇷 French ·  Spanish ·  Italian · 🇳 Hindi and more
 
 ## 🛠 Tech Stack
 
@@ -136,7 +136,7 @@ Latin scripts are recognized by Google ML Kit (auto-downloaded by Google Play Se
 # PowerShell (Windows) — run in the project root
 New-Item -ItemType Directory -Force -Path "assets\tessdata" | Out-Null
 "eng tur rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya".Split(" ") | ForEach-Object {
-    Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$_.traineddata" -OutFile "assets\tessdata\$_.traineddata"
+  Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$_.traineddata" -OutFile "assets\tessdata\$_.traineddata"
 }
 ```
 
@@ -241,6 +241,13 @@ Contributions are welcome! Open an issue or send a pull request.
 
 This project is licensed under the [Apache License 2.0](./LICENSE).
 
+## 📚 Documents
+
+- [Code of Conduct](./CODE_OF_CONDUCT.md) — community rules and enforcement
+- [Contributing](./CONTRIBUTING.md) — how to contribute code, translations and docs
+- [Security Policy](./SECURITY.md) — how to report vulnerabilities responsibly
+- [Acknowledgments](./ACKNOWLEDGMENTS.md) — team, contributors and third-party credits
+
 ## 👤 Author
 
 Aynazar Sylyyew
@@ -248,6 +255,8 @@ Aynazar Sylyyew
 🏢 Organization: [Shapak-Apps](https://github.com/Shapak-Apps)
 
 ## 🙏 Acknowledgments
+
+> 👥 People — team members and contributors — are credited in [ACKNOWLEDGMENTS.md](./ACKNOWLEDGMENTS.md) (not inside the app).
 
 - [Flutter](https://flutter.dev) — cross-platform framework
 - [Google ML Kit](https://developers.google.com/ml-kit) — on-device text recognition

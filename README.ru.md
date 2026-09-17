@@ -16,7 +16,7 @@
 ![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg?logo=android)
 ![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
-[🇬 English](./README.md) · [🇹🇲 Türkmençe](./README.tk.md)
+[🇬🇧 English](./README.md) · [🇹🇲 Türkmençe](./README.tk.md)
 </div>
 
 Köpri — бесплатный оффлайн-приоритетный переводчик на Flutter. Разговорник, история, избранное, XP и статистика работают полностью без интернета. Перевод текста с русского → туркменский и с английского → туркменский работает оффлайн через встроенный словарь. Для всех остальных пар языков приложение использует онлайн-сервисы (Google Translate, Lingva, MyMemory) — текст передаётся на их серверы. Перевод через камеру находится в активной разработке и выйдет в версии 2.0.0.
@@ -49,7 +49,7 @@ Köpri — часть организации [Shapak-Apps](https://github.com/Sh
 
 ## 🌍 Поддерживаемые языки
 
-🇬🇧 Английский · 🇷🇺 Русский · 🇹🇲 Туркменский · 🇹 Турецкий · 🇿 Казахский · 🇹🇯 Таджикский · 🇺🇿 Узбекский · 🇺🇦 Украинский · 🇨🇳 Китайский · 🇯🇵 Японский · 🇰🇷 Корейский · 🇸🇦 Арабский · 🇩🇪 Немецкий · 🇫🇷 Французский · 🇪 Испанский · 🇹 Итальянский · 🇮🇳 Хинди и другие
+🇬 Английский · 🇷🇺 Русский · 🇹🇲 Туркменский · 🇹 Турецкий · 🇿 Казахский · 🇹 Таджикский · 🇺🇿 Узбекский · 🇺 Украинский · 🇳 Китайский · 🇯🇵 Японский · 🇰🇷 Корейский · 🇸🇦 Арабский · 🇩🇪 Немецкий · 🇫🇷 Французский · 🇪 Испанский · 🇮 Итальянский · 🇮🇳 Хинди и другие
 
 ## 🛠 Технологии
 
@@ -64,7 +64,7 @@ Köpri — часть организации [Shapak-Apps](https://github.com/Sh
 | Хранилище | SharedPreferences / Hive |
 | Архитектура | Feature-first, чистая архитектура |
 
-Почему гибрид? ML Kit в 10–20 раз быстрее Tesseract на латинице (вывески, меню, документы), а Tesseract покрывает письменности, которые ML Kit пока не поддерживает (кириллица, арабский, деванагари). Движок полностью реализован на C++ и будет включён в v2.0.0.
+Почему гибрид? ML Kit в 10–20 раз быстрее Tesseract на латинице (вывески, меню, документы), а Tesseract покрывает письменности, которые ML Kit пока не поддерживает (кириллица, арабская, деванагари). Движок полностью реализован на C++ и будет включён в v2.0.0.
 
 ## ⚡ Модули C++ (нативная производительность)
 
@@ -136,7 +136,7 @@ flutter pub get
 # PowerShell (Windows) — запусти в корне проекта
 New-Item -ItemType Directory -Force -Path "assets\tessdata" | Out-Null
 "eng tur rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya".Split(" ") | ForEach-Object {
-    Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$_.traineddata" -OutFile "assets\tessdata\$_.traineddata"
+  Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$_.traineddata" -OutFile "assets\tessdata\$_.traineddata"
 }
 ```
 
@@ -241,6 +241,13 @@ flutter build appbundle --release
 
 Проект распространяется под лицензией [Apache License 2.0](./LICENSE).
 
+## 📚 Документы
+
+- [Кодекс поведения](./CODE_OF_CONDUCT.md) — правила сообщества и их применение
+- [Вклад](./CONTRIBUTING.md) — как присылать код, переводы и документацию
+- [Политика безопасности](./SECURITY.md) — как ответственно сообщить об уязвимости
+- [Благодарности](./ACKNOWLEDGMENTS.md) — команда, контрибьюторы и сторонние проекты
+
 ## 👤 Автор
 
 Айназар Сылыев
@@ -248,6 +255,8 @@ flutter build appbundle --release
 🏢 Организация: [Shapak-Apps](https://github.com/Shapak-Apps)
 
 ## 🙏 Благодарности
+
+> 👥 Люди — состав команды и контрибьюторы — указаны в [ACKNOWLEDGMENTS.md](./ACKNOWLEDGMENTS.md) (не внутри приложения).
 
 - [Flutter](https://flutter.dev) — кроссплатформенный фреймворк
 - [Google ML Kit](https://developers.google.com/ml-kit) — распознавание текста на устройстве

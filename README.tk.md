@@ -49,7 +49,7 @@ Köpri [Shapak-Apps](https://github.com/Shapak-Apps) guramasynyň bir bölegi �
 
 ## 🌍 Goldanylýan diller
 
-🇬🇧 Iňlis · 🇷🇺 Rus · 🇹 Türkmen · 🇹🇷 Türk · 🇿 Gazak · 🇹🇯 Täjik · 🇺 Özbek · 🇦 Ukrain · 🇳 Hytaý · 🇯 Ýapon · 🇷 Koreý · 🇦 Arap · 🇩🇪 Nemes · 🇫🇷 Fransuz · 🇪🇸 Ispan · 🇮🇹 Italýan · 🇮🇳 Hindi we başgalar
+🇬 Iňlis · 🇺 Rus · 🇹🇲 Türkmen · 🇹 Türk ·  Gazak · 🇯 Täjik ·  Özbek ·  Ukrain ·  Hytaý ·  Ýapon ·  Koreý ·  Arap · 🇪 Nemes · 🇫🇷 Fransuz · 🇪 Ispan · 🇮 Italýan · 🇮🇳 Hindi we başgalar
 
 ## 🛠 Tehnologiýalar
 
@@ -136,7 +136,7 @@ Latyn elipbiýini Google ML Kit tanaýar (model Google Play Services arkaly awto
 # PowerShell (Windows) — proýekt kökünde işlediň
 New-Item -ItemType Directory -Force -Path "assets\tessdata" | Out-Null
 "eng tur rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya".Split(" ") | ForEach-Object {
-    Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$_.traineddata" -OutFile "assets\tessdata\$_.traineddata"
+  Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$_.traineddata" -OutFile "assets\tessdata\$_.traineddata"
 }
 ```
 
@@ -172,7 +172,7 @@ Eger stb headerleri ýok bolsa, programma awtomatik Dart nusgasyndan peýdalanar
 
 5. **Android sazlamasy**
 
-Programma Android 5.0+ (API 21) talap edýär. ML Kit modeliniň gurnalanda öňünden göçürilmegi üçin `android/app/src/main/AndroidManifest.xml` faýlynda `<application>` içine goşuň:
+Programma Android 5.0+ (API 21) talap edýär. ML Kit modeliniň gurnalmanda öňünden göçürilmegi üçin `android/app/src/main/AndroidManifest.xml` faýlynda `<application>` içine goşuň:
 
 ```xml
 <meta-data
@@ -241,6 +241,13 @@ Goşantlar hoş garşylanýar! Issue açyň ýa-da pull request iberiň.
 
 Bu proýekt [Apache License 2.0](./LICENSE) esasynda paýlanýar.
 
+## 📚 Resminamalar
+
+- [Häsiýet kodeksi](./CODE_OF_CONDUCT.md) — jemgyýet düzgünleri we olaryň ulanylyşy
+- [Goşant](./CONTRIBUTING.md) — kod, terjime we resminama nädip goşmaly
+- [Howpsuzlyk syýasaty](./SECURITY.md) — howpsuzlyk gowşaklygy barada nädip habar bermeli
+- [Minnetdarlyk](./ACKNOWLEDGMENTS.md) — topar, goşant goşanlar we daşarky taslamalar
+
 ## 👤 Awtor
 
 Aýnazar Sylyýew
@@ -248,6 +255,8 @@ Aýnazar Sylyýew
 🏢 Gurama: [Shapak-Apps](https://github.com/Shapak-Apps)
 
 ## 🙏 Minnetdarlyk
+
+> 👥 Adamlar — topar agzalary we goşant goşanlar — [ACKNOWLEDGMENTS.md](./ACKNOWLEDGMENTS.md) faýlynda görkezilen (programmanyň içinde däl).
 
 - [Flutter](https://flutter.dev) — kross-platforma freýmwork
 - [Google ML Kit](https://developers.google.com/ml-kit) — enjamda tekst tanamak
