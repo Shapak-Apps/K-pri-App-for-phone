@@ -27,6 +27,9 @@ class _NeonBottomNavState extends State<NeonBottomNav> {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
+    final n = widget.items.length;
+    if (n == 0) return const SizedBox.shrink();
+    final sel = widget.index.clamp(0, n - 1);
 
     return Container(
       width: double.infinity,
@@ -41,12 +44,13 @@ class _NeonBottomNavState extends State<NeonBottomNav> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
           child: Row(
+            key: ValueKey(n),
             children: [
-              for (var i = 0; i < widget.items.length; i++)
+              for (var i = 0; i < n; i++)
                 Expanded(
                   child: _NavItem(
                     index: i,
-                    selected: i == widget.index,
+                    selected: i == sel,
                     icon: widget.items[i].icon,
                     label: widget.items[i].label,
                     c: c,
