@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../core/controllers/app_settings_controller.dart';
 import '../../../core/theme/app_colors.dart';
@@ -17,6 +18,52 @@ bool _showEn(PhraseSpeakMode m, String src) {
   return false;
 }
 
+List<({PCat c, PSub s, PPh p})> searchPhrasebook(String query) {
+  final q = query.trim().toLowerCase();
+  if (q.isEmpty) return const [];
+  final out = <({PCat c, PSub s, PPh p})>[];
+  for (final c in phrasebook) {
+    for (final s in c.s) {
+      for (final p in s.p) {
+        if (p.ru.toLowerCase().contains(q) ||
+            p.en.toLowerCase().contains(q) ||
+            p.tk.toLowerCase().contains(q) ||
+            p.tr.toLowerCase().contains(q)) {
+          out.add((c: c, s: s, p: p));
+        }
+      }
+    }
+  }
+  return out;
+}
+
+Future<void> _speakPhrase(
+  BuildContext context,
+  TtsService tts,
+  String text,
+  String code,
+) async {
+  try {
+    await tts.speak(text, code, rate: context.settings.speechRate);
+  } catch (e) {
+    debugPrint('[phrasebook] tts error: $e');
+    if (!context.mounted) return;
+    final lang = context.settings.lang.name;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(switch (lang) {
+          'ru' => 'Не удалось воспроизвести аудио',
+          'tk' => 'Sesi seslendirmek başa barmady',
+          'tr' => 'Ses çalınamadı',
+          _ => 'Failed to play audio',
+        }),
+        backgroundColor: context.c.warn,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
 class PhrasebookScreen extends StatefulWidget {
   const PhrasebookScreen({super.key});
   @override
@@ -28,6 +75,10 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
   String _q = '';
   Timer? _deb;
 
+  List<({PCat c, PSub s, PPh p})> _results = const [];
+
+  int _searchGen = 0;
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +88,7 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
   @override
   void dispose() {
     _deb?.cancel();
+    _searchGen++;
     super.dispose();
   }
 
@@ -44,23 +96,48 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
 
   int get _total => phrasebook.fold<int>(0, (a, x) => a + catCount(x));
 
-  List<({PCat c, PSub s, PPh p})> _search() {
-    final q = _q.trim().toLowerCase();
-    if (q.isEmpty) return const [];
-    final out = <({PCat c, PSub s, PPh p})>[];
-    for (final c in phrasebook) {
-      for (final s in c.s) {
-        for (final p in s.p) {
-          if (p.ru.toLowerCase().contains(q) ||
-              p.en.toLowerCase().contains(q) ||
-              p.tk.toLowerCase().contains(q) ||
-              p.tr.toLowerCase().contains(q)) {
-            out.add((c: c, s: s, p: p));
-          }
-        }
-      }
+  void _onSearchChanged(String v) {
+    _deb?.cancel();
+    _deb = Timer(const Duration(milliseconds: 160), () {
+      if (!mounted) return;
+      _runSearch(v);
+    });
+  }
+
+  Future<void> _runSearch(String v) async {
+    final q = v.trim();
+    if (q.isEmpty) {
+      setState(() {
+        _q = v;
+        _results = const [];
+      });
+      return;
     }
-    return out;
+    final gen = ++_searchGen;
+    try {
+      final res = await compute(searchPhrasebook, q);
+      if (!mounted || gen != _searchGen) return;
+      setState(() {
+        _q = v;
+        _results = res;
+      });
+    } catch (e) {
+      debugPrint('[phrasebook] search error: $e');
+      if (!mounted || gen != _searchGen) return;
+      setState(() {
+        _q = v;
+        _results = searchPhrasebook(q);
+      });
+    }
+  }
+
+  void _clearSearch() {
+    _deb?.cancel();
+    _searchGen++;
+    setState(() {
+      _q = '';
+      _results = const [];
+    });
   }
 
   @override
@@ -68,7 +145,7 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
     final c = context.c;
     final l10n = context.l10n;
     final searching = _q.trim().isNotEmpty;
-    final results = searching ? _search() : const <({PCat c, PSub s, PPh p})>[];
+    final results = _results;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,12 +174,7 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: TextField(
-            onChanged: (v) {
-              _deb?.cancel();
-              _deb = Timer(const Duration(milliseconds: 160), () {
-                if (mounted) setState(() => _q = v);
-              });
-            },
+            onChanged: _onSearchChanged,
             style: TextStyle(color: c.text),
             decoration: InputDecoration(
               hintText: l10n.t('search'),
@@ -111,7 +183,7 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
               suffixIcon: _q.isNotEmpty
                   ? IconButton(
                       icon: Icon(Icons.close_rounded, color: c.sub),
-                      onPressed: () => setState(() => _q = ''),
+                      onPressed: _clearSearch,
                     )
                   : null,
               filled: true,
@@ -130,8 +202,7 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
                   c: c,
                   src: _src,
                   items: results,
-                  onSpeak: (t, code) =>
-                      _tts.speak(t, code, rate: context.settings.speechRate),
+                  onSpeak: (t, code) => _speakPhrase(context, _tts, t, code),
                 )
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -486,7 +557,7 @@ class _SubScreenState extends State<_SubScreen> {
   }
 
   void _speak(String text, String code) =>
-      _tts.speak(text, code, rate: context.settings.speechRate);
+      _speakPhrase(context, _tts, text, code);
 
   @override
   Widget build(BuildContext context) {

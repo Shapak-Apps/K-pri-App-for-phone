@@ -15,15 +15,56 @@ class AchievementsList extends StatelessWidget {
     final s = stats;
 
     final defs = <Map<String, dynamic>>[
-      {'id': 'tr10', 'ok': s.tr >= 10, 'ic': Icons.emoji_events_rounded, 't': l10n.t('badge_translator'), 'r': 0},
-      {'id': 'tr100', 'ok': s.tr >= 100, 'ic': Icons.stars_rounded, 't': l10n.t('badge_master'), 'r': 1},
-      {'id': 'tr500', 'ok': s.tr >= 500, 'ic': Icons.workspace_premium_rounded, 't': l10n.t('badge_legend'), 'r': 3},
-      {'id': 'fav20', 'ok': s.fav >= 20, 'ic': Icons.diamond_rounded, 't': l10n.t('badge_collector'), 'r': 2},
-      {'id': 'card50', 'ok': s.cards >= 50, 'ic': Icons.psychology_rounded, 't': l10n.t('badge_learner'), 'r': 2},
-      {'id': 'cam10', 'ok': s.cam >= 10, 'ic': Icons.photo_camera_rounded, 't': l10n.t('badge_photo'), 'r': 1},
+      {
+        'id': 'tr10',
+        'ok': s.tr >= 10,
+        'ic': Icons.emoji_events_rounded,
+        't': l10n.t('badge_translator'),
+        'r': 0,
+      },
+      {
+        'id': 'tr100',
+        'ok': s.tr >= 100,
+        'ic': Icons.stars_rounded,
+        't': l10n.t('badge_master'),
+        'r': 1,
+      },
+      {
+        'id': 'tr500',
+        'ok': s.tr >= 500,
+        'ic': Icons.workspace_premium_rounded,
+        't': l10n.t('badge_legend'),
+        'r': 3,
+      },
+      {
+        'id': 'fav20',
+        'ok': s.fav >= 20,
+        'ic': Icons.diamond_rounded,
+        't': l10n.t('badge_collector'),
+        'r': 2,
+      },
+      {
+        'id': 'card50',
+        'ok': s.cards >= 50,
+        'ic': Icons.psychology_rounded,
+        't': l10n.t('badge_learner'),
+        'r': 2,
+      },
+      {
+        'id': 'cam10',
+        'ok': s.cam >= 10,
+        'ic': Icons.photo_camera_rounded,
+        't': l10n.t('badge_photo'),
+        'r': 1,
+      },
     ];
 
-    final rarColors = [c.sub, c.accent, const Color(0xFF9B7BFF), const Color(0xFFFB923C)];
+    final rarColors = [
+      c.sub,
+      c.accent,
+      const Color(0xFF9B7BFF),
+      const Color(0xFFFB923C),
+    ];
     final rarNames = [
       l10n.t('rar_common'),
       l10n.t('rar_rare'),
@@ -31,7 +72,6 @@ class AchievementsList extends StatelessWidget {
       l10n.t('rar_legendary'),
     ];
 
-    // Сохраняем даты ПОСЛЕ build (безопасно)
     final newIds = defs
         .where((b) => (b['ok'] as bool) && !p.badgeDates.containsKey(b['id']))
         .map((b) => b['id'] as String)
@@ -56,35 +96,46 @@ class AchievementsList extends StatelessWidget {
               color: ok ? c.surfaceHi : c.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                  color: ok
-                      ? (rarColors[b['r'] as int]).withValues(alpha: 0.5)
-                      : c.line),
+                color: ok
+                    ? (rarColors[b['r'] as int]).withValues(alpha: 0.5)
+                    : c.line,
+              ),
             ),
             child: Row(
               children: [
-                Icon(b['ic'] as IconData,
-                    color: ok ? rarColors[b['r'] as int] : c.faint, size: 24),
+                Icon(
+                  b['ic'] as IconData,
+                  color: ok ? rarColors[b['r'] as int] : c.faint,
+                  size: 24,
+                ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(ok ? b['t'] as String : '???',
-                          style: TextStyle(
-                              color: ok ? c.text : c.faint,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15)),
                       Text(
-                          ok
-                              ? '${rarNames[b['r'] as int]}${date != null ? ' · ${_formatDate(date)}' : ''}'
-                              : l10n.t('profile_hidden'),
-                          style: TextStyle(color: c.faint, fontSize: 11)),
+                        ok ? b['t'] as String : '???',
+                        style: TextStyle(
+                          color: ok ? c.text : c.faint,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        ok
+                            ? '${rarNames[b['r'] as int]}${date != null ? ' · ${_formatDate(date)}' : ''}'
+                            : l10n.t('profile_hidden'),
+                        style: TextStyle(color: c.faint, fontSize: 11),
+                      ),
                     ],
                   ),
                 ),
                 if (ok)
-                  Icon(Icons.check_circle_rounded,
-                      color: rarColors[b['r'] as int], size: 20),
+                  Icon(
+                    Icons.check_circle_rounded,
+                    color: rarColors[b['r'] as int],
+                    size: 20,
+                  ),
               ],
             ),
           ),

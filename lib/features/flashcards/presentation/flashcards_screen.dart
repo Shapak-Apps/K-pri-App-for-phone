@@ -27,10 +27,13 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
 
   final Set<String> _repeated = {};
 
+  final TtsService _tts = TtsService();
+
   @override
   void initState() {
     super.initState();
     widget.repo.addListener(_load);
+    _tts.init();
   }
 
   @override
@@ -58,6 +61,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   void dispose() {
     widget.repo.removeListener(_load);
     _settings?.removeListener(_onSettings);
+    _tts.stop();
     super.dispose();
   }
 
@@ -130,7 +134,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   void _speakCurrent(HistoryEntry e) {
     final text = _back ? e.result : e.source;
     final lang = _back ? e.to : e.from;
-    TtsService().speak(text, lang);
+    _tts.speak(text, lang);
   }
 
   String _flagFor(String code) => switch (code) {
