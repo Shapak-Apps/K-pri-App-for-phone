@@ -44,6 +44,11 @@ class OnlineTranslator implements TranslatorService {
     http.Client? client,
   }) : _client = client ?? http.Client();
 
+  /// Releases the underlying HTTP client (socket pool).
+  /// Must be called by the owner (screen / controller) in `dispose()`,
+  /// otherwise every opened page leaks its own socket pool.
+  void close() => _client.close();
+
   static const _headers = {
     'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
