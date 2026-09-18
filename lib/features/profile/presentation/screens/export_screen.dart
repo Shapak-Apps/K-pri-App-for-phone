@@ -12,10 +12,12 @@ class ExportScreen extends StatelessWidget {
   const ExportScreen({super.key, required this.repo});
 
   void _snack(BuildContext context, String t, {bool warn = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(t),
-      backgroundColor: warn ? context.c.warn : context.c.accent,
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(t),
+        backgroundColor: warn ? context.c.warn : context.c.accent,
+      ),
+    );
   }
 
   Future<void> _exportJson(BuildContext context) async {
@@ -25,6 +27,7 @@ class ExportScreen extends StatelessWidget {
       final list = ProfileExportService.extractList(jsonDecode(json));
 
       if (list.isEmpty) {
+        if (!context.mounted) return;
         _snack(context, l10n.t('export_empty'), warn: true);
         return;
       }
@@ -32,8 +35,13 @@ class ExportScreen extends StatelessWidget {
       await ProfileExportService.saveToFile(json, 'kopri_history.json');
       await Clipboard.setData(ClipboardData(text: json));
 
-      _snack(context, '${l10n.t('export_done')} ${list.length} · ${l10n.t('export_clipboard')}');
+      if (!context.mounted) return;
+      _snack(
+        context,
+        '${l10n.t('export_done')} ${list.length} · ${l10n.t('export_clipboard')}',
+      );
     } catch (e) {
+      if (!context.mounted) return;
       _snack(context, l10n.t('export_error'), warn: true);
     }
   }
@@ -45,14 +53,17 @@ class ExportScreen extends StatelessWidget {
       final list = ProfileExportService.extractList(jsonDecode(json));
 
       if (list.isEmpty) {
+        if (!context.mounted) return;
         _snack(context, l10n.t('export_empty'), warn: true);
         return;
       }
 
       final csv = await ProfileExportService.exportHistoryToCsv(repo);
-      final f = await ProfileExportService.saveToFile(csv, 'kopri_history.csv');
+      await ProfileExportService.saveToFile(csv, 'kopri_history.csv');
+      if (!context.mounted) return;
       _snack(context, '${l10n.t('export_done')} ${list.length} · CSV');
     } catch (e) {
+      if (!context.mounted) return;
       _snack(context, l10n.t('export_error'), warn: true);
     }
   }
@@ -62,6 +73,7 @@ class ExportScreen extends StatelessWidget {
     final text = raw.trim();
 
     if (text.isEmpty) {
+      if (!context.mounted) return;
       _snack(context, l10n.t('import_empty_field'), warn: true);
       return;
     }
@@ -70,20 +82,24 @@ class ExportScreen extends StatelessWidget {
     try {
       decoded = jsonDecode(text);
     } catch (_) {
+      if (!context.mounted) return;
       _snack(context, l10n.t('import_bad_format'), warn: true);
       return;
     }
 
     final list = ProfileExportService.extractList(decoded);
     if (list.isEmpty) {
+      if (!context.mounted) return;
       _snack(context, l10n.t('import_empty'), warn: true);
       return;
     }
 
     try {
       final n = await ProfileExportService.importFromJson(repo, text);
+      if (!context.mounted) return;
       _snack(context, '${l10n.t('import_done')} ${n > 0 ? n : list.length}');
     } catch (_) {
+      if (!context.mounted) return;
       _snack(context, l10n.t('import_bad_format'), warn: true);
     }
   }
@@ -96,8 +112,10 @@ class ExportScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l10n.t('profile_import'),
-            style: TextStyle(color: c.text, fontWeight: FontWeight.w800)),
+        title: Text(
+          l10n.t('profile_import'),
+          style: TextStyle(color: c.text, fontWeight: FontWeight.w800),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,8 +151,9 @@ class ExportScreen extends StatelessWidget {
                 filled: true,
                 fillColor: c.surfaceHi,
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none),
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
           ],
@@ -146,8 +165,10 @@ class ExportScreen extends StatelessWidget {
               Navigator.pop(ctx);
               await _doImport(context, text);
             },
-            child: Text(l10n.t('confirm'),
-                style: TextStyle(color: c.accent, fontWeight: FontWeight.w700)),
+            child: Text(
+              l10n.t('confirm'),
+              style: TextStyle(color: c.accent, fontWeight: FontWeight.w700),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -155,7 +176,7 @@ class ExportScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).whenComplete(ctrl.dispose);
   }
 
   void _clearOldDialog(BuildContext context) {
@@ -165,26 +186,33 @@ class ExportScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l10n.t('profile_clear_old'),
-            style: TextStyle(color: c.text, fontWeight: FontWeight.w800)),
+        title: Text(
+          l10n.t('profile_clear_old'),
+          style: TextStyle(color: c.text, fontWeight: FontWeight.w800),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [30, 90, 365]
-              .map((d) => ListTile(
-            dense: true,
-            title: Text('$d ${l10n.t('profile_days')}',
-                style: TextStyle(color: c.text)),
-            onTap: () async {
-              Navigator.pop(ctx);
-              try {
-                final dynamic r = repo;
-                await r.purgeOlderThan(d);
-                _snack(context, l10n.t('profile_cleared'));
-              } catch (_) {
-                _snack(context, l10n.t('export_error'), warn: true);
-              }
-            },
-          ))
+              .map(
+                (d) => ListTile(
+                  dense: true,
+                  title: Text(
+                    '$d ${l10n.t('profile_days')}',
+                    style: TextStyle(color: c.text),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    try {
+                      await repo.purgeOlderThan(d);
+                      if (!context.mounted) return;
+                      _snack(context, l10n.t('profile_cleared'));
+                    } catch (_) {
+                      if (!context.mounted) return;
+                      _snack(context, l10n.t('export_error'), warn: true);
+                    }
+                  },
+                ),
+              )
               .toList(),
         ),
       ),
@@ -202,31 +230,59 @@ class ExportScreen extends StatelessWidget {
         backgroundColor: c.bg,
         elevation: 0,
         foregroundColor: c.text,
-        title: Text(l10n.t('profile_export'),
-            style: AppTheme.display(size: 18, color: c.text)),
+        title: Text(
+          l10n.t('profile_export'),
+          style: AppTheme.display(size: 18, color: c.text),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          _tile(c, Icons.data_object_rounded, 'JSON', l10n.t('export_json_desc'),
-                  () => _exportJson(context)),
+          _tile(
+            c,
+            Icons.data_object_rounded,
+            'JSON',
+            l10n.t('export_json_desc'),
+            () => _exportJson(context),
+          ),
           const SizedBox(height: 10),
-          _tile(c, Icons.table_view_rounded, 'CSV', l10n.t('export_csv_desc'),
-                  () => _exportCsv(context)),
+          _tile(
+            c,
+            Icons.table_view_rounded,
+            'CSV',
+            l10n.t('export_csv_desc'),
+            () => _exportCsv(context),
+          ),
           const SizedBox(height: 10),
-          _tile(c, Icons.download_rounded, l10n.t('profile_import'),
-              l10n.t('import_desc'), () => _importDialog(context)),
+          _tile(
+            c,
+            Icons.download_rounded,
+            l10n.t('profile_import'),
+            l10n.t('import_desc'),
+            () => _importDialog(context),
+          ),
           const SizedBox(height: 10),
-          _tile(c, Icons.delete_sweep_rounded, l10n.t('profile_clear_old'),
-              l10n.t('clear_old_desc'), () => _clearOldDialog(context),
-              warn: true),
+          _tile(
+            c,
+            Icons.delete_sweep_rounded,
+            l10n.t('profile_clear_old'),
+            l10n.t('clear_old_desc'),
+            () => _clearOldDialog(context),
+            warn: true,
+          ),
         ],
       ),
     );
   }
 
-  Widget _tile(AppColors c, IconData icon, String title, String sub,
-      VoidCallback onTap, {bool warn = false}) {
+  Widget _tile(
+    AppColors c,
+    IconData icon,
+    String title,
+    String sub,
+    VoidCallback onTap, {
+    bool warn = false,
+  }) {
     return Material(
       color: c.surface,
       borderRadius: BorderRadius.circular(16),
@@ -247,14 +303,16 @@ class ExportScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: TextStyle(
-                            color: warn ? c.warn : c.text,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15)),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: warn ? c.warn : c.text,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(sub,
-                        style: TextStyle(color: c.faint, fontSize: 11)),
+                    Text(sub, style: TextStyle(color: c.faint, fontSize: 11)),
                   ],
                 ),
               ),

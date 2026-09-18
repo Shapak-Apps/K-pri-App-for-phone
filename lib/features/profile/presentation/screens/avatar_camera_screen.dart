@@ -2,8 +2,14 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/controllers/app_settings_controller.dart';
 import '../../../../core/theme/app_colors.dart';
+// FIX: reuse the shared aspect-correct preview instead of a local copy.
+import '../../../camera/widgets/cover_preview.dart';
 
+/// Full-screen front-camera capture used by the profile avatar picker.
+/// Returns the captured image path via `Navigator.pop(context, path)`,
+/// or `null` when the user backs out.
 class AvatarCameraScreen extends StatefulWidget {
   const AvatarCameraScreen({super.key});
   @override
@@ -24,14 +30,21 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
 
   @override
   void dispose() {
+    // Release the native camera session before tearing down the UI.
     _controller?.dispose();
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
   }
 
+  /// Enumerates cameras and initializes the front one (fallback: first).
   Future<void> _initCamera() async {
     final cameras = await availableCameras();
     if (!mounted) return;
+
+    // FIX: guard against devices/emulators with no camera at all.
+    // Previously `orElse: () => cameras.first` threw a raw StateError
+    // ("No element") on an empty list.
+    if (cameras.isEmpty) throw Exception('no cameras available');
 
     final front = cameras.firstWhere(
       (c) => c.lensDirection == CameraLensDirection.front,
@@ -47,11 +60,14 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
     try {
       await ctrl.initialize();
     } catch (e) {
+      // Initialization failed: free the half-created session and surface
+      // the error to the FutureBuilder error UI.
       await ctrl.dispose();
       if (mounted) rethrow;
       return;
     }
 
+    // The page was closed while the camera was starting: free the session.
     if (!mounted) {
       await ctrl.dispose();
       return;
@@ -61,6 +77,7 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
     setState(() {});
   }
 
+  /// Captures a frame and pops with the temporary image path.
   Future<void> _takePicture() async {
     final ctrl = _controller;
     if (ctrl == null || !ctrl.value.isInitialized || _takingPicture) return;
@@ -70,21 +87,51 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
       final image = await ctrl.takePicture();
       if (mounted) Navigator.pop(context, image.path);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка: $e'),
-            backgroundColor: context.c.warn,
-          ),
-        );
-        setState(() => _takingPicture = false);
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${_errorLabel(context.settings.lang.name)}: $e'),
+          backgroundColor: context.c.warn,
+        ),
+      );
+      setState(() => _takingPicture = false);
     }
   }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Localized copy (inline switches follow the codebase style used in
+  // the camera module; no new l10n keys required).
+  // ─────────────────────────────────────────────────────────────────
+
+  String _hintLabel(String lang) => switch (lang) {
+    'ru' => 'Поместите лицо в круг',
+    'en' => 'Fit your face in the circle',
+    'tk' => 'Ýüzüňizi tegelegiň içine ýerleşdiriň',
+    'tr' => 'Yüzünüzü çemberin içine yerleştirin',
+    _ => 'Fit your face in the circle',
+  };
+
+  String _errorTitle(String lang) => switch (lang) {
+    'ru' => 'Ошибка камеры',
+    'en' => 'Camera error',
+    'tk' => 'Kamera ýalňyşlygy',
+    'tr' => 'Kamera hatası',
+    _ => 'Camera error',
+  };
+
+  String _errorLabel(String lang) => switch (lang) {
+    'ru' => 'Ошибка',
+    'en' => 'Error',
+    'tk' => 'Ýalňyşlyk',
+    'tr' => 'Hata',
+    _ => 'Error',
+  };
 
   @override
   Widget build(BuildContext context) {
     final c = context.c;
+    final lang = context.settings.lang.name;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: FutureBuilder<void>(
@@ -100,7 +147,7 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
                 children: [
                   Icon(Icons.error_outline, color: c.warn, size: 64),
                   const SizedBox(height: 16),
-                  Text('Ошибка камеры', style: TextStyle(color: c.text)),
+                  Text(_errorTitle(lang), style: TextStyle(color: c.text)),
                   const SizedBox(height: 8),
                   Text(
                     '${snapshot.error}',
@@ -117,7 +164,8 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
 
           return Stack(
             children: [
-              Positioned.fill(child: _AvatarCoverPreview(controller: ctrl)),
+              // Shared aspect-ratio-correct preview (single source of truth).
+              Positioned.fill(child: CameraCoverPreview(controller: ctrl)),
 
               Positioned.fill(
                 child: IgnorePointer(
@@ -201,9 +249,9 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
                       color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
-                      'Поместите лицо в круг',
-                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    child: Text(
+                      _hintLabel(lang),
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ),
                 ),
@@ -254,49 +302,8 @@ class _AvatarCameraScreenState extends State<AvatarCameraScreen> {
   }
 }
 
-class _AvatarCoverPreview extends StatelessWidget {
-  final CameraController controller;
-  const _AvatarCoverPreview({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    final ps = controller.value.previewSize;
-    final upright = (ps != null && ps.longestSide > 0)
-        ? ps.shortestSide / ps.longestSide
-        : 9 / 16;
-
-    return LayoutBuilder(
-      builder: (context, cons) {
-        final w = cons.maxWidth;
-        final h = cons.maxHeight;
-        final screenAspect = w / h;
-
-        double pw, ph;
-        if (upright > screenAspect) {
-          ph = h;
-          pw = h * upright;
-        } else {
-          pw = w;
-          ph = w / upright;
-        }
-
-        return ClipRect(
-          child: OverflowBox(
-            alignment: Alignment.center,
-            maxWidth: pw,
-            maxHeight: ph,
-            child: SizedBox(
-              width: pw,
-              height: ph,
-              child: CameraPreview(controller),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
+/// Dimmed overlay with a transparent circular window plus a neon ring:
+/// guides the user to place their face inside the crop zone.
 class _CircleGuidePainter extends CustomPainter {
   final Color ringColor;
   const _CircleGuidePainter(this.ringColor);
