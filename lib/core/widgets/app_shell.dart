@@ -56,11 +56,10 @@ class _AppShellState extends State<AppShell> {
       _pageController = PageController(initialPage: _i);
       _settings.addListener(_onSettingsChanged);
 
-      if (widget.initialScreen == 1 && _cameraOn) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) CameraScreen.openTranslateCamera(context);
-        });
-      }
+      // FIX: removed automatic camera launch on initial screen load.
+      // The camera/coming-soon flow is now triggered ONLY by user tap
+      // on the shutter button inside the camera screen, not automatically
+      // when the tab is opened.
     }
   }
 
@@ -123,21 +122,17 @@ class _AppShellState extends State<AppShell> {
     } else {
       _pageController.jumpToPage(index);
     }
-    if (_cameraOn && index == 1) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) CameraScreen.openTranslateCamera(context);
-      });
-    }
+    // FIX: removed automatic camera/coming-soon launch when navigating
+    // to the camera tab. The flow is now user-initiated only (tap on
+    // the shutter button inside CameraScreen).
   }
 
   void _onPageChanged(int index) {
     if (index == _i) return;
     setState(() => _i = index);
-    if (_cameraOn && index == 1) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) CameraScreen.openTranslateCamera(context);
-      });
-    }
+    // FIX: removed automatic camera/coming-soon launch when the page
+    // changes via swipe or programmatic navigation. The camera screen
+    // is now displayed as a normal tab without auto-pushing a route.
   }
 
   @override

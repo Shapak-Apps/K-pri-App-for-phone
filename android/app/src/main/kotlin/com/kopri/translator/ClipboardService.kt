@@ -26,6 +26,7 @@ import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import android.widget.TextView
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicInteger
 
 class ClipboardService :
     Service(),
@@ -35,10 +36,11 @@ class ClipboardService :
         private const val NOTIF_ID = 911
         private const val CHANNEL = "kopri_clipboard"
 
+        private val instanceCount = AtomicInteger(0)
+
+        @Volatile
         var ignoreNextClipboard = false
     }
-
-    private var instanceCount = 0
 
     private lateinit var clipboard: ClipboardManager
     private lateinit var wm: WindowManager
@@ -47,21 +49,33 @@ class ClipboardService :
     private var ttsReady = false
 
     private var bubble: View? = null
-    private var lastText: String? = null
-    private var skipNext = false
 
+    @Volatile
+    private var lastText: String? = null
+
+    @Volatile
     private var source = "auto"
+
+    @Volatile
     private var target = "ru"
+
+    @Volatile
+    private var isActive = true
+
+    @Volatile
+    private var isDestroyed = false
+
     private var debounce: Runnable? = null
 
-    private var isActive = true
+    private var clipboardListener: ClipboardManager.OnPrimaryClipChangedListener? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
-        instanceCount++
-        if (instanceCount > 1) {
+
+        val count = instanceCount.incrementAndGet()
+        if (count > 1) {
             Log.e(TAG, "Multiple ClipboardService instances detected! Stopping duplicate.")
             stopSelf()
             return
@@ -70,7 +84,9 @@ class ClipboardService :
         clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         tts = TextToSpeech(this, this)
-        clipboard.addPrimaryClipChangedListener { onCopy() }
+
+        clipboardListener = ClipboardManager.OnPrimaryClipChangedListener { onCopy() }
+        clipboard.addPrimaryClipChangedListener(clipboardListener)
 
         val prefs = getSharedPreferences("kopri_prefs", MODE_PRIVATE)
         source = prefs.getString("clip_from", "auto") ?: "auto"
@@ -97,7 +113,13 @@ class ClipboardService :
             .apply()
 
         startForeground(NOTIF_ID, notification())
-        handler.post { showCollapsed() }
+
+        if (!isDestroyed) {
+            handler.post {
+                if (!isDestroyed) showCollapsed()
+            }
+        }
+
         return START_NOT_STICKY
     }
 
@@ -106,43 +128,66 @@ class ClipboardService :
     }
 
     override fun onDestroy() {
-        instanceCount--
+        isDestroyed = true
+        instanceCount.decrementAndGet()
         MainActivity.clipboardRunning = false
+
+        clipboardListener?.let {
+            try {
+                clipboard.removePrimaryClipChangedListener(it)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to remove clipboard listener", e)
+            }
+        }
+        clipboardListener = null
+
         hideBubble()
+
+        debounce?.let { handler.removeCallbacks(it) }
+        debounce = null
+
         tts?.stop()
         tts?.shutdown()
+        tts = null
+
         super.onDestroy()
     }
 
     private fun onCopy() {
+        if (isDestroyed) return
+
         if (ignoreNextClipboard) {
             ignoreNextClipboard = false
             Log.d(TAG, "clipboard change ignored (flag was set)")
             return
         }
 
-        if (skipNext) {
-            skipNext = false
-            return
-        }
         if (!isActive) {
             Log.d(TAG, "clipboard changed but service is paused, ignoring")
             return
         }
+
         val text = readClipboard() ?: return
         if (text.isEmpty() || text == lastText || text.length > 600) return
+
         lastText = text
         Log.w(TAG, "clipboard changed: ${text.take(30)}...")
 
         ClipboardFilterBridge.shouldTranslate(text) { should ->
+            if (isDestroyed) return@shouldTranslate
+
             if (!should) {
                 Log.w(TAG, "clipboard filter: skipped (non-translatable) → hiding bubble")
-                handler.post { hideBubble() }
+                handler.post {
+                    if (!isDestroyed) hideBubble()
+                }
                 return@shouldTranslate
             }
             Log.d(TAG, "clipboard filter: translatable → showing bubble")
             debounce?.let { handler.removeCallbacks(it) }
-            debounce = Runnable { translateAndShow(text) }
+            debounce = Runnable {
+                if (!isDestroyed) translateAndShow(text)
+            }
             handler.postDelayed(debounce!!, 600)
         }
     }
@@ -154,7 +199,11 @@ class ClipboardService :
                 ?.coerceToText(this)
                 ?.toString()
                 ?.trim()
+        } catch (e: SecurityException) {
+            Log.w(TAG, "SecurityException reading clipboard (Android 10+ restriction): ${e.message}")
+            null
         } catch (e: Exception) {
+            Log.e(TAG, "Error reading clipboard", e)
             null
         }
 
@@ -165,6 +214,8 @@ class ClipboardService :
         Log.w(TAG, "bubble tap, clipboard: ${text.take(30)}")
 
         ClipboardFilterBridge.shouldTranslate(text) { should ->
+            if (isDestroyed) return@shouldTranslate
+
             if (!should) {
                 Log.w(TAG, "bubble tap: skipped (non-translatable)")
                 return@shouldTranslate
@@ -192,17 +243,25 @@ class ClipboardService :
     }
 
     private fun translateAndShow(text: String) {
-        Thread {
-            val (actualTarget, translated) = Net.translateWithPair(text, source, target)
-            if (!translated.isNullOrEmpty()) {
-                getSharedPreferences("kopri_clip_cache", MODE_PRIVATE)
-                    .edit()
-                    .putString("last_original", text)
-                    .putString("last_translated", translated)
-                    .putString("last_target", actualTarget)
-                    .apply()
+        if (isDestroyed) return
 
-                handler.post { showExpanded(text, translated) }
+        Thread {
+            try {
+                val (actualTarget, translated) = Net.translateWithPair(text, source, target)
+                if (!translated.isNullOrEmpty() && !isDestroyed) {
+                    getSharedPreferences("kopri_clip_cache", MODE_PRIVATE)
+                        .edit()
+                        .putString("last_original", text)
+                        .putString("last_translated", translated)
+                        .putString("last_target", actualTarget)
+                        .apply()
+
+                    handler.post {
+                        if (!isDestroyed) showExpanded(text, translated)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Translation failed for text: ${text.take(30)}", e)
             }
         }.start()
     }
@@ -241,7 +300,7 @@ class ClipboardService :
         view.findViewById<TextView>(R.id.bubble_translated).text = translated
 
         view.findViewById<ImageView>(R.id.bubble_copy).setOnClickListener {
-            skipNext = true
+            ignoreNextClipboard = true
             clipboard.setPrimaryClip(ClipData.newPlainText("Köpri", translated))
             showCollapsed()
         }
