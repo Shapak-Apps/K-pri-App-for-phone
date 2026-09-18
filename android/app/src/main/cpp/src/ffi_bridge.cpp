@@ -40,27 +40,42 @@ KP_EXPORT int32_t pn_xp_next(int32_t xp) { return kp::xp_next(xp); }
 KP_EXPORT int32_t pn_xp_current(int32_t xp) { return kp::xp_current(xp); }
 KP_EXPORT double pn_level_progress(int32_t xp) { return kp::progress(xp); }
 
+// FIX (FFI boundary): every (pointer, count) entry point now validates its
+// arguments before dereferencing. A null pointer or negative count coming
+// from Dart (e.g. an empty list) previously meant undefined behaviour.
+
 KP_EXPORT int32_t pn_streak_current(const int32_t* dates, int32_t n, int32_t today) {
+    if (n <= 0 || !dates) return 0;
     return kp::current_streak(std::vector<int32_t>(dates, dates + n), today);
 }
 
 KP_EXPORT int32_t pn_streak_best(const int32_t* dates, int32_t n) {
+    if (n <= 0 || !dates) return 0;
     return kp::best_streak(std::vector<int32_t>(dates, dates + n));
 }
 
 KP_EXPORT int32_t pn_peak_hour(const int32_t* epoch, int32_t n) {
+    if (n <= 0 || !epoch) return 0;
     return kp::peak_hour(epoch, n);
 }
 
 KP_EXPORT void pn_weekly_counts(const int32_t* epoch, int32_t n, int32_t now_sec, int32_t* out7) {
+    if (!out7) return;
+    if (n <= 0 || !epoch) {
+        for (int i = 0; i < 7; ++i) out7[i] = 0;
+        return;
+    }
     kp::weekly_counts(epoch, n, now_sec, out7);
 }
 
 KP_EXPORT double pn_avg_length(const int32_t* lens, int32_t n) {
+    if (n <= 0 || !lens) return 0.0;
     return kp::avg_length(lens, n);
 }
 
 KP_EXPORT int32_t pn_top_language(const char** codes, int32_t n, char* out_code, int32_t out_sz) {
+    if (out_code && out_sz > 0) out_code[0] = '\0';
+    if (n <= 0 || !codes) return 0;
     const std::string top = kp::top_language(codes, n);
     if (out_code && out_sz > 0) {
         strncpy(out_code, top.c_str(), (size_t)(out_sz - 1));
@@ -70,6 +85,8 @@ KP_EXPORT int32_t pn_top_language(const char** codes, int32_t n, char* out_code,
 }
 
 KP_EXPORT int32_t pn_top_phrases(const char** srcs, int32_t n, int32_t k, char* out_buf, int32_t out_sz) {
+    if (out_buf && out_sz > 0) out_buf[0] = '\0';
+    if (n <= 0 || !srcs || k <= 0) return 0;
     const auto tops = kp::top_phrases(srcs, n, k);
 
     std::string joined;
@@ -186,6 +203,9 @@ KP_EXPORT int32_t pn_clip_classify(const char* text) {
 }
 
 KP_EXPORT int32_t pn_mt_load(int32_t n, const char** ru, const char** en, const char** tk, const char** tr) {
+    // FIX: validate the four arrays before entering the MT engine.
+    if (n <= 0) return 0;
+    if (!ru || !en || !tk || !tr) return -1;
     return kp::mt_load(n, ru, en, tk, tr);
 }
 

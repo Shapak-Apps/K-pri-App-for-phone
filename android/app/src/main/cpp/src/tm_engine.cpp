@@ -180,7 +180,12 @@ namespace kp {
         std::string key = make_key(src_norm, from, to);
         std::string pair = std::string(from) + ">" + to;
 
-        const std::string* hit_dst = nullptr;
+        // FIX (use-after-free): the matched string is now COPIED while the
+        // mutex is held. Previously a raw pointer into g_state was used
+        // after unlocking, so a concurrent tm_add (vector reallocation) or
+        // tm_rebuild (state swap) could free the memory under the pointer
+        // and crash the process.
+        std::string result;
         int32_t score = 0;
 
         {
@@ -189,7 +194,7 @@ namespace kp {
             auto it = g_state->exact.find(key);
 
             if (it != g_state->exact.end()) {
-                hit_dst = &it->second;
+                result = it->second;
                 score = 1000;
             } else {
                 const size_t slen = src_norm.size();
@@ -225,17 +230,17 @@ namespace kp {
 
                 if (best >= 800 && best_dst) {
                     score = best;
-                    hit_dst = best_dst;
+                    result = *best_dst; // copy under lock
                 }
             }
         }
 
-        if (!hit_dst) {
+        if (score == 0 || result.empty()) {
             TM_LOG("lookup(pair=%s, len=%zu) -> miss", pair.c_str(), src_norm.size());
             return 0;
         }
 
-        std::strncpy(out_dst, hit_dst->c_str(), static_cast<size_t>(out_sz - 1));
+        std::strncpy(out_dst, result.c_str(), static_cast<size_t>(out_sz - 1));
         out_dst[out_sz - 1] = '\0';
 
         auto us = std::chrono::duration_cast<std::chrono::microseconds>(

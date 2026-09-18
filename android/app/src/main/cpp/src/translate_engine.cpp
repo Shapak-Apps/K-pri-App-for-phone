@@ -71,7 +71,7 @@ namespace kt {
         int mx = 0;
         std::string best = "lat";
 
-        auto consider = [&](int v, const std::string& n) {
+        auto consider = [&](int v, const char* n) {
             if (v > mx) {
                 mx = v;
                 best = n;
@@ -121,6 +121,11 @@ namespace kt {
     }
 
     [[nodiscard]] std::string split_chunks(const std::string& text, int32_t max) {
+        // FIX (hang): a non-positive chunk size made `end == start`, so the
+        // loop never advanced and spun forever on the native thread (ANR).
+        // Clamping guarantees forward progress for any input.
+        if (max < 1) max = 1;
+
         std::string out;
         out.reserve(text.size() + 16);
 
@@ -156,6 +161,9 @@ namespace kt {
 
                 end = (cut == std::string::npos) ? end : cut;
             }
+
+            // FIX (hang): belt-and-braces progress guarantee.
+            if (end <= start) end = start + 1;
 
             if (!out.empty()) out += '\x1F';
             out.append(text, start, end - start);

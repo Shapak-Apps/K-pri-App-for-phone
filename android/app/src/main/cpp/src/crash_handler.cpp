@@ -14,6 +14,11 @@ static struct sigaction old_sigbus;
 static struct sigaction old_sigfpe;
 static struct sigaction old_sigill;
 
+// FIX: alternate signal stack. SA_ONSTACK was requested before but no
+// sigaltstack was installed, so stack-overflow crashes still killed the
+// process without any log output.
+static unsigned char g_altstack[64 * 1024];
+
 struct BacktraceState {
     void** current;
     void** end;
@@ -97,10 +102,23 @@ static _Unwind_Reason_Code unwind_callback(struct _Unwind_Context* context, void
         signal(sig, SIG_DFL);
         raise(sig);
     }
+
+    // FIX: never return from a crash handler. If the chained (previous)
+    // handler ever returns, returning here would re-execute the faulting
+    // instruction and loop forever. Terminate immediately instead.
+    _exit(128 + sig);
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_kopri_translator_CrashHandler_nativeInit(JNIEnv*, jobject) {
+    // FIX: install the alternate stack so SA_ONSTACK actually works and
+    // stack-overflow crashes are captured and logged as well.
+    stack_t ss;
+    ss.ss_sp = g_altstack;
+    ss.ss_size = sizeof(g_altstack);
+    ss.ss_flags = 0;
+    sigaltstack(&ss, nullptr);
+
     struct sigaction sa;
     std::memset(&sa, 0, sizeof(sa));
     sigemptyset(&sa.sa_mask);

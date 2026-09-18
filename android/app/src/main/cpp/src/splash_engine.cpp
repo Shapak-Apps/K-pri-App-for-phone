@@ -280,7 +280,7 @@ namespace splash {
 
 extern "C" {
 void sp_init() { splash::init_tables(); }
-int sp_particles(double t, int32_t count, float* out, int32_t cap) { return splash::compute_particles(t, count, out, cap); }
-int sp_streaks(double time, double intensity, int32_t count, float* out, int32_t cap) { return splash::compute_streaks(time, intensity, count, out, cap); }
-int sp_letters(double main_t, double wave_phase, int32_t count, float* out, int32_t cap) { return splash::compute_letters(main_t, wave_phase, count, out, cap); }
+int sp_particles(double t, int32_t count, float* out, int32_t cap) { if (!out || cap <= 0) return 0; return splash::compute_particles(t, count, out, cap); }
+int sp_streaks(double time, double intensity, int32_t count, float* out, int32_t cap) { if (!out || cap <= 0) return 0; return splash::compute_streaks(time, intensity, count, out, cap); }
+int sp_letters(double main_t, double wave_phase, int32_t count, float* out, int32_t cap) { if (!out || cap <= 0) return 0; return splash::compute_letters(main_t, wave_phase, count, out, cap); }
 }
