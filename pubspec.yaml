@@ -34,6 +34,8 @@ dependencies:
   firebase_core: ^4.13.0
   firebase_crashlytics: ^5.2.7
   package_info_plus: ^10.2.1
+  dio: ^5.11.1
+  android_intent_plus: ^6.1.0
 
 dev_dependencies:
   flutter_test:
