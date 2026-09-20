@@ -101,4 +101,116 @@ class UpdateStrings {
     'tr' => 'Mevcut sürüm: $v',
     _ => 'Current version: $v',
   };
+
+  // ── Strings for the "can't reach GitHub" dialog ─────────────────────
+  String get networkErrorTitle => switch (lang) {
+    'ru' => 'Не удалось подключиться к GitHub',
+    'tk' => 'GitHub-a birigip bolmady',
+    'tr' => 'GitHub\'a bağlanılamadı',
+    _ => 'Could not reach GitHub',
+  };
+
+  String get networkErrorBody => switch (lang) {
+    'ru' =>
+      'Не удалось проверить обновления. Проверьте подключение к интернету, попробуйте включить VPN или обновите приложение через RuStore.',
+    'tk' =>
+      'Täzelenmeleri barlap bolmady. Interneti barlaň, VPN açyp görüň ýa-da programmany RuStore arkaly täzeläň.',
+    'tr' =>
+      'Güncellemeler denetlenemedi. İnternet bağlantınızı kontrol edin, VPN açmayı deneyin veya uygulamayı RuStore üzerinden güncelleyin.',
+    _ =>
+      'Could not check for updates. Check your internet connection, try turning on a VPN, or update the app through RuStore.',
+  };
+
+  String get openRustore => switch (lang) {
+    'ru' => 'Открыть RuStore',
+    'tk' => 'RuStore-y aç',
+    'tr' => 'RuStore\'u aç',
+    _ => 'Open RuStore',
+  };
+
+  String get tryAgain => switch (lang) {
+    'ru' => 'Попробовать снова',
+    'tk' => 'Ýene synanyş',
+    'tr' => 'Tekrar dene',
+    _ => 'Try again',
+  };
+
+  // ── Strings for the in-app download + install flow ──────────────────
+  String get downloading => switch (lang) {
+    'ru' => 'Загрузка обновления…',
+    'tk' => 'Täzelenme ýüklenýär…',
+    'tr' => 'Güncelleme indiriliyor…',
+    _ => 'Downloading update…',
+  };
+
+  String get installing => switch (lang) {
+    'ru' => 'Установка…',
+    'tk' => 'Gurnalýar…',
+    'tr' => 'Kuruluyor…',
+    _ => 'Installing…',
+  };
+
+  String get cancel => switch (lang) {
+    'ru' => 'Отмена',
+    'tk' => 'Ýatyr',
+    'tr' => 'İptal',
+    _ => 'Cancel',
+  };
+
+  String get downloadFailed => switch (lang) {
+    'ru' => 'Не удалось загрузить обновление',
+    'tk' => 'Täzelenmäni ýükläp bolmady',
+    'tr' => 'Güncelleme indirilemedi',
+    _ => 'Failed to download update',
+  };
+
+  // ── Strings for the "enable unknown sources" flow ──────────────────
+  String get enableInstallHint => switch (lang) {
+    'ru' =>
+      'Разрешите установку в настройках — обновление запустится автоматически',
+    'tk' => 'Gurmaga rugsat beriň — täzelenme awtomatiki başlar',
+    'tr' =>
+      'Ayarlardan kuruluma izin verin — güncelleme otomatik başlayacaktır',
+    _ => 'Allow installs in settings — the update will start automatically',
+  };
+
+  String get tapFileToInstall => switch (lang) {
+    'ru' => 'Нажмите на файл APK, чтобы установить обновление',
+    'tk' => 'Täzelenmäni gurmak üçin APK faýla basyň',
+    'tr' => 'Güncellemeyi kurmak için APK dosyasına dokunun',
+    _ => 'Tap the APK file to install the update',
+  };
+
+  // ── Strings for the install-permission dialog ────────────────────────
+  String get permissionTitle => switch (lang) {
+    'ru' => 'Нужно разрешение',
+    'tk' => 'Rugsat gerek',
+    'tr' => 'İzin gerekiyor',
+    _ => 'Permission needed',
+  };
+
+  String get permissionOnce => switch (lang) {
+    'ru' => 'Только один раз',
+    'tk' => 'Diňe bir gezek',
+    'tr' => 'Yalnızca bir kez',
+    _ => 'One-time setup',
+  };
+
+  String get permissionBody => switch (lang) {
+    'ru' =>
+      'Чтобы устанавливать обновления напрямую, разрешите Köpri устанавливать приложения из неизвестных источников. Нажмите «Настройки», включите переключатель и вернитесь — установка начнётся автоматически.',
+    'tk' =>
+      'Täzelenmeleri göni gurmak üçin Köpri-ä nätanyş çeşmelerden programma gurmaga rugsat beriň. «Sazlamalar» basyň, açary açyň we yzyňyza gaýdyň — gurnama awtomatik başlanar.',
+    'tr' =>
+      'Güncellemeleri doğrudan yüklemek için Köpri\'nin bilinmeyen kaynaklardan uygulama yüklemesine izin verin. «Ayarlar»a dokunun, anahtarı açın ve geri dönün — kurulum otomatik başlayacak.',
+    _ =>
+      'To install updates directly, allow Köpri to install from unknown sources. Tap Settings, enable the toggle, and come back — the install starts automatically.',
+  };
+
+  String get openSettings => switch (lang) {
+    'ru' => 'Открыть настройки',
+    'tk' => 'Sazlamalary aç',
+    'tr' => 'Ayarları aç',
+    _ => 'Open settings',
+  };
 }

@@ -7,6 +7,10 @@
 // The card owns its request lifecycle; every setState is mounted-guarded, so
 // leaving the screen mid-request can never crash. No timers, no listeners,
 // no disposables -> nothing to leak.
+//
+// On failure, a friendly dialog is shown that guides the user to check
+// their internet / try a VPN / open RuStore, with an inline "Try again"
+// action that re-runs the check from the same card.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
@@ -16,6 +20,7 @@ import '../controllers/app_settings_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import 'update_dialog.dart';
+import 'update_downloader.dart';
 import 'update_l10n.dart';
 import 'update_service.dart';
 
@@ -65,12 +70,27 @@ class _UpdateCheckCardState extends State<UpdateCheckCard> {
     });
 
     final t = UpdateStrings(context.settings.lang.name);
+
     if (result.status == UpdateCheckStatus.available && result.info != null) {
       await showUpdateDialog(context, result.info!);
-    } else if (result.status == UpdateCheckStatus.upToDate) {
+      return;
+    }
+
+    if (result.status == UpdateCheckStatus.upToDate) {
       showUpdateSnack(context, t.upToDate);
-    } else {
-      showUpdateSnack(context, t.failed, warn: true);
+      // Clean up old APK files from previous update attempts.
+      // Fire-and-forget: we don't await this, the UI doesn't need to wait.
+      UpdateDownloader.cleanApkCache();
+      return;
+    }
+
+    // Failed: show the guided dialog. If the user taps "Try again" we
+    // simply re-run the check; "Open RuStore" is handled by the dialog
+    // itself and "Later" just closes it.
+    final action = await showUpdateFailedDialog(context);
+    if (!mounted) return;
+    if (action == UpdateFailedAction.retry) {
+      await _check();
     }
   }
 
