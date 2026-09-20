@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/controllers/app_settings_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/update/update_card.dart';
 import 'about_authors_screen.dart';
 import 'about_strings.dart';
 import 'sapak_series_screen.dart';
@@ -271,9 +272,13 @@ class _AboutScreenState extends State<AboutScreen>
               onTap: _openGithub,
             ),
           ),
+          // ── NEW: in-app update check card ──────────────────────────────
+          const SizedBox(height: 14),
+          _stagger(0.62, const UpdateCheckCard()),
+          // ────────────────────────────────────────────────────────────────
           const SizedBox(height: 32),
           _stagger(
-            0.62,
+            0.72,
             Center(
               child: Text(
                 t.copyright,
@@ -519,7 +524,7 @@ class _GithubPainter extends CustomPainter {
     path.cubicTo(6 * s, 21.135 * s, 5.22 * s, 19.845 * s, 4.98 * s, 19.17 * s);
     path.cubicTo(
       4.845 * s,
-      18.825 * s,
+      18.82 * s,
       4.26 * s,
       17.76 * s,
       3.75 * s,
