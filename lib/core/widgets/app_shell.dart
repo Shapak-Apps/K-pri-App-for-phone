@@ -20,46 +20,58 @@ class AppShell extends StatefulWidget {
   final HistoryRepository repo;
   final ValueListenable<IncomingText?> incomingText;
   final int initialScreen;
+
   const AppShell({
     super.key,
     required this.repo,
     required this.incomingText,
     this.initialScreen = 0,
   });
+
   @override
   State<AppShell> createState() => _AppShellState();
 }
 
 class _AppShellState extends State<AppShell> {
-  late final PageController _pageController;
-  late AppSettingsController _settings;
-  late int _i;
-  late bool _cameraOn;
+  // CRASH-FIX #2: nullable instead of `late final`.
+  // - Will never throw LateInitializationError ("already initialized")
+  // - Will never be read before initialization (null-check instead of crash)
+  PageController? _pageController;
+  AppSettingsController? _settings;
+
+  int _i = 0;
+  bool _cameraOn = true;
   bool _didInitDeps = false;
+
   static const _animDuration = Duration(milliseconds: 260);
   static const _animCurve = Curves.easeOutCubic;
 
   @override
   void initState() {
     super.initState();
+    // CRASH-FIX #1: NEVER call context.settings / context.l10n /
+    // any InheritedWidget lookups inside initState().
+    // Only regular listeners here.
     openScreen.addListener(_onOpenScreen);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // InheritedWidget lookup is safe ONLY here (and in build()).
+    // Guard ensures single initialization:
+    // didChangeDependencies() is called by Flutter multiple times
+    // (theme change, locale change, etc.) — without guard PageController
+    // would be created repeatedly.
     if (!_didInitDeps) {
       _didInitDeps = true;
-      _settings = context.settings;
-      _cameraOn = _settings.showCameraTab;
+
+      final s = context.settings;
+      _settings = s;
+      _cameraOn = s.showCameraTab;
       _i = _navIndex(widget.initialScreen.clamp(0, 5));
       _pageController = PageController(initialPage: _i);
-      _settings.addListener(_onSettingsChanged);
-
-      // FIX: removed automatic camera launch on initial screen load.
-      // The camera/coming-soon flow is now triggered ONLY by user tap
-      // on the shutter button inside the camera screen, not automatically
-      // when the tab is opened.
+      s.addListener(_onSettingsChanged);
     }
   }
 
@@ -67,8 +79,9 @@ class _AppShellState extends State<AppShell> {
   void dispose() {
     openScreen.removeListener(_onOpenScreen);
     if (_didInitDeps) {
-      _settings.removeListener(_onSettingsChanged);
-      _pageController.dispose();
+      _settings?.removeListener(_onSettingsChanged);
+      _pageController?.dispose();
+      _pageController = null;
     }
     super.dispose();
   }
@@ -77,12 +90,16 @@ class _AppShellState extends State<AppShell> {
       (!_cameraOn && logical >= 1) ? logical - 1 : logical;
 
   void _onSettingsChanged() {
-    if (!mounted) return;
-    final on = _settings.showCameraTab;
+    if (!mounted || !_didInitDeps) return;
+    final s = _settings;
+    if (s == null) return;
+
+    final on = s.showCameraTab;
     if (on == _cameraOn) {
       setState(() {});
       return;
     }
+
     final old = _i;
     final int neu;
     if (_cameraOn && !on) {
@@ -90,13 +107,16 @@ class _AppShellState extends State<AppShell> {
     } else {
       neu = old >= 1 ? old + 1 : old;
     }
+
     setState(() {
       _cameraOn = on;
       _i = neu;
     });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _pageController.hasClients) {
-        _pageController.jumpToPage(neu);
+      final pc = _pageController;
+      if (mounted && pc != null && pc.hasClients) {
+        pc.jumpToPage(neu);
       }
     });
   }
@@ -111,35 +131,32 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _navigateTo(int index, {required bool animate}) {
+    if (!mounted || !_didInitDeps) return;
     if (index == _i) return;
     setState(() => _i = index);
+
+    final pc = _pageController;
+    if (pc == null || !pc.hasClients) return;
     if (animate) {
-      _pageController.animateToPage(
-        index,
-        duration: _animDuration,
-        curve: _animCurve,
-      );
+      pc.animateToPage(index, duration: _animDuration, curve: _animCurve);
     } else {
-      _pageController.jumpToPage(index);
+      pc.jumpToPage(index);
     }
-    // FIX: removed automatic camera/coming-soon launch when navigating
-    // to the camera tab. The flow is now user-initiated only (tap on
-    // the shutter button inside CameraScreen).
   }
 
   void _onPageChanged(int index) {
     if (index == _i) return;
     setState(() => _i = index);
-    // FIX: removed automatic camera/coming-soon launch when the page
-    // changes via swipe or programmatic navigation. The camera screen
-    // is now displayed as a normal tab without auto-pushing a route.
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_didInitDeps) {
+    // Render empty until didChangeDependencies() completes.
+    final pc = _pageController;
+    if (!_didInitDeps || pc == null) {
       return const SizedBox.shrink();
     }
+
     final c = context.c;
     final l10n = context.l10n;
 
@@ -176,24 +193,45 @@ class _AppShellState extends State<AppShell> {
                 ),
                 Expanded(
                   child: PageView(
-                    controller: _pageController,
+                    controller: pc,
                     onPageChanged: _onPageChanged,
                     physics: const PageScrollPhysics(),
+                    // CRASH-FIX #5: STABLE KEYS.
+                    // When camera tab is toggled, children list changes.
+                    // WITHOUT keys Flutter reuses State BY POSITION:
+                    // State of one screen gets disposed (along with its
+                    // TextEditingController) while TextField animation
+                    // still listens to it → "used after being disposed".
+                    // WITH keys State travels along with the page.
                     children: [
                       _KeepAlivePage(
+                        key: const ValueKey('page_translate'),
                         child: TranslateScreen(
                           repo: widget.repo,
                           incomingText: widget.incomingText,
                         ),
                       ),
                       if (_cameraOn)
-                        const _KeepAlivePage(child: CameraScreen()),
-                      const _KeepAlivePage(child: PhrasebookScreen()),
+                        const _KeepAlivePage(
+                          key: ValueKey('page_camera'),
+                          child: CameraScreen(),
+                        ),
+                      const _KeepAlivePage(
+                        key: ValueKey('page_phrasebook'),
+                        child: PhrasebookScreen(),
+                      ),
                       _KeepAlivePage(
+                        key: const ValueKey('page_flashcards'),
                         child: FlashcardsScreen(repo: widget.repo),
                       ),
-                      _KeepAlivePage(child: HistoryScreen(repo: widget.repo)),
-                      _KeepAlivePage(child: ProfileScreen(repo: widget.repo)),
+                      _KeepAlivePage(
+                        key: const ValueKey('page_history'),
+                        child: HistoryScreen(repo: widget.repo),
+                      ),
+                      _KeepAlivePage(
+                        key: const ValueKey('page_profile'),
+                        child: ProfileScreen(repo: widget.repo),
+                      ),
                     ],
                   ),
                 ),
@@ -213,7 +251,7 @@ class _AppShellState extends State<AppShell> {
 
 class _KeepAlivePage extends StatefulWidget {
   final Widget child;
-  const _KeepAlivePage({required this.child});
+  const _KeepAlivePage({super.key, required this.child});
 
   @override
   State<_KeepAlivePage> createState() => _KeepAlivePageState();
