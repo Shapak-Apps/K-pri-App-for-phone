@@ -166,7 +166,16 @@ class TranslateController extends ChangeNotifier {
       if (_settings.autoSaveHistory) {
         _repo.add(source: text, result: res.text, from: saved, to: _to);
       }
-      ProfileRepository.instance.onTranslationDone();
+
+      // ── SMART XP: quality-based XP with anti-grind ────────────────────────
+      // Pass source text and target language for quality bonuses.
+      // Returns total XP awarded (shown as toast in translate_screen).
+      await ProfileRepository.instance.onTranslationDone(
+        sourceText: text,
+        resultText: res.text,
+        targetLanguage: _to,
+      );
+
       try {
         await HomeWidget.saveWidgetData<String>('last_source', text);
         await HomeWidget.saveWidgetData<String>('last_result', res.text);
@@ -251,7 +260,14 @@ class TranslateController extends ChangeNotifier {
       if (_settings.autoSaveHistory) {
         _repo.add(source: combined, result: res.text, from: saved, to: _to);
       }
-      ProfileRepository.instance.onTranslationDone();
+
+      // ── SMART XP: voice translation also gets quality bonuses ─────────────
+      await ProfileRepository.instance.onTranslationDone(
+        sourceText: combined,
+        resultText: res.text,
+        targetLanguage: _to,
+      );
+
       if (_settings.autoSpeak) {
         _tts.speak(res.text, _to);
       }

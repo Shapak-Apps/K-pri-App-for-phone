@@ -7,6 +7,7 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/analyzing_wave.dart';
 import '../../history/data/history_repository.dart';
+import '../../profile/data/profile_repository.dart';
 import '../data/languages.dart';
 import '../data/offline_translator.dart';
 import 'translate_controller.dart';
@@ -66,6 +67,51 @@ class _TranslateScreenState extends State<TranslateScreen> {
       _c.dispose();
     }
     super.dispose();
+  }
+
+  /// Runs the translation, then shows the smart-XP feedback toast:
+  /// "+N XP · M букв" on success, or a daily-cap notice when farming is blocked.
+  Future<void> _onTranslateTap() async {
+    await _c.translate();
+    if (!mounted) return;
+
+    final p = ProfileRepository.instance;
+    final xp = p.lastXpAwarded;
+    final chars = p.lastXpChars;
+    final lang = context.settings.lang.name;
+
+    if (xp > 0) {
+      final charLabel = switch (lang) {
+        'ru' => 'букв',
+        'tk' => 'harp',
+        'tr' => 'karakter',
+        _ => 'chars',
+      };
+      final msg = '+$xp XP · $chars $charLabel';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: context.c.accent,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else if (p.dailyXpCapReached) {
+      final msg = switch (lang) {
+        'ru' => 'Дневной лимит XP достигнут — вернись завтра',
+        'tk' => 'Gündelik XP çägi doldy — ertir gel',
+        'tr' => 'Günlük XP sınırına ulaşıldı — yarın geri gel',
+        _ => 'Daily XP cap reached — come back tomorrow',
+      };
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: context.c.warn,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> _onMicTap() async {
@@ -140,7 +186,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                 TranslateBridge(
                   state: shownState,
                   canTranslate: can,
-                  onTap: _c.translate,
+                  onTap: _onTranslateTap,
                 ),
                 const SizedBox(height: 14),
                 if (_c.approx)
