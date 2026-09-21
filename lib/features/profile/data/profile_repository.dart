@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'native/profile_ffi.dart';
+import 'profile_goals_service.dart';
 
 class ProfileRepository extends ChangeNotifier {
   ProfileRepository._();
@@ -12,36 +13,53 @@ class ProfileRepository extends ChangeNotifier {
 
   static final ProfileFFI _ffi = ProfileFFI();
 
+  static const Duration _windowLength = Duration(hours: 24);
+
   Box<dynamic>? _box;
   String _dir = '';
   bool get isReady => _box != null;
+
+  /// In-memory: last awarded XP (for UI toasts). Not persisted.
+  int lastXpAwarded = 0;
+
+  /// In-memory: character count of the last awarded translation (for toasts).
+  int lastXpChars = 0;
 
   Future<void> ensureInit() async {
     if (_box != null) return;
     final doc = await getApplicationDocumentsDirectory();
     _dir = doc.path;
     _box = await Hive.openBox('profile');
+    await _antiClockCheat();
+    await _ensureWindow();
+    await evaluateAndRollWindow();
     notifyListeners();
   }
 
-  // ── Имя / био / цитата ────────────────────────────────
+  // ── Name / bio / quote ────────────────────────────────
   String get name => (_box?.get('name', defaultValue: '') as String?) ?? '';
   Future<void> setName(String v) async {
-    await ensureInit(); await _box!.put('name', v); notifyListeners();
+    await ensureInit();
+    await _box!.put('name', v);
+    notifyListeners();
   }
 
   String get bio => (_box?.get('bio', defaultValue: '') as String?) ?? '';
   Future<void> setBio(String v) async {
-    await ensureInit(); await _box!.put('bio', v); notifyListeners();
+    await ensureInit();
+    await _box!.put('bio', v);
+    notifyListeners();
   }
 
   String get favoriteQuote =>
       (_box?.get('favQuote', defaultValue: '') as String?) ?? '';
   Future<void> setFavoriteQuote(String v) async {
-    await ensureInit(); await _box!.put('favQuote', v); notifyListeners();
+    await ensureInit();
+    await _box!.put('favQuote', v);
+    notifyListeners();
   }
 
-  // ── Аватар ────────────────────────────────────────────
+  // ── Avatar ────────────────────────────────────────────
   File get avatarFile => File('$_dir/profile_avatar.jpg');
   bool get hasAvatar => avatarFile.existsSync() && avatarFile.lengthSync() > 0;
 
@@ -53,7 +71,11 @@ class ProfileRepository extends ChangeNotifier {
   Future<void> setAvatarEmoji(String? e) async {
     await ensureInit();
     await _box!.put('avatarEmoji', e);
-    if (e != null && hasAvatar) { try { await avatarFile.delete(); } catch (_) {} }
+    if (e != null && hasAvatar) {
+      try {
+        await avatarFile.delete();
+      } catch (_) {}
+    }
     await _box!.put('avatarVersion', avatarVersion + 1);
     _evictAvatarCache();
     notifyListeners();
@@ -82,7 +104,9 @@ class ProfileRepository extends ChangeNotifier {
 
     if (resized != null) {
       await File(resized).copy(avatarFile.path);
-      try { await File(resized).delete(); } catch (_) {}
+      try {
+        await File(resized).delete();
+      } catch (_) {}
     } else {
       await File(path).copy(avatarFile.path);
     }
@@ -95,38 +119,171 @@ class ProfileRepository extends ChangeNotifier {
 
   Future<void> deleteAvatar() async {
     await ensureInit();
-    try { if (avatarFile.existsSync()) await avatarFile.delete(); } catch (_) {}
+    try {
+      if (avatarFile.existsSync()) await avatarFile.delete();
+    } catch (_) {}
     await _box!.put('avatarEmoji', null);
     await _box!.put('avatarVersion', avatarVersion + 1);
     _evictAvatarCache();
     notifyListeners();
   }
 
-  // ── XP / стрик / цель ─────────────────────────────────
+  // ── XP / streak / goal ────────────────────────────────
   int get xp => (_box?.get('xp', defaultValue: 0) as int?) ?? 0;
 
   int get streak => (_box?.get('streak', defaultValue: 0) as int?) ?? 0;
   int get bestStreak => (_box?.get('bestStreak', defaultValue: 0) as int?) ?? 0;
 
-  int get dailyGoal => (_box?.get('dailyGoal', defaultValue: 10) as int?) ?? 10;
+  // ── GOAL LADDER (24h rolling windows) ────────────────────────────────────
+  int get goalRung => (_box?.get('goalRung', defaultValue: 0) as int?) ?? 0;
+
+  int get dailyGoal => ProfileGoalsService.rungToGoal(goalRung);
+
+  int get nextGoal => ProfileGoalsService.nextGoal(goalRung);
+
+  int get fallbackGoal => ProfileGoalsService.prevGoal(goalRung);
+
+  /// Progress inside the CURRENT window. FROZEN once the goal is completed.
   int get todayProgress =>
       (_box?.get('todayProgress', defaultValue: 0) as int?) ?? 0;
 
-  Future<void> setDailyGoal(int g) async {
-    await ensureInit(); await _box!.put('dailyGoal', g); notifyListeners();
+  /// TRUE once the current window's goal is completed.
+  /// While true, [todayProgress] no longer increments ("counter killed"),
+  /// but the countdown keeps running until the window expires.
+  bool get goalCompletedInWindow =>
+      (_box?.get('goalDoneInWindow', defaultValue: false) as bool?) ?? false;
+
+  /// One-shot flag: UI shows the celebration dialog once per window.
+  bool get goalCelebrationPending =>
+      (_box?.get('goalCelebratePending', defaultValue: false) as bool?) ??
+      false;
+
+  /// UI calls this after showing the celebration dialog.
+  Future<void> consumeGoalCelebration() async {
+    if (_box == null) return;
+    await _box!.put('goalCelebratePending', false);
+    notifyListeners();
   }
 
-  Future<void> onTranslationDone() async {
-    await ensureInit();
-    final today = DateTime.now().toIso8601String().substring(0, 10);
+  /// Window deadline (epoch ms). The countdown is derived from this value,
+  /// so it keeps ticking even while the app is fully closed.
+  int get goalDeadlineMs =>
+      (_box?.get('goalDeadlineMs', defaultValue: 0) as int?) ?? 0;
 
-    if (_box!.get('lastGoalDate') != today) {
-      await _box!.put('todayProgress', 1);
-      await _box!.put('lastGoalDate', today);
+  int get goalRemainingMs {
+    final d = goalDeadlineMs;
+    if (d == 0) return _windowLength.inMilliseconds;
+    final left = d - DateTime.now().millisecondsSinceEpoch;
+    return left < 0 ? 0 : left;
+  }
+
+  bool get goalWindowExpired => goalRemainingMs <= 0;
+
+  // ── SMART XP STATE (anti-grind, per 24h window) ───────────────────────────
+  int get translationsToday =>
+      (_box?.get('translationsToday', defaultValue: 0) as int?) ?? 0;
+
+  int get todayXpEarned => (_box?.get('xpToday', defaultValue: 0) as int?) ?? 0;
+
+  int get level => _ffi.getLevel(xp);
+
+  int get dailyXpCap => _ffi.dailyXpCap(level);
+
+  bool get dailyXpCapReached => todayXpEarned >= dailyXpCap;
+
+  double get xpMultiplier => _ffi.xpMultiplier(translationsToday);
+
+  Future<void> setDailyGoal(int g) async {
+    await ensureInit();
+    await _box!.put('goalRung', ProfileGoalsService.goalToRung(g));
+    notifyListeners();
+  }
+
+  // ── WINDOW MANAGEMENT ────────────────────────────────────────────────────
+  Future<void> _ensureWindow() async {
+    if (_box == null) return;
+    if (goalDeadlineMs == 0) {
+      await _box!.put(
+        'goalDeadlineMs',
+        DateTime.now().millisecondsSinceEpoch + _windowLength.inMilliseconds,
+      );
+      await _box!.put('lastSeenMs', DateTime.now().millisecondsSinceEpoch);
+    }
+  }
+
+  /// Anti-cheat: clock rewound → window expires immediately.
+  Future<void> _antiClockCheat() async {
+    if (_box == null) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final lastSeen = (_box!.get('lastSeenMs', defaultValue: 0) as int?) ?? 0;
+    if (lastSeen > 0 && now < lastSeen - 60000) {
+      await _box!.put('goalDeadlineMs', 0);
+    }
+    if (now > lastSeen) await _box!.put('lastSeenMs', now);
+  }
+
+  /// Evaluates the finished window and starts a new one:
+  /// completed → escalate rung; failed → demote rung + streak reset.
+  /// No-op while the window is still active.
+  Future<void> evaluateAndRollWindow() async {
+    if (_box == null) return;
+    final deadline = goalDeadlineMs;
+    if (deadline == 0) {
+      await _ensureWindow();
+      return;
+    }
+    if (DateTime.now().millisecondsSinceEpoch < deadline) return; // active
+
+    final done = todayProgress;
+    if (done >= dailyGoal) {
+      await _box!.put('goalRung', goalRung + 1); // SUCCESS: next rung
     } else {
-      await _box!.put('todayProgress', todayProgress + 1);
+      await _box!.put('goalRung', goalRung - 1); // FAILURE: rung down
+      await _box!.put('streak', 0); // punishment: fire goes out
     }
 
+    // Fresh window: counters, flags, new 24:00:00 deadline.
+    await _box!.put('todayProgress', 0);
+    await _box!.put('translationsToday', 0);
+    await _box!.put('xpToday', 0);
+    await _box!.put('goalDoneInWindow', false);
+    await _box!.put('goalCelebratePending', false);
+    await _box!.put(
+      'goalDeadlineMs',
+      DateTime.now().millisecondsSinceEpoch + _windowLength.inMilliseconds,
+    );
+    notifyListeners();
+  }
+
+  // ── TRANSLATION → SMART XP ───────────────────────────────────────────────
+  Future<int> onTranslationDone({
+    String sourceText = '',
+    String resultText = '',
+    String targetLanguage = '',
+  }) async {
+    await ensureInit();
+    await evaluateAndRollWindow();
+
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+
+    // ── GOAL COUNTER: frozen after completion ───────────────────────────────
+    final alreadyDone = goalCompletedInWindow;
+    var bonus = 0;
+    if (!alreadyDone) {
+      final newProgress = todayProgress + 1;
+      await _box!.put('todayProgress', newProgress);
+      if (newProgress >= dailyGoal) {
+        // Goal completed: freeze counter, schedule celebration, grant bonus.
+        await _box!.put('goalDoneInWindow', true);
+        await _box!.put('goalCelebratePending', true);
+        bonus = 100 + (streak * 10).clamp(0, 200);
+      }
+    }
+    // Anti-grind counter keeps running (invisible to user).
+    final doneBefore = translationsToday;
+    await _box!.put('translationsToday', doneBefore + 1);
+
+    // Streak (calendar-day activity).
     final last = _box!.get('lastActiveDate') as String?;
     if (last != today) {
       if (last == null) {
@@ -144,12 +301,47 @@ class ProfileRepository extends ChangeNotifier {
       await _box!.put('lastActiveDate', today);
     }
 
-    await _box!.put('xp', xp + 5);
+    // 1. Char-based XP from the C++ engine.
+    final chars = _countChars(resultText);
+    final base = _ffi.computeTranslationXp(
+      charCount: chars,
+      isRareLanguage: _isRareLanguage(targetLanguage),
+      isFirstInWindow: doneBefore == 0,
+    );
+
+    // 2. Diminishing returns.
+    var awarded = (base * _ffi.xpMultiplier(doneBefore)).round();
+
+    // 3. Window XP cap.
+    final capLeft = dailyXpCap - todayXpEarned;
+    if (capLeft <= 0) {
+      awarded = 0;
+    } else if (awarded > capLeft) {
+      awarded = capLeft;
+    }
+
+    // 4. Goal bonus bypasses the cap.
+    await _box!.put('xp', xp + awarded + bonus);
+    await _box!.put('xpToday', todayXpEarned + awarded);
+    lastXpAwarded = awarded + bonus;
+    lastXpChars = chars;
+
     await logActivity('translation', 1);
     notifyListeners();
+    return awarded + bonus;
   }
 
-  // ── История активности ────────────────────────────────
+  /// Counts letters only (no spaces/punctuation).
+  static int _countChars(String text) => text
+      .replaceAll(RegExp(r'[^a-zA-Zа-яА-ЯёЁçÇöÖüÜşŞğĞıIäÄæÆňŇöÖüÜýÝžŽ]'), '')
+      .length;
+
+  static bool _isRareLanguage(String code) {
+    const common = {'en', 'ru', 'tk', 'tr'};
+    return !common.contains(code.toLowerCase());
+  }
+
+  // ── Activity history ──────────────────────────────────
   List<dynamic> get activityHistory =>
       (_box?.get('activityHistory', defaultValue: []) as List?) ?? [];
 
@@ -159,7 +351,9 @@ class ProfileRepository extends ChangeNotifier {
     final history = List<Map<String, dynamic>>.from(
       activityHistory.map((e) => Map<String, dynamic>.from(e as Map)),
     );
-    final ex = history.indexWhere((e) => e['date'] == today && e['type'] == type);
+    final ex = history.indexWhere(
+      (e) => e['date'] == today && e['type'] == type,
+    );
     if (ex >= 0) {
       history[ex]['count'] = ((history[ex]['count'] as int?) ?? 0) + count;
     } else {
@@ -207,10 +401,10 @@ class ProfileRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Бейджи ────────────────────────────────────────────
-  Map<String, dynamic> get badgeDates =>
-      Map<String, dynamic>.from(
-          (_box?.get('badgeDates', defaultValue: {}) as Map?) ?? {});
+  // ── Badges ────────────────────────────────────────────
+  Map<String, dynamic> get badgeDates => Map<String, dynamic>.from(
+    (_box?.get('badgeDates', defaultValue: {}) as Map?) ?? {},
+  );
 
   Future<void> markBadge(String id) async {
     await ensureInit();
@@ -222,11 +416,16 @@ class ProfileRepository extends ChangeNotifier {
     }
   }
 
-  // ── Очистка ───────────────────────────────────────────
+  // ── Cleanup ──────────────────────────────────────────
   Future<void> clearAll() async {
     await ensureInit();
     await _box!.clear();
-    try { if (avatarFile.existsSync()) await avatarFile.delete(); } catch (_) {}
+    lastXpAwarded = 0;
+    lastXpChars = 0;
+    await _ensureWindow();
+    try {
+      if (avatarFile.existsSync()) await avatarFile.delete();
+    } catch (_) {}
     _evictAvatarCache();
     notifyListeners();
   }
