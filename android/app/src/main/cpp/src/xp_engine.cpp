@@ -7,8 +7,8 @@
 namespace kp {
     namespace {
 
-        constexpr int64_t BASE = 200;
-        constexpr double G = 1.25;
+        constexpr int64_t BASE = 800;
+        constexpr double G = 1.15;
         constexpr int32_t MAXL = 100;
 
         struct XpTables {
@@ -69,3 +69,25 @@ namespace kp {
     }
 
 } // namespace kp
+
+// ── C API implementation ────────────────────────────────────────────────────
+extern "C" {
+
+// 1 XP per character of the translated result.
+// Hard cap 500 XP per single translation (anti-abuse: copying books).
+// Rare language: +30%. First translation of the 24h window: +50.
+int32_t kp_compute_translation_xp(
+        int32_t char_count,
+        int32_t is_rare_language,
+        int32_t is_first_in_window) {
+    int32_t xp = char_count < 0 ? 0 : (char_count > 500 ? 500 : char_count);
+    if (is_rare_language) {
+        xp = static_cast<int32_t>(static_cast<double>(xp) * 1.3);
+    }
+    if (is_first_in_window) {
+        xp += 50;
+    }
+    return xp;
+}
+
+}

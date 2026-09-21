@@ -209,6 +209,39 @@ class ProfileFFI {
     }
   }
 
+  // ── CHAR-BASED XP (native C++ with Dart fallback) ─────────────────────────
+  /// 1 XP per character of the translated text (cap 500),
+  /// +30% rare language, +50 first translation of the window.
+  /// Mirrors kp_compute_translation_xp in xp_engine.cpp EXACTLY.
+  int computeTranslationXp({
+    required int charCount,
+    required bool isRareLanguage,
+    required bool isFirstInWindow,
+  }) {
+    final fn = _native ? _b!.computeTranslationXp : null;
+    if (fn != null) {
+      return fn(charCount, isRareLanguage ? 1 : 0, isFirstInWindow ? 1 : 0);
+    }
+    // Dart fallback (identical formula).
+    var xp = charCount < 0 ? 0 : (charCount > 500 ? 500 : charCount);
+    if (isRareLanguage) xp = (xp * 1.3).round();
+    if (isFirstInWindow) xp += 50;
+    return xp;
+  }
+
+  /// Daily (24h window) XP cap grows with level: 1500 + 100 per level.
+  int dailyXpCap(int level) {
+    if (level < 1) level = 1;
+    return 1500 + (level - 1) * 100;
+  }
+
+  /// Diminishing returns per window: 100% / 50% / 10%.
+  double xpMultiplier(int translationsInWindow) {
+    if (translationsInWindow < 10) return 1.0;
+    if (translationsInWindow < 20) return 0.5;
+    return 0.1;
+  }
+
   int _withI32(List<int> data, int Function(Pointer<Int32>) fn) {
     final p = calloc<Int32>(data.length);
     try {
@@ -232,8 +265,9 @@ class ProfileFFI {
     return ptr;
   }
 
-  static const int _baseXp = 200;
-  static const double _growth = 1.25;
+  // ── LEVEL CURVE (Dart fallback) — MUST match xp_engine.cpp ───────────────
+  static const int _baseXp = 800;
+  static const double _growth = 1.15;
   static const int _maxLevel = 100;
 
   int _dartLevel(int xp) {

@@ -19,10 +19,14 @@ typedef _WeeklyD = void Function(Pointer<Int32>, int, int, Pointer<Int32>);
 typedef _AvgN = Double Function(Pointer<Int32>, Int32);
 typedef _AvgD = double Function(Pointer<Int32>, int);
 
-typedef _TopLangN = Int32 Function(Pointer<Pointer<Utf8>>, Int32, Pointer<Utf8>, Int32);
-typedef _TopLangD = int Function(Pointer<Pointer<Utf8>>, int, Pointer<Utf8>, int);
-typedef _TopPhrN = Int32 Function(Pointer<Pointer<Utf8>>, Int32, Int32, Pointer<Utf8>, Int32);
-typedef _TopPhrD = int Function(Pointer<Pointer<Utf8>>, int, int, Pointer<Utf8>, int);
+typedef _TopLangN =
+    Int32 Function(Pointer<Pointer<Utf8>>, Int32, Pointer<Utf8>, Int32);
+typedef _TopLangD =
+    int Function(Pointer<Pointer<Utf8>>, int, Pointer<Utf8>, int);
+typedef _TopPhrN =
+    Int32 Function(Pointer<Pointer<Utf8>>, Int32, Int32, Pointer<Utf8>, Int32);
+typedef _TopPhrD =
+    int Function(Pointer<Pointer<Utf8>>, int, int, Pointer<Utf8>, int);
 
 typedef _CsvN = Int32 Function(Pointer<Utf8>, Pointer<Uint8>, Int32);
 typedef _CsvD = int Function(Pointer<Utf8>, Pointer<Uint8>, int);
@@ -31,6 +35,9 @@ typedef _CountD = int Function(Pointer<Utf8>);
 
 typedef _ResizeN = Int32 Function(Pointer<Utf8>, Pointer<Utf8>, Int32, Int32);
 typedef _ResizeD = int Function(Pointer<Utf8>, Pointer<Utf8>, int, int);
+
+typedef _ComputeXpN = Int32 Function(Int32, Int32, Int32);
+typedef _ComputeXpD = int Function(int, int, int);
 
 class ProfileNativeBindings {
   late final DynamicLibrary _lib;
@@ -48,24 +55,44 @@ class ProfileNativeBindings {
   late final _CountD jsonCount;
   late final _ResizeD imageResize;
 
+  // If the loaded .so is OLD (no kp_compute_translation_xp symbol), this
+  // stays null and ProfileFFI falls back to Dart math. The rest of the
+  // native functions still work — we do NOT break the whole bindings object
+  // over a single missing symbol.
+  _ComputeXpD? computeTranslationXp;
+
   ProfileNativeBindings() {
     _lib = Platform.isAndroid
         ? DynamicLibrary.open('libprofile_native.so')
         : DynamicLibrary.process();
 
-    level         = _lib.lookupFunction<_I32_I32_N, _I32_I32_D>('pn_level');
-    xpNext        = _lib.lookupFunction<_I32_I32_N, _I32_I32_D>('pn_xp_next');
-    xpCurrent     = _lib.lookupFunction<_I32_I32_N, _I32_I32_D>('pn_xp_current');
-    levelProgress = _lib.lookupFunction<_F64_I32_N, _F64_I32_D>('pn_level_progress');
-    streakCurrent = _lib.lookupFunction<_StreakN, _StreakD>('pn_streak_current');
-    streakBest    = _lib.lookupFunction<_BestN, _BestD>('pn_streak_best');
-    peakHour      = _lib.lookupFunction<_PeakN, _PeakD>('pn_peak_hour');
-    weeklyCounts  = _lib.lookupFunction<_WeeklyN, _WeeklyD>('pn_weekly_counts');
-    avgLength     = _lib.lookupFunction<_AvgN, _AvgD>('pn_avg_length');
-    topLanguage   = _lib.lookupFunction<_TopLangN, _TopLangD>('pn_top_language');
-    topPhrases    = _lib.lookupFunction<_TopPhrN, _TopPhrD>('pn_top_phrases');
-    jsonToCsv     = _lib.lookupFunction<_CsvN, _CsvD>('pn_json_to_csv');
-    jsonCount     = _lib.lookupFunction<_CountN, _CountD>('pn_json_count');
-    imageResize   = _lib.lookupFunction<_ResizeN, _ResizeD>('pn_image_resize');
+    level = _lib.lookupFunction<_I32_I32_N, _I32_I32_D>('pn_level');
+    xpNext = _lib.lookupFunction<_I32_I32_N, _I32_I32_D>('pn_xp_next');
+    xpCurrent = _lib.lookupFunction<_I32_I32_N, _I32_I32_D>('pn_xp_current');
+    levelProgress = _lib.lookupFunction<_F64_I32_N, _F64_I32_D>(
+      'pn_level_progress',
+    );
+    streakCurrent = _lib.lookupFunction<_StreakN, _StreakD>(
+      'pn_streak_current',
+    );
+    streakBest = _lib.lookupFunction<_BestN, _BestD>('pn_streak_best');
+    peakHour = _lib.lookupFunction<_PeakN, _PeakD>('pn_peak_hour');
+    weeklyCounts = _lib.lookupFunction<_WeeklyN, _WeeklyD>('pn_weekly_counts');
+    avgLength = _lib.lookupFunction<_AvgN, _AvgD>('pn_avg_length');
+    topLanguage = _lib.lookupFunction<_TopLangN, _TopLangD>('pn_top_language');
+    topPhrases = _lib.lookupFunction<_TopPhrN, _TopPhrD>('pn_top_phrases');
+    jsonToCsv = _lib.lookupFunction<_CsvN, _CsvD>('pn_json_to_csv');
+    jsonCount = _lib.lookupFunction<_CountN, _CountD>('pn_json_count');
+    imageResize = _lib.lookupFunction<_ResizeN, _ResizeD>('pn_image_resize');
+
+    // Uses the C-API symbol exported from xp_engine.cpp (extern "C" block).
+    // If missing → stays null → ProfileFFI uses Dart fallback silently.
+    try {
+      computeTranslationXp = _lib.lookupFunction<_ComputeXpN, _ComputeXpD>(
+        'kp_compute_translation_xp',
+      );
+    } catch (_) {
+      computeTranslationXp = null;
+    }
   }
 }
