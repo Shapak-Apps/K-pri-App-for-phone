@@ -96,27 +96,46 @@ class ClipboardService :
         Log.w(TAG, "service created, pair: $source → $target, active: $isActive")
     }
 
+    // ── FIX A: persist direction, invalidate cache, re-translate bubble ─────
     override fun onStartCommand(
         intent: Intent?,
         flags: Int,
         startId: Int,
     ): Int {
+        val oldSource = source
+        val oldTarget = target
+
         intent?.getStringExtra("source")?.let { source = it }
         intent?.getStringExtra("target")?.let { target = it }
+        val directionChanged = source != oldSource || target != oldTarget
 
         val pause = intent?.getBooleanExtra("pause", false) ?: false
         isActive = !pause
 
-        getSharedPreferences("kopri_prefs", MODE_PRIVATE)
-            .edit()
-            .putBoolean("clip_active", isActive)
-            .apply()
+        // Persist EVERYTHING (incl. direction) so it survives service recreation.
+        val editor = getSharedPreferences("kopri_prefs", MODE_PRIVATE).edit()
+        editor.putBoolean("clip_active", isActive)
+        if (directionChanged) {
+            editor.putString("clip_from", source)
+            editor.putString("clip_to", target)
+        }
+        editor.apply()
+
+        // Old translation is meaningless under a new direction.
+        if (directionChanged) invalidateClipCache()
 
         startForeground(NOTIF_ID, notification())
 
         if (!isDestroyed) {
             handler.post {
-                if (!isDestroyed) showCollapsed()
+                if (isDestroyed) return@post
+                val lt = lastText
+                if (directionChanged && isActive && lt != null) {
+                    // Re-translate the visible bubble with the NEW direction.
+                    translateAndShow(lt)
+                } else {
+                    showCollapsed()
+                }
             }
         }
 
@@ -207,6 +226,25 @@ class ClipboardService :
             null
         }
 
+    // ── FIX B: pull latest direction straight from prefs ────────────────────
+    /** Dart may have changed the pair without restarting the service.
+     *  Cheap IPC, safe to call often. */
+    private fun refreshDirection() {
+        val prefs = getSharedPreferences("kopri_prefs", MODE_PRIVATE)
+        source = prefs.getString("clip_from", source) ?: source
+        target = prefs.getString("clip_to", target) ?: target
+    }
+
+    /** Drop the cached translation — it belongs to an old direction. */
+    private fun invalidateClipCache() {
+        getSharedPreferences("kopri_clip_cache", MODE_PRIVATE)
+            .edit()
+            .remove("last_original")
+            .remove("last_translated")
+            .remove("last_target")
+            .apply()
+    }
+
     private fun onBubbleTap() {
         val text = readClipboard() ?: return
         if (text.isEmpty()) return
@@ -215,6 +253,9 @@ class ClipboardService :
 
         ClipboardFilterBridge.shouldTranslate(text) { should ->
             if (isDestroyed) return@shouldTranslate
+
+            // ── FIX D: target must be current before the cache check ────────
+            refreshDirection()
 
             if (!should) {
                 Log.w(TAG, "bubble tap: skipped (non-translatable)")
@@ -230,12 +271,17 @@ class ClipboardService :
         }
     }
 
+    // ── FIX E: cache valid ONLY for the same target language ────────────────
     private fun showLastTranslation(text: String) {
         val prefs = getSharedPreferences("kopri_clip_cache", MODE_PRIVATE)
         val cachedOriginal = prefs.getString("last_original", null)
         val cachedTranslated = prefs.getString("last_translated", null)
+        val cachedTarget = prefs.getString("last_target", null)
 
-        if (cachedOriginal == text && !cachedTranslated.isNullOrEmpty()) {
+        if (cachedOriginal == text &&
+            !cachedTranslated.isNullOrEmpty() &&
+            cachedTarget == target
+        ) {
             showExpanded(text, cachedTranslated)
         } else {
             translateAndShow(text)
@@ -244,6 +290,9 @@ class ClipboardService :
 
     private fun translateAndShow(text: String) {
         if (isDestroyed) return
+
+        // ── FIX C: fresh direction before we call Net ───────────────────────
+        refreshDirection()
 
         Thread {
             try {
