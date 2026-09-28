@@ -79,6 +79,24 @@ abstract final class AppLanguages {
     'ja': '日本語',
   };
 
+  // ── WORD-ONLY LANGUAGES ──────────────────────────────────────────────────
+  // These languages translate SINGLE WORDS today. Sentence-level translation
+  // is reserved for a future release. Selection is NOT blocked — only a
+  // warning is shown in the picker, and sentence input is refused at
+  // translate-time. Remove a code to enable full sentences.
+  static const Set<String> wordOnly = {'tk'};
+  static const String sentenceComingSoonVersion = 'v3.0.0';
+
+  static bool isWordOnly(String code) => wordOnly.contains(code);
+
+  /// True when the text is a sentence (more than one whitespace-separated
+  /// token). Empty / single-word strings return false.
+  static bool isSentence(String text) {
+    final t = text.trim();
+    if (t.isEmpty) return false;
+    return t.split(RegExp(r'\s+')).length > 1;
+  }
+
   static Map<String, String> get sources => {'auto': 'Awtomat', ...all};
 
   static String nameOf(String code) =>
