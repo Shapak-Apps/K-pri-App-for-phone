@@ -1,17 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../controllers/app_settings_controller.dart';
 import '../data/language_linkage_data.dart';
+import '../../features/translate/data/languages.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 
 class LinkageLanguagePicker {
   static Future<String?> show(
-    BuildContext context, {
-    required String currentCode,
-    bool includeAuto = false,
-  }) async {
+      BuildContext context, {
+        required String currentCode,
+        bool includeAuto = false,
+      }) async {
     final c = context.c;
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -67,11 +69,19 @@ class _PickerSheetState extends State<_PickerSheet> {
 
   List<String> get _langs => widget.data[_region].values.first;
 
+  /// Code of the currently highlighted language (may be null).
+  String? get _currentCode =>
+      _lang < _langs.length ? extractLangCodeFromText(_langs[_lang]) : null;
+
+  /// True when the highlighted language is word-only (sentences = v3.0.0).
+  bool get _currentWordOnly =>
+      _currentCode != null && AppLanguages.isWordOnly(_currentCode!);
+
   void _confirm() {
-    final code = extractLangCodeFromText(_langs[_lang]);
+    final code = _currentCode;
     if (code != null) {
       HapticFeedback.mediumImpact();
-      Navigator.pop(context, code);
+      Navigator.pop(context, code); // selection ALWAYS allowed
     } else {
       Navigator.pop(context);
     }
@@ -82,6 +92,7 @@ class _PickerSheetState extends State<_PickerSheet> {
     final c = widget.c;
     final l10n = widget.l10n;
     final isDark = widget.isDark;
+    final lang = context.settings.lang.name;
 
     return Container(
       decoration: BoxDecoration(
@@ -131,9 +142,9 @@ class _PickerSheetState extends State<_PickerSheet> {
                         l10n.t('language'),
                         style: AppTheme.display(size: 18, color: c.text)
                             .copyWith(
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.3,
-                            ),
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
                       ),
                     ),
                     TextButton(
@@ -186,9 +197,9 @@ class _PickerSheetState extends State<_PickerSheet> {
                           });
                         },
                         selectionOverlay:
-                            CupertinoPickerDefaultSelectionOverlay(
-                              background: c.accent.withValues(alpha: 0.12),
-                            ),
+                        CupertinoPickerDefaultSelectionOverlay(
+                          background: c.accent.withValues(alpha: 0.12),
+                        ),
                         children: [
                           for (final r in widget.regions)
                             Center(
@@ -229,23 +240,22 @@ class _PickerSheetState extends State<_PickerSheet> {
                           setState(() => _lang = i);
                         },
                         selectionOverlay:
-                            CupertinoPickerDefaultSelectionOverlay(
-                              background: c.accent.withValues(alpha: 0.12),
-                            ),
+                        CupertinoPickerDefaultSelectionOverlay(
+                          // Amber tint while a word-only language is
+                          // highlighted — visual hint, not a block.
+                          background: _currentWordOnly
+                              ? c.warn.withValues(alpha: 0.16)
+                              : c.accent.withValues(alpha: 0.12),
+                        ),
                         children: [
                           for (final lang in _langs)
-                            Center(
-                              child: Text(
-                                lang,
-                                style: TextStyle(
-                                  color: c.text,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                            _LangRow(
+                              label: lang,
+                              wordOnly: AppLanguages.isWordOnly(
+                                extractLangCodeFromText(lang) ?? '',
                               ),
+                              version: AppLanguages.sentenceComingSoonVersion,
+                              c: c,
                             ),
                         ],
                       ),
@@ -253,8 +263,126 @@ class _PickerSheetState extends State<_PickerSheet> {
                   ],
                 ),
               ),
+
+              // ── WARNING BANNER (only for word-only languages) ──────────────
+              AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                child: _currentWordOnly
+                    ? Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: c.warn.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: c.warn.withValues(alpha: 0.45),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline_rounded,
+                          color: c.warn,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _wordOnlyWarning(lang),
+                            style: TextStyle(
+                              color: c.warn,
+                              fontSize: 12,
+                              height: 1.45,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                    : const SizedBox(width: double.infinity),
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  String _wordOnlyWarning(String lang) => switch (lang) {
+    'ru' =>
+    'Türkmençe пока переводит только отдельные слова. Перевод целых предложений появится в ${AppLanguages.sentenceComingSoonVersion}.',
+    'tk' =>
+    'Türkmençe häzirlikçe diňe aýratyn sözleri terjime edýär. Bütin sözlemleriň terjimesi ${AppLanguages.sentenceComingSoonVersion}-de bolar.',
+    'tr' =>
+    'Türkmençe şimdilik yalnızca tek kelimeleri çevirir. Tam cümle çevirisi ${AppLanguages.sentenceComingSoonVersion} sürümünde gelecek.',
+    _ =>
+    'Turkmen currently translates single words only. Full sentence translation arrives in ${AppLanguages.sentenceComingSoonVersion}.',
+  };
+}
+
+/// One row inside the language wheel.
+/// Word-only rows get a small amber "Aa" chip (words OK, sentences later).
+class _LangRow extends StatelessWidget {
+  const _LangRow({
+    required this.label,
+    required this.wordOnly,
+    required this.version,
+    required this.c,
+  });
+
+  final String label;
+  final bool wordOnly;
+  final String version;
+  final AppColors c;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: c.text,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (wordOnly) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: c.warn.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: c.warn.withValues(alpha: 0.5)),
+                ),
+                child: Text(
+                  'Aa',
+                  style: TextStyle(
+                    color: c.warn,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
