@@ -56,35 +56,18 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     _Section(
                       c: c,
-                      icon: Icons.layers_outlined,
+                      icon: Icons.cloud_off_rounded,
                       title: t.sec4Title,
                       body: t.sec4Body,
-                      bullets: t.sec4Bullets,
                       index: 3,
                     ),
                     const SizedBox(height: 12),
                     _Section(
                       c: c,
-                      icon: Icons.cloud_off_rounded,
+                      icon: Icons.child_care_rounded,
                       title: t.sec5Title,
                       body: t.sec5Body,
                       index: 4,
-                    ),
-                    const SizedBox(height: 12),
-                    _Section(
-                      c: c,
-                      icon: Icons.child_care_rounded,
-                      title: t.sec6Title,
-                      body: t.sec6Body,
-                      index: 5,
-                    ),
-                    const SizedBox(height: 12),
-                    _Section(
-                      c: c,
-                      icon: Icons.update_rounded,
-                      title: t.sec7Title,
-                      body: t.sec7Body,
-                      index: 6,
                     ),
                     const SizedBox(height: 18),
                     _ContactCard(c: c, t: t),
@@ -141,23 +124,6 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   gradient: RadialGradient(
                     colors: [
                       c.accent.withValues(alpha: 0.30),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              left: -60,
-              bottom: 20,
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      c.accentHi.withValues(alpha: 0.18),
                       Colors.transparent,
                     ],
                   ),
@@ -431,49 +397,13 @@ class _ContactCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                children: [
-                  Icon(
-                    Icons.telegram_rounded,
-                    color: Colors.white.withValues(alpha: 0.9),
-                    size: 16,
-                  ),
-                  const SizedBox(height: 4),
-                  Icon(
-                    Icons.email_rounded,
-                    color: Colors.white.withValues(alpha: 0.7),
-                    size: 14,
-                  ),
-                ],
-              ),
-              const SizedBox(width: 8),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Köpri support',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    'shapak.apps@gmail.com',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          const Text(
+            'shapak.apps@gmail.com',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -486,302 +416,222 @@ class _Strings {
   _Strings(this.lang);
 
   String get headerTitle => switch (lang) {
-    'ru' => 'Политика конфиденциальности',
-    'tk' => 'Gizlinlik syýasaty',
-    'tr' => 'Gizlilik Politikası',
-    _ => 'Privacy Policy',
+    'ru' => 'Конфиденциальность',
+    'tk' => 'Gizlinlik',
+    'tr' => 'Gizlilik',
+    _ => 'Privacy',
   };
 
   String get introTitle => switch (lang) {
-    'ru' => 'Защита ваших персональных данных',
-    'tk' => 'Siziň şahsy maglumatlaryňyzyň goragy',
-    'tr' => 'Kişisel verilerinizin korunması',
-    _ => 'Protection of your personal data',
+    'ru' => 'Ваши данные — ваши',
+    'tk' => 'Siziň maglumatlaryňyz — siziňki',
+    'tr' => 'Verileriniz — sizin',
+    _ => 'Your data is yours',
   };
 
   String get introBody => switch (lang) {
     'ru' =>
-      'Köpri («Мы», «Правообладатель») обязуется обеспечивать максимальный уровень защиты вашей частной жизни и безопасности ваших данных. Настоящая Политика конфиденциальности (далее «Политика») разъясняет, какие данные обрабатываются, какие не обрабатываются, где хранятся ваши данные и как осуществляется взаимодействие с третьими сторонами. Используя Köpri, вы соглашаетесь с методами обработки данных, описанными в настоящей Политике.',
+      'Мы создали Köpri так, чтобы ваши переводы оставались только у вас. Никакой слежки, никакой рекламы, никакой продажи данных. Вот как это работает:',
     'tk' =>
-      'Köpri («Biz», «Önümi eýesi») siziň şahsy durmuşyňyzyň elde degirmesizligini we maglumatlaryňyzyň howpsuzlygyny iň ýokary derejede goramaga borçlanýar. Şu Gizlinlik syýasaty (mundan beýläk «Syýasat») haýsy maglumatlaryň işlenýändigini, haýsylarynyň işlenmeýändigini, maglumatlaryňyzyň nirede saklanýandygyny we üçünji taraplar bilen nähili gatnaşykda bolýandygyny düşündirýär. Köpri ulanmak bilen, şu Syýasatda beýan edilen maglumat işläp taýýarlamak usullaryna razylyk berýärsiňiz.',
+      'Biz Köpri-ni siziň terjimeleňiziň diňe sizde galar ýaly etdik. Hiç hili göz yzarlamasy, hiç hili mahabat, hiç hili maglumat satuwymy. Ine, nähili işleýär:',
     'tr' =>
-      'Köpri ("Biz", "Sahip") gizliliğinizin ve veri güvenliğinizin en yüksek düzeyde korunmasını taahhüt eder. Bu Gizlilik Politikası (bundan sonra "Politika"), hangi verilerin işlendiğini, hangilerinin işlenmediğini, verilerinizin nerede saklandığını ve üçüncü taraflarla etkileşimin nasıl gerçekleştiğini açıklar. Köpri\'yi kullanarak, bu Politikada açıklanan veri işleme yöntemlerini kabul etmiş olursunuz.',
+      'Köpri\'yi çevirilerinizin yalnızca sizde kalması için tasarladık. Takip yok, reklam yok, veri satışı yok. İşte nasıl çalışıyor:',
     _ =>
-      'Köpri ("We", "the Owner") is committed to ensuring the highest level of protection for your privacy and data security. This Privacy Policy (hereinafter "the Policy") explains what data is processed, what is not processed, where your data is stored, and how interaction with third parties occurs. By using Köpri, you agree to the data processing methods described in this Policy.',
+      'We built Köpri so your translations stay only with you. No tracking, no ads, no data selling. Here\'s how it works:',
   };
 
   String get sec1Title => switch (lang) {
-    'ru' => '1. Что мы НЕ собираем',
-    'tk' => '1. Biz näme ÝYGNAMEÝARYS',
-    'tr' => '1. NE toplamadığımız',
-    _ => '1. What we do NOT collect',
+    'ru' => 'Что мы НЕ собираем',
+    'tk' => 'Näme ÝYGNAMEÝARYS',
+    'tr' => 'NE toplamıyoruz',
+    _ => 'What we do NOT collect',
   };
 
   String get sec1Body => switch (lang) {
-    'ru' =>
-      'Köpri построен по принципу «приватность по умолчанию» (privacy-by-design). Мы никогда и ни в какой форме не собираем следующие данные:',
-    'tk' =>
-      'Köpri «ilki bilen gizlinlik» (privacy-by-design) ýörelgesi esasynda guruldy. Biz aşakdaky maglumatlary hiç haçan we hiç hili görnüşde ýygnamaýarys:',
-    'tr' =>
-      'Köpri, "tasarımla gizlilik" (privacy-by-design) ilkesi üzerine kuruludur. Aşağıdaki verileri asla ve hiçbir biçimde toplamayız:',
-    _ =>
-      'Köpri is built on a "privacy-by-design" principle. We never, in any form, collect the following data:',
+    'ru' => 'Мы принципиально не собираем:',
+    'tk' => 'Biz asla ýygnamaýarys:',
+    'tr' => 'Asla toplamayız:',
+    _ => 'We never collect:',
   };
 
   List<String> get sec1Bullets => switch (lang) {
     'ru' => [
-      'Персональные идентифицирующие данные (имя, фамилия, отчество, дата рождения)',
-      'Контактные данные (email, номер телефона, почтовый адрес)',
-      'Платёжные и финансовые данные (банковские карты, счета, транзакции)',
-      'Геолокационные данные (GPS-координаты, IP-адреса, сетевые метаданные)',
-      'Биометрические данные (отпечатки пальцев, распознавание лиц, голосовые образцы)',
-      'Рекламные профили, идентификаторы трекеров и аналитические cookie-файлы',
+      'Ваше имя, email, телефон или адрес',
+      'Ваши банковские данные или платежи',
+      'Ваше местоположение (GPS, IP)',
+      'Отпечатки пальцев или лицо',
+      'Рекламные профили и трекеры',
     ],
     'tk' => [
-      'Şahsyýeti anyklaýjy maglumatlar (at, familiýa, ata ady, doglan senesi)',
-      'Habarlaşma maglumatlary (e-poçta salgysy, telefon belgisi, poçta salgysy)',
-      'Töleg we maliýe maglumatlary (bank kartlary, hasaplar, tranzaksiýalar)',
-      'Geolokasiýa maglumatlary (GPS koordinatalary, IP-salgylar, tor metadata)',
-      'Biometrik maglumatlar (barmak yzy, ýüz tanama, ses nusgalary)',
-      'Mahabat profilleri, treker identifikatorlary we analitik cookie-faýllar',
+      'Adyňyz, e-poçtaňyz, telefon ýa-da salgyňyz',
+      'Bank maglumatlaryňyz ýa-da tölegleriňiz',
+      'Ýerleşýän ýeriňiz (GPS, IP)',
+      'Barmak yzyňyz ýa-da ýüzüňiz',
+      'Mahabat profilleri we trekerler',
     ],
     'tr' => [
-      'Kişiyi tanımlayan bilgiler (ad, soyad, baba adı, doğum tarihi)',
-      'İletişim bilgileri (e-posta, telefon numarası, posta adresi)',
-      'Ödeme ve finansal bilgiler (banka kartları, hesaplar, işlemler)',
-      'Konum verileri (GPS koordinatları, IP adresleri, ağ meta verileri)',
-      'Biyometrik veriler (parmak izi, yüz tanıma, ses örnekleri)',
-      'Reklam profilleri, izleyici tanımlayıcıları ve analitik çerezler',
+      'Adınız, e-postanız, telefon veya adresiniz',
+      'Banka bilgileriniz veya ödemeleriniz',
+      'Konumunuz (GPS, IP)',
+      'Parmak iziniz veya yüzünüz',
+      'Reklam profilleri ve izleyiciler',
     ],
     _ => [
-      'Personal identifying information (name, surname, patronymic, date of birth)',
-      'Contact information (email, phone number, postal address)',
-      'Payment and financial information (bank cards, accounts, transactions)',
-      'Geolocation data (GPS coordinates, IP addresses, network metadata)',
-      'Biometric data (fingerprints, facial recognition, voice samples)',
-      'Advertising profiles, tracker identifiers, and analytical cookies',
+      'Your name, email, phone, or address',
+      'Your bank details or payments',
+      'Your location (GPS, IP)',
+      'Fingerprints or face',
+      'Ad profiles and trackers',
     ],
   };
 
   String get sec2Title => switch (lang) {
-    'ru' => '2. Данные, хранимые ЛОКАЛЬНО на устройстве',
-    'tk' => '2. Enjamyňyzda ýerli SAKLANÝAN maglumatlar',
-    'tr' => '2. Cihazınızda YEREL olarak saklanan veriler',
-    _ => '2. Data stored LOCALLY on your device',
+    'ru' => 'Что остаётся на вашем телефоне',
+    'tk' => 'Telefonyňyzda galýan zatlar',
+    'tr' => 'Telefonunuzda kalanlar',
+    _ => 'What stays on your phone',
   };
 
   String get sec2Body => switch (lang) {
-    'ru' =>
-      'Вся ваша активность остаётся только на вашем личном устройстве и не передаётся в интернет. К локально хранимым данным относятся:',
-    'tk' =>
-      'Ähli siziň işjeňligiňiz diňe siziň şahsy enjamyňyzda galýar we internete iberilmeýär. Ýerli (lokal) saklanýan maglumatlara şular degişli:',
-    'tr' =>
-      'Tüm etkinliğiniz yalnızca kişisel cihazınızda kalır ve internete iletilmez. Yerel olarak saklanan veriler şunları içerir:',
-    _ =>
-      'All your activity remains only on your personal device and is not transmitted to the internet. Locally stored data includes:',
+    'ru' => 'Всё это хранится только у вас, никуда не отправляется:',
+    'tk' => 'Bularyň hemmesi diňe sizde saklanýar, hiç ýere iberilmeýär:',
+    'tr' => 'Bunların hepsi yalnızca sizde saklanır, hiçbir yere gönderilmez:',
+    _ => 'All of this stays only on your device, never sent anywhere:',
   };
 
   List<String> get sec2Bullets => switch (lang) {
     'ru' => [
-      'История переводов и избранное — в зашифрованном виде в базе данных Hive',
-      'Настройки приложения: тема, язык, размер шрифта, параметры голоса',
-      'Статистика обучения: серии дней (streak), XP-баллы, уровни, бейджи',
-      'Оффлайн-модели перевода Google ML Kit — только для выбранных вами языков',
-      'Данные профиля: имя пользователя, эмодзи-аватар, личный статус',
+      'История переводов и избранное',
+      'Настройки: тема, язык, размер текста',
+      'Ваш прогресс: уровни, серии дней, достижения',
+      'Имя профиля и аватарка',
+      'Оффлайн-модели языков (только те, что вы скачали)',
     ],
     'tk' => [
-      'Terjime taryhy we halanlaryňyz — Hive maglumatlar bazasynda şifrlenen görnüşde',
-      'Programma sazlamalary: tema, dil, şrift ölçegi, ses parametrleri',
-      'Öwreniş statistikasy: yzygiderli günler (streak), XP ballary, derejeler, nyşanlar',
-      'Google ML Kit offlaýn terjime modelleri — diňe saýlan dilleriňiz üçin',
-      'Profil maglumatlary: ulanyjy ady, emoji awatar, şahsy status',
+      'Terjime taryhy we halanlar',
+      'Sazlamalar: tema, dil, tekst ölçegi',
+      'Öňegidişligiňiz: derejeler, gün seriýalary, üstünlikler',
+      'Profil ady we awatar',
+      'Offlaýn dil modelleri (diňe ýükläp alanlaryňyz)',
     ],
     'tr' => [
-      'Çeviri geçmişi ve favoriler — Hive veritabanında şifrelenmiş olarak',
-      'Uygulama ayarları: tema, dil, yazı tipi boyutu, ses parametreleri',
-      'Öğrenme istatistikleri: gün serileri, XP puanları, seviyeler, rozetler',
-      'Google ML Kit çevrimdışı çeviri modelleri — yalnızca seçtiğiniz diller için',
-      'Profil verileri: kullanıcı adı, emoji avatar, kişisel durum',
+      'Çeviri geçmişi ve favoriler',
+      'Ayarlar: tema, dil, metin boyutu',
+      'İlerlemeniz: seviyeler, gün serileri, başarılar',
+      'Profil adı ve avatar',
+      'Çevrimdışı dil modelleri (yalnızca indirdikleriniz)',
     ],
     _ => [
-      'Translation history and favorites — encrypted in the Hive database',
-      'App settings: theme, language, font size, voice parameters',
-      'Learning statistics: day streaks, XP points, levels, badges',
-      'Google ML Kit offline translation models — only for the languages you selected',
-      'Profile data: username, emoji avatar, personal status',
+      'Translation history and favorites',
+      'Settings: theme, language, text size',
+      'Your progress: levels, day streaks, achievements',
+      'Profile name and avatar',
+      'Offline language models (only what you downloaded)',
     ],
   };
 
   String get sec3Title => switch (lang) {
-    'ru' => '3. СИСТЕМНЫЕ разрешения Android',
-    'tk' => '3. Android ULGAM RUGSATLARY',
-    'tr' => '3. Android SİSTEM izinleri',
-    _ => '3. Android SYSTEM permissions',
+    'ru' => 'Разрешения телефона',
+    'tk' => 'Telefon rugsatlary',
+    'tr' => 'Telefon izinleri',
+    _ => 'Phone permissions',
   };
 
   String get sec3Body => switch (lang) {
-    'ru' =>
-      'Приложение запрашивает следующие разрешения, каждое из которых предназначено исключительно для конкретной функции и может быть отозвано в любой момент в системных настройках Android:',
-    'tk' =>
-      'Programma aşakdaky rugsatlary talap edýär, olaryň her biri diňe anyk funksiýa üçin niýetlenen we islendik wagt Android ulgam sazlamalarynda yzyna alynyp bilner:',
-    'tr' =>
-      'Uygulama, her biri yalnızca belirli bir işlev için tasarlanmış ve Android sistem ayarlarından istenildiği zaman geri alınabilen aşağıdaki izinleri ister:',
-    _ =>
-      'The App requests the following permissions, each of which is intended solely for a specific function and can be revoked at any time in Android system settings:',
+    'ru' => 'Приложение может попросить доступ к:',
+    'tk' => 'Programma şulara giriş sorap biler:',
+    'tr' => 'Uygulama şunlara erişim isteyebilir:',
+    _ => 'The app may ask for access to:',
   };
 
   List<String> get sec3Bullets => switch (lang) {
     'ru' => [
-      'КАМЕРА (Скоро в v2.0.0) — перевод текста с фото через OCR (оптическое распознавание); данные обрабатываются только на устройстве. Функция находится в активной разработке',
-      'МИКРОФОН (Скоро в v2.0.0) — голосовой ввод и режим диалога; звук используется только для локального распознавания. Функция находится в активной разработке',
-      'ОТОБРАЖЕНИЕ ПОВЕРХ ОКОН — пузырёк перевода из буфера обмена (overlay bubble)',
-      'УВЕДОМЛЕНИЯ — работа фоновой службы мониторинга буфера обмена',
-      'ИНТЕРНЕТ — исключительно для подключения к онлайн-сервисам перевода',
+      'Камера — для перевода текста с фото (скоро)',
+      'Микрофон — для голосового ввода (скоро)',
+      'Интернет — для онлайн-перевода',
+      'Уведомления — для фоновой работы',
+      'Любое разрешение можно отключить в настройках телефона',
     ],
     'tk' => [
-      'KAMERA (v2.0.0-de ýakyn wagtda) — suratlardaky teksti OCR (optiki nyşan tanamak) arkaly terjime etmek; maglumat diňe enjamda işlenýär. Funksiýa işjeň işlenip düzülýär',
-      'MIKROFON (v2.0.0-de ýakyn wagtda) — ses bilen girizmek we dialog režimi; ses diňe ýerli tanama üçin ulanylýar. Funksiýa işjeň işlenip düzülýär',
-      'PENJIRELERIŇ ÜSTÜNDE GÖRKEZMEK — buferden terjime köpügi (overlay bubble)',
-      'HABARNAMALAR — arka plandaky bufer gözegçilik hyzmatynyň işlemegi',
-      'INTERNET — diňe onlaýn terjime hyzmatlaryna baglanmak üçin',
+      'Kamera — suratlardaky teksti terjime etmek üçin (ýakyn wagtda)',
+      'Mikrofon — ses bilen girizmek üçin (ýakyn wagtda)',
+      'Internet — onlaýn terjime üçin',
+      'Habarnamalar — arka planda işlemek üçin',
+      'Islendik rugsady telefon sazlamalarynda öçürip bolýar',
     ],
     'tr' => [
-      'KAMERA (v2.0.0\'de Yakında) — OCR (optik karakter tanıma) aracılığıyla fotoğraflardaki metni çevirme; veriler yalnızca cihazda işlenir. Özellik aktif olarak geliştirilmektedir',
-      'MİKROFON (v2.0.0\'de Yakında) — sesli giriş ve diyalog modu; ses yalnızca yerel tanıma için kullanılır. Özellik aktif olarak geliştirilmektedir',
-      'DİĞER UYGULAMALARIN ÜZERİNDE GÖSTERME — pano çeviri balonu (overlay bubble)',
-      'BİLDİRİMLER — arka plan pano izleme hizmetinin çalışması',
-      'İNTERNET — yalnızca çevrimiçi çeviri hizmetlerine bağlanmak için',
+      'Kamera — fotoğraflardaki metni çevirmek için (yakında)',
+      'Mikrofon — sesli giriş için (yakında)',
+      'İnternet — çevrimiçi çeviri için',
+      'Bildirimler — arka planda çalışmak için',
+      'Herhangi bir izin telefon ayarlarından kapatılabilir',
     ],
     _ => [
-      'CAMERA (Coming Soon in v2.0.0) — translating text from photos via OCR (optical character recognition); data is processed only on the device. Feature is under active development',
-      'MICROPHONE (Coming Soon in v2.0.0) — voice input and dialogue mode; audio is used only for local recognition. Feature is under active development',
-      'DISPLAY OVER OTHER APPS — clipboard translation bubble (overlay bubble)',
-      'NOTIFICATIONS — operation of the background clipboard monitoring service',
-      'INTERNET — solely for connecting to online translation services',
+      'Camera — for translating text from photos (coming soon)',
+      'Microphone — for voice input (coming soon)',
+      'Internet — for online translation',
+      'Notifications — for background work',
+      'Any permission can be turned off in phone settings',
     ],
   };
 
   String get sec4Title => switch (lang) {
-    'ru' => '4. СЕТЕВЫЕ ЗАПРОСЫ и сторонние сервисы',
-    'tk' => '4. TOR HAÝYŞLARY we üçünji tarap hyzmatlary',
-    'tr' => '4. AĞ istekleri ve üçüncü taraf hizmetleri',
-    _ => '4. NETWORK requests and third-party services',
+    'ru' => 'Оффлайн-режим',
+    'tk' => 'Oflaýn režim',
+    'tr' => 'Çevrimdışı mod',
+    _ => 'Offline mode',
   };
 
   String get sec4Body => switch (lang) {
     'ru' =>
-      'Для онлайн-перевода Приложение подключается к интернету, и переводимый вами текст может отправляться в следующие сторонние сервисы. У каждого сервиса есть собственная политика конфиденциальности:',
+      'Когда вы скачиваете язык для оффлайн-работы, всё переводится прямо на вашем телефоне. Ни одно слово не уходит в интернет. Это самый безопасный способ перевода — даже без связи ваши тексты остаются только у вас.',
     'tk' =>
-      'Onlaýn terjime üçin Programma internete birigýär we terjime edýän tekstiňiz aşakdaky üçünji tarap hyzmatlaryna iberilip bilner. Her hyzmat öz gizlinlik syýasatyna eýedir:',
+      'Offlaýn işlemek üçin dil ýükläniňizde, hemme zat göni telefonyňyzda terjime edilýär. Hiç bir söz internete gitmeýär. Bu terjime etmegiň iň howpsuz usuly — hatda baglanyşyksyz hem tekstleriňiz diňe sizde galýar.',
     'tr' =>
-      'Çevrimiçi çeviri için Uygulama internete bağlanır ve çevirdiğiniz metin aşağıdaki üçüncü taraf hizmetlere gönderilebilir. Her hizmetin kendi gizlilik politikası vardır:',
+      'Çevrimdışı çalışmak için bir dil indirdiğinizde, her şey doğrudan telefonunuzda çevrilir. Hiçbir kelime internete gitmez. Bu çeviri yapmanın en güvenli yoludur — bağlantı olmadan bile metinleriniz yalnızca sizde kalır.',
     _ =>
-      'For online translation, the App connects to the internet, and the text you translate may be sent to the following third-party services. Each service has its own privacy policy:',
-  };
-
-  List<String> get sec4Bullets => switch (lang) {
-    'ru' => [
-      'Google Translate API (translate.googleapis.com) — Политика конфиденциальности Google LLC',
-      'Lingva Translate — прокси с открытым исходным кодом, данные не хранятся на сервере',
-      'MyMemory Translation API (mymemory.translated.net) — политика Translated Srl',
-      'Firebase Crashlytics — только анонимные технические отчёты о сбоях приложения (stack trace, модель устройства, версия ОС)',
-    ],
-    'tk' => [
-      'Google Translate API (translate.googleapis.com) — Google LLC-iň Gizlinlik syýasaty',
-      'Lingva Translate — açyk çeşme proksi, serwer tarapynda maglumatlar saklanmaýar',
-      'MyMemory Translation API (mymemory.translated.net) — Translated Srl-iň syýasaty',
-      'Firebase Crashlytics — diňe programma näsazlyklary barada anonim tehniki hasabatlar (stack trace, enjam modeli, OS wersiýasy)',
-    ],
-    'tr' => [
-      'Google Translate API (translate.googleapis.com) — Google LLC Gizlilik Politikası',
-      'Lingva Translate — açık kaynak proxy; veriler sunucuda saklanmaz',
-      'MyMemory Translation API (mymemory.translated.net) — Translated Srl politikası',
-      'Firebase Crashlytics — yalnızca uygulama çökmeleri hakkında anonim teknik raporlar (stack trace, cihaz modeli, OS sürümü)',
-    ],
-    _ => [
-      'Google Translate API (translate.googleapis.com) — Google LLC Privacy Policy',
-      'Lingva Translate — open-source proxy; data is not stored on the server',
-      'MyMemory Translation API (mymemory.translated.net) — Translated Srl policy',
-      'Firebase Crashlytics — only anonymous technical reports about app crashes (stack trace, device model, OS version)',
-    ],
+      'When you download a language for offline use, everything is translated right on your phone. Not a single word goes to the internet. This is the safest way to translate — even without connection, your texts stay only with you.',
   };
 
   String get sec5Title => switch (lang) {
-    'ru' => '5. ОФФЛАЙН-РЕЖИМ и локальная обработка',
-    'tk' => '5. OFLAÝN TERTIBI we ýerli işlemek',
-    'tr' => '5. ÇEVRİMDIŞI modu ve yerel işleme',
-    _ => '5. OFFLINE mode and local processing',
+    'ru' => 'Дети',
+    'tk' => 'Çagalar',
+    'tr' => 'Çocuklar',
+    _ => 'Children',
   };
 
   String get sec5Body => switch (lang) {
     'ru' =>
-      'Оффлайн-перевод через Google ML Kit полностью выполняется на вашем устройстве. Загруженные модели нейронных сетей хранятся в локальной файловой системе и не отправляются ни на какой сервер. Встроенный лингвистический словарь туркменско-русского и туркменско-английского также работает полностью оффлайн и не требует подключения к сети. Это обеспечивает полную доступность сервиса перевода даже при отсутствии интернета и гарантирует максимальный уровень конфиденциальности ваших текстов.',
+    'Приложением могут пользоваться дети. Но следят за детьми их родители — мы не проверяем возраст и не отвечаем за то, что дети делают в приложении. Если вы родитель и хотите, чтобы ребёнок не пользовался Köpri — просто удалите приложение с его телефона.',
     'tk' =>
-      'Offlaýn terjime Google ML Kit arkaly doly siziň enjamyňyzda işleýär. Ýüklenen neýron tor modelleri ýerli faýl ulgamynda saklanýar we hiç hili serwere iberilmeýär. Gurulan türkmen-rus we türkmen-iňlis lingwistik sözlügi hem doly offlaýn işleýär we tora mätäçlik çekmeýär. Bu, internet ýok wagty hem terjime hyzmatynyň doly elýeter bolmagyny üpjün edýär we siziň tekstleriňiziň gizlinligini iň ýokary derejede goraýar.',
+    'Programmany çagalar hem ulanyp biler. Emma çagalara ene-atalary gözegçilik edýär — biz ýaşyny barlamaýarys we çagalaryň programmada näme edýändigi üçin jogap bermeýäris. Eger ene-ata bolsaňyz we çagaňyzyň Köpri ulanmagyny islemeýän bolsaňyz — diňe onuň telefonyndan programmany aýyryň.',
     'tr' =>
-      'Google ML Kit aracılığıyla çevrimdışı çeviri tamamen cihazınızda gerçekleştirilir. İndirilen sinir ağı modelleri yerel dosya sisteminde saklanır ve hiçbir sunucuya gönderilmez. Yerleşik Türkmen-Rus ve Türkmen-İngiliz dilbilimsel sözlükler de tamamen çevrimdışı çalışır ve ağ bağlantısı gerektirmez. Bu, internet olmasa bile çeviri hizmetinin tam olarak kullanılabilirliğini sağlar ve metinlerinizin azami gizliliğini garanti eder.',
+    'Uygulamayı çocuklar da kullanabilir. Ama çocukları ebeveynleri denetler — biz yaşı kontrol etmiyoruz ve çocukların uygulamada ne yaptığından sorumlu değiliz. Ebeveyseniz ve çocuğunuzun Köpri kullanmasını istemiyorsanız — telefonundan uygulamayı silin.',
     _ =>
-      'Offline translation via Google ML Kit is performed entirely on your device. Downloaded neural network models are stored in the local file system and are not sent to any server. The built-in Turkmen-Russian and Turkmen-English linguistic dictionaries also work completely offline and do not require a network connection. This ensures full availability of the translation service even without internet access and guarantees the maximum level of confidentiality for your texts.',
-  };
-
-  String get sec6Title => switch (lang) {
-    'ru' => '6. Конфиденциальность ДЕТЕЙ (соответствие COPPA)',
-    'tk' => '6. ÇAGALARYŇ gizlinligi (COPPA laýyklykda)',
-    'tr' => '6. ÇOCUKLARIN gizliliği (COPPA uyumu)',
-    _ => '6. CHILDREN\'s privacy (COPPA compliance)',
-  };
-
-  String get sec6Body => switch (lang) {
-    'ru' =>
-      'Köpri не собирает намеренно персональные данные от детей младше 13 лет (или возраста, установленного в соответствующей юрисдикции — например, 16 лет в ЕС). Мы не требуем заверенного согласия родителей или опекунов на сбор, использование или раскрытие персональных данных детей. Если родитель или опекун считает, что ребёнок предоставил нам персональные данные, ему следует немедленно связаться с нами — мы удалим данные в течение 24 часов как с наших серверов (если они там есть), так и с локальных устройств.',
-    'tk' =>
-      'Köpri 13 ýaşdan kiçi çagalardan (ýa-da degişli ýurisdiksiýada kesgitlenen san — mysal üçin, ÝB-de 16 ýaş) bilkastlaýyn şahsy maglumat ýygnamaýar. Biz çagalaryň şahsy maglumatlaryny ýygnamak, ulanmak ýa-da açmak üçin ene-ata ýa-da howandaryň tassyklanylýan razylygyny talap etmeýäris. Eger ene-ata ýa-da howandar çagasynyň bize şahsy maglumat berendigine ynanýan bolsa, dessine bize ýüz tutsun — biz maglumatlary 24 sagadyň dowamynda serwerlermizden (bar bolsa) we ýerli enjamlardan hem pozarys.',
-    'tr' =>
-      'Köpri, 13 yaşın altındaki çocuklardan (veya ilgili yargı bölgesinde belirlenen yaştan — örneğin AB\'de 16) bilerek kişisel veri toplamaz. Çocukların kişisel verilerini toplamak, kullanmak veya ifşa etmek için ebeveyn veya vasisinin doğrulanabilir onayını istemeyiz. Bir ebeveyn veya vasi, çocuğunun bize kişisel veri sağladığına inanıyorsa, derhal bizimle iletişime geçmelidir — verileri 24 saat içinde hem sunucularımızdan (varsa) hem de yerel cihazlardan sileceğiz.',
-    _ =>
-      'Köpri does not knowingly collect personal data from children under 13 years of age (or the age established in the relevant jurisdiction — for example, 16 in the EU). We do not require verifiable parental or guardian consent to collect, use, or disclose children\'s personal data. If a parent or guardian believes that their child has provided us with personal data, they should contact us immediately — we will delete the data within 24 hours from both our servers (if present) and local devices.',
-  };
-
-  String get sec7Title => switch (lang) {
-    'ru' => '7. ИЗМЕНЕНИЯ в Политике и уведомления',
-    'tk' => '7. Syýasata ÜÝTGEŞMELER we habarnamalar',
-    'tr' => '7. Politikadaki DEĞİŞİKLİKLER ve bildirimler',
-    _ => '7. CHANGES to the Policy and notifications',
-  };
-
-  String get sec7Body => switch (lang) {
-    'ru' =>
-      'Мы можем время от времени обновлять настоящую Политику. О существенных изменениях (новые виды сбора данных, изменение сторонних сервисов, изменение правовых оснований) мы уведомим вас заранее: через уведомление в Приложении или на стартовом экране. Продолжая использовать обновлённую Политику на регулярной основе, вы принимаете изменения.',
-    'tk' =>
-      'Biz şu Syýasaty wagtal-wagtal täzeläp bileris. Mazmunly üýtgeşmeler (maglumat ýygnamagyň täze görnüşleri, üçünji tarap hyzmatlarynyň üýtgemegi, hukuk esaslarynyň üýtgemegi) barada öňünden habar bereris: Programma içindäki habarnama ýa-da açylyş ekrany arkaly. Täzelenen Syýasaty yzygiderli ulanmagy dowam etseňiz, üýtgeşmeleri kabul edýärsiňiz.',
-    'tr' =>
-      'Bu Politikayı zaman zaman güncelleyebiliriz. Önemli değişiklikler (yeni veri toplama türleri, üçüncü taraf hizmetlerindeki değişiklikler, yasal gerekçelerdeki değişiklikler) hakkında önceden bildirimde bulunacağız: uygulama içi bildirim veya başlangıç ekranı aracılığıyla. Güncellenmiş Politikayı düzenli olarak kullanmaya devam ederek değişiklikleri kabul etmiş olursunuz.',
-    _ =>
-      'We may update this Policy from time to time. Material changes (new types of data collection, changes to third-party services, changes to legal grounds) will be notified in advance: via an in-app notification or a startup screen. By continuing to use the updated Policy on a regular basis, you accept the changes.',
+    'Children can use the app. But parents supervise children — we do not check ages and are not responsible for what children do in the app. If you are a parent and don\'t want your child to use Köpri — just remove the app from their phone.',
   };
 
   String get contactTitle => switch (lang) {
-    'ru' => 'Связаться с нами и ваши права',
-    'tk' => 'Bize ýüz tutmak we hukuklaryňyz',
-    'tr' => 'Bize ulaşın ve haklarınız',
-    _ => 'Contact us and your rights',
+    'ru' => 'Есть вопросы?',
+    'tk' => 'Soraglaryňyz barmy?',
+    'tr' => 'Sorularınız mı var?',
+    _ => 'Have questions?',
   };
 
   String get contactBody => switch (lang) {
     'ru' =>
-      'Чтобы запросить доступ к вашим данным, их исправление, экспорт или полное удаление, а также по любым вопросам или предложениям касательно настоящей Политики — напишите нам в Telegram:',
+      'Напишите нам, если хотите удалить данные, что-то спросить или просто пообщаться:',
     'tk' =>
-      'Maglumatlaryňyza girişi, düzedişleri, göçürilmegini ýa-da doly pozulmagyny haýyş etmek üçin, şeýle hem şu Syýasat boýunça islendik sorag ýa-da teklip üçin Telegram arkaly habarlaşyň:',
+      'Maglumatlary pozmak, bir zat soramak ýa-da diňe gürrüňdeş bolmak isleseňiz bize ýazyň:',
     'tr' =>
-      'Verilerinize erişim, düzeltme, dışa aktarma veya tamamen silme talebinde bulunmak, ayrıca bu Politika ile ilgili herhangi bir soru veya öneri için Telegram üzerinden bize ulaşın:',
-    _ =>
-      'To request access to your data, correction, export, or complete deletion, as well as for any questions or suggestions regarding this Policy — contact us on Telegram:',
+      'Verileri silmek, bir şey sormak veya sadece sohbet etmek isterseniz bize yazın:',
+    _ => 'Write to us if you want to delete data, ask something, or just chat:',
   };
 
   String get footer => switch (lang) {
-    'ru' => 'Köpri · Последнее обновление: август 2026',
-    'tk' => 'Köpri · Soňky täzelenme: awgust 2026',
-    'tr' => 'Köpri · Son güncelleme: Ağustos 2026',
-    _ => 'Köpri · Last updated: August 2026',
+    'ru' => 'Köpri · Обновлено: сентябрь 2026',
+    'tk' => 'Köpri · Täzelendi: sentýabr 2026',
+    'tr' => 'Köpri · Güncellendi: Eylül 2026',
+    _ => 'Köpri · Updated: September 2026',
   };
 }
