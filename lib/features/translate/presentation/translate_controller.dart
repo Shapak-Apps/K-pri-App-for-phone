@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -9,9 +10,11 @@ import '../../../core/controllers/app_settings_controller.dart';
 import '../../conversation/data/tts_service.dart';
 import '../../history/data/history_repository.dart';
 import '../../profile/data/profile_repository.dart';
+import '../data/languages.dart'; // AppLanguages.isWordOnly / isSentence
 import '../data/speech_service.dart';
 import '../data/translator_service.dart';
 import 'translation_state.dart';
+import '../../../core/native/apk_channel.dart';
 
 const bool kMicEnabled = false;
 const String kMicComingSoonVersion = '2.0.0';
@@ -24,8 +27,8 @@ class TranslateController extends ChangeNotifier {
     required AppSettingsController settings,
     required ValueListenable<IncomingText?> incomingText,
   }) : _repo = repo,
-       _settings = settings,
-       _incoming = incomingText {
+        _settings = settings,
+        _incoming = incomingText {
     _from = _settings.defaultFrom;
     _to = _settings.defaultTo;
 
@@ -151,6 +154,17 @@ class TranslateController extends ChangeNotifier {
       return;
     }
     if (_loading) return;
+
+    // ── WORD-ONLY GUARD ────────────────────────────────────────────────────
+    // Turkmen (and any other word-only language) refuses sentence input.
+    // Single words still translate normally. Checked BEFORE _loading = true
+    // so the spinner never starts for a request we are about to reject.
+    if (AppLanguages.isWordOnly(_to) && AppLanguages.isSentence(text)) {
+      _state = ErrorState(_sentenceSoonMessage());
+      notifyListeners();
+      return;
+    }
+
     _approx = false;
     _loading = true;
     _state = const LoadingState();
@@ -199,6 +213,21 @@ class TranslateController extends ChangeNotifier {
     }
   }
 
+  /// Localized message shown when a word-only language receives a sentence.
+  String _sentenceSoonMessage() {
+    final lang = _settings.lang.name;
+    return switch (lang) {
+      'ru' =>
+      'Türkmençe переводит только слова. Перевод предложений появится в ${AppLanguages.sentenceComingSoonVersion} — попробуйте одно слово.',
+      'tk' =>
+      'Türkmençe diňe sözleri terjime edýär. Sözlemleriň terjimesi ${AppLanguages.sentenceComingSoonVersion}-de bolar — bir sözi synap görüň.',
+      'tr' =>
+      'Türkmençe yalnızca kelimeleri çevirir. Cümle çevirisi ${AppLanguages.sentenceComingSoonVersion} sürümünde gelecek — tek bir kelime deneyin.',
+      _ =>
+      'Turkmen translates single words only. Sentence translation arrives in ${AppLanguages.sentenceComingSoonVersion} — try one word.',
+    };
+  }
+
   String _voiceText() {
     final b = _recogBuffer.trim();
     final p = _recogPartial.trim();
@@ -241,6 +270,16 @@ class TranslateController extends ChangeNotifier {
 
     if (text.isEmpty) {
       _voiceAnalyzing = false;
+      notifyListeners();
+      return;
+    }
+
+    // ── WORD-ONLY GUARD (voice) ────────────────────────────────────────────
+    // Same rule as text input: word-only languages refuse sentences.
+    // Reset _voiceAnalyzing so the UI leaves the "analyzing" state.
+    if (AppLanguages.isWordOnly(_to) && AppLanguages.isSentence(text)) {
+      _voiceAnalyzing = false;
+      _state = ErrorState(_sentenceSoonMessage());
       notifyListeners();
       return;
     }
@@ -351,16 +390,36 @@ class TranslateController extends ChangeNotifier {
     return MicToggleOutcome.started;
   }
 
+  /// Push the current direction to the background clipboard service so the
+  /// overlay bubble translates with the SAME pair the user picked on screen.
+  /// Guarded by isClipboardRunning → never starts the service by accident.
+  Future<void> _syncClipboardDirection() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final running =
+          await kApkChannel.invokeMethod<bool>('isClipboardRunning') == true;
+      if (!running) return;
+      await kApkChannel.invokeMethod('startClipboard', {
+        'source': _from,
+        'target': _to,
+      });
+    } catch (_) {
+      // Service may have died between the check and the call — harmless.
+    }
+  }
+
   void setFrom(String v) {
     _from = v;
     notifyListeners();
     translate();
+    _syncClipboardDirection(); // ← NEW: keep bubble in sync
   }
 
   void setTo(String v) {
     _to = v;
     notifyListeners();
     translate();
+    _syncClipboardDirection(); // ← NEW: keep bubble in sync
   }
 
   void swap() {
@@ -373,6 +432,7 @@ class TranslateController extends ChangeNotifier {
       _state = const IdleState();
     }
     notifyListeners();
+    _syncClipboardDirection(); // ← NEW: keep bubble in sync
   }
 
   void clearInput() {
