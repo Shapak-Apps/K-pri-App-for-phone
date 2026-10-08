@@ -1,11 +1,9 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/controllers/app_settings_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/update/update_card.dart';
 import 'about_authors_screen.dart';
 import 'about_strings.dart';
 import 'sapak_series_screen.dart';
@@ -272,10 +270,6 @@ class _AboutScreenState extends State<AboutScreen>
               onTap: _openGithub,
             ),
           ),
-          // ── NEW: in-app update check card ──────────────────────────────
-          const SizedBox(height: 14),
-          _stagger(0.62, const UpdateCheckCard()),
-          // ────────────────────────────────────────────────────────────────
           const SizedBox(height: 32),
           _stagger(
             0.72,

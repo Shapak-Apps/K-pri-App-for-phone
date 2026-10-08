@@ -1,4 +1,10 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission
+        android:name="android.permission.REQUEST_INSTALL_PACKAGES"
+        tools:node="remove" />
+
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -9,7 +15,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <uses-feature android:name="android.hardware.microphone" android:required="false"/>
     <uses-feature android:name="android.hardware.bluetooth" android:required="false"/>
@@ -30,13 +35,10 @@
             <action android:name="android.intent.action.SEND" />
             <data android:mimeType="*/*" />
         </intent>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:mimeType="application/vnd.android.package-archive" />
-        </intent>
     </queries>
+
     <application
-        android:label="Köpri"
+        android:label="Kopri"
         android:name=".App"
         android:icon="@mipmap/ic_launcher"
         android:largeHeap="true">
