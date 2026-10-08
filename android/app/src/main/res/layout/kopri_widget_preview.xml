@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="14dp"
     android:background="@drawable/widget_bg">
 
-    <!-- шапка: иконка + название + бейдж пары языков -->
     <LinearLayout
         android:id="@+id/widget_header"
         android:layout_width="match_parent"
@@ -15,13 +13,11 @@
         android:gravity="center_vertical">
 
         <ImageView
-            android:id="@+id/widget_icon"
             android:layout_width="28dp"
             android:layout_height="28dp"
             android:src="@mipmap/ic_launcher"
             android:background="@drawable/widget_icon_ring"
-            android:padding="2dp"
-            android:contentDescription="Köpri" />
+            android:padding="2dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -33,17 +29,15 @@
             android:textStyle="bold"
             android:letterSpacing="0.02" />
 
-        <!-- спейсер: ТОЛЬКО TextView (View запрещён в RemoteViews) -->
         <TextView
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1" />
 
         <TextView
-            android:id="@+id/widget_pair"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=""
+            android:text="ru → tk"
             android:textColor="@color/widget_badge_text"
             android:background="@drawable/widget_badge_bg"
             android:textSize="10sp"
@@ -55,23 +49,19 @@
             android:paddingBottom="4dp" />
     </LinearLayout>
 
-    <!-- разделитель: TextView 1dp (View запрещён) -->
     <TextView
-        android:id="@+id/widget_divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_below="@id/widget_header"
         android:layout_marginTop="12dp"
         android:background="@color/widget_divider" />
 
-    <!-- оригинал -->
     <TextView
-        android:id="@+id/widget_source"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/widget_divider"
-        android:layout_marginTop="12dp"
-        android:text="Переведи что-нибудь..."
+        android:layout_below="@id/widget_header"
+        android:layout_marginTop="25dp"
+        android:text="Salam dossym!"
         android:textColor="@color/widget_text_primary"
         android:textSize="15sp"
         android:textStyle="bold"
@@ -79,29 +69,24 @@
         android:ellipsize="end"
         android:lineSpacingExtra="2dp" />
 
-    <!-- перевод с акцентной полоской -->
     <LinearLayout
-        android:id="@+id/widget_result_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/widget_source"
-        android:layout_marginTop="10dp"
+        android:layout_below="@id/widget_header"
+        android:layout_marginTop="58dp"
         android:orientation="horizontal"
         android:gravity="top">
 
-        <!-- акцентная полоска: TextView 3dp (View запрещён) -->
         <TextView
-            android:id="@+id/widget_accent_bar"
             android:layout_width="3dp"
             android:layout_height="match_parent"
             android:background="@drawable/widget_accent_bar_bg" />
 
         <TextView
-            android:id="@+id/widget_result"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:text=""
+            android:text="Привет, друг мой!"
             android:textColor="@color/widget_text_secondary"
             android:textSize="13sp"
             android:maxLines="3"

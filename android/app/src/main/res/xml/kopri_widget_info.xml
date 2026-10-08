@@ -9,4 +9,5 @@
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:description="@string/widget_description"
-    android:previewLayout="@layout/kopri_widget_layout" />
+    android:previewImage="@drawable/widget_preview_image"
+    android:previewLayout="@layout/kopri_widget_preview" />

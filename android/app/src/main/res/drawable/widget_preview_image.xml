@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="300dp"
+    android:height="150dp"
+    android:viewportWidth="300"
+    android:viewportHeight="150">
+
+    <!-- карточка: тёмно-синий фон со скруглением -->
+    <path
+        android:fillColor="#FF0F1A2E"
+        android:pathData="M24,0 L276,0 A24,24 0 0 1 300,24 L300,126 A24,24 0 0 1 276,150 L24,150 A24,24 0 0 1 0,126 L0,24 A24,24 0 0 1 24,0 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#334C8BF5"
+        android:strokeWidth="2"
+        android:pathData="M24,1 L276,1 A23,23 0 0 1 299,24 L299,126 A23,23 0 0 1 276,149 L24,149 A23,23 0 0 1 1,126 L1,24 A23,23 0 0 1 24,1 Z" />
+
+    <!-- иконка -->
+    <path
+        android:fillColor="#FF4C8BF5"
+        android:pathData="M20,34 A14,14 0 1 0 48,34 A14,14 0 1 0 20,34 Z" />
+
+    <!-- название -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M56,28 L116,28 L116,40 L56,40 Z" />
+
+    <!-- бейдж пары языков -->
+    <path
+        android:fillColor="#1A4C8BF5"
+        android:pathData="M219,26 L271,26 A9,9 0 0 1 280,35 A9,9 0 0 1 271,44 L219,44 A9,9 0 0 1 210,35 A9,9 0 0 1 219,26 Z" />
+
+    <!-- разделитель -->
+    <path
+        android:fillColor="#1A4C8BF5"
+        android:pathData="M20,60 L280,60 L280,62 L20,62 Z" />
+
+    <!-- оригинал -->
+    <path
+        android:fillColor="#FFE8EEF9"
+        android:pathData="M20,74 L210,74 L210,88 L20,88 Z" />
+    <path
+        android:fillColor="#99E8EEF9"
+        android:pathData="M20,94 L150,94 L150,104 L20,104 Z" />
+
+    <!-- акцентная полоска + перевод -->
+    <path
+        android:fillColor="#FF4C8BF5"
+        android:pathData="M20,114 L24,114 L24,138 L20,138 Z" />
+    <path
+        android:fillColor="#FFA8B4C9"
+        android:pathData="M32,114 L240,114 L240,124 L32,124 Z" />
+    <path
+        android:fillColor="#99A8B4C9"
+        android:pathData="M32,130 L200,130 L200,138 L32,138 Z" />
+</vector>
