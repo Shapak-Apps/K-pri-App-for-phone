@@ -48,6 +48,6 @@ Köpri stands on the shoulders of these open-source projects:
 
 Thanks to every user who tested Köpri, sent feedback, or shared it with friends. You help us build bridges between languages.
 
-*Rahmat! Спасибо! Sag bol! Thank you!*
+*Thank you!*
 
 — The Köpri Team 🌉
