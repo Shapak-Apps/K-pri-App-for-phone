@@ -17,9 +17,6 @@ If you have contributed to Köpri (code, ideas, translations, bug reports, desig
 | Role | Person | GitHub |
 |---|---|---|
 | **Creator & Mobile Developer** | Aynazar Sylyyew | [@aynazar-sylyyew-dev](https://github.com/aynazar-sylyyew-dev) |
-| **Web Developer** *(to be added after website deployment)* | Annayev | [@annayev-dev](https://github.com/annayev-dev) |
-
-The web developer's name will appear in the app UI once the official Köpri website goes live.
 
 ---
 
