@@ -11,7 +11,7 @@ class AppSettingsController extends ChangeNotifier {
   late final Box _box;
 
   ThemeMode _themeMode = ThemeMode.dark;
-  AppLang _lang = AppLang.tk;
+  AppLang _lang = AppLang.ru;
   double _fontScale = 1.0;
 
   double _speechRate = 0.5;
@@ -66,8 +66,7 @@ class AppSettingsController extends ChangeNotifier {
     _box = await Hive.openBox(_boxName);
     _themeMode = ThemeMode
         .values[_box.get('theme', defaultValue: ThemeMode.dark.index) as int];
-    _lang =
-        AppLang.values[_box.get('lang', defaultValue: AppLang.tk.index) as int];
+    _lang = _resolveInitialLang();
     _fontScale = (_box.get('fontScale', defaultValue: 0.85) as num).toDouble();
     _speechRate = (_box.get('speechRate', defaultValue: 0.5) as num).toDouble();
     _ttsVolume = (_box.get('ttsVolume', defaultValue: 1.0) as num).toDouble();
@@ -80,11 +79,11 @@ class AppSettingsController extends ChangeNotifier {
     _autoTranslate = _box.get('autoTranslate', defaultValue: true) as bool;
     _translateDelayMs = _box.get('translateDelayMs', defaultValue: 700) as int;
     _phraseSpeak =
-        PhraseSpeakMode.values[_box.get(
-              'phraseSpeak',
-              defaultValue: PhraseSpeakMode.both.index,
-            )
-            as int];
+    PhraseSpeakMode.values[_box.get(
+      'phraseSpeak',
+      defaultValue: PhraseSpeakMode.both.index,
+    )
+    as int];
     _flashcardSession = _box.get('flashcardSession', defaultValue: 20) as int;
     _spacedRep = _box.get('spacedRep', defaultValue: true) as bool;
     _autoSaveHistory = _box.get('autoSaveHistory', defaultValue: true) as bool;
@@ -93,6 +92,20 @@ class AppSettingsController extends ChangeNotifier {
     _animationsOn = _box.get('animationsOn', defaultValue: true) as bool;
     _compact = _box.get('compact', defaultValue: false) as bool;
     _showCameraTab = _box.get('showCameraTab', defaultValue: true) as bool;
+  }
+
+  AppLang _resolveInitialLang() {
+    final saved = _box.get('lang');
+    if (saved != null) return AppLang.values[saved as int];
+    final code =
+    WidgetsBinding.instance.platformDispatcher.locale.languageCode
+        .toLowerCase();
+    return switch (code) {
+      'tk' => AppLang.tk,
+      'tr' => AppLang.tr,
+      'en' => AppLang.en,
+      _ => AppLang.ru,
+    };
   }
 
   Future<void> put(String k, dynamic v) async {
