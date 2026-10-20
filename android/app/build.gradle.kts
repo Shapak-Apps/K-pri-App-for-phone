@@ -14,6 +14,13 @@ plugins {
     id("com.google.firebase.crashlytics")
 }
 
+configurations.all {
+    exclude(group = "com.google.android.gms", module = "play-services-ads")
+    exclude(group = "com.google.android.gms", module = "play-services-ads-base")
+    exclude(group = "com.google.android.gms", module = "play-services-ads-lite")
+    exclude(group = "com.google.android.gms", module = "play-services-ads-identifier")
+}
+
 android {
     namespace = "com.kopri.translator"
     compileSdk = 37
@@ -121,7 +128,6 @@ kotlin {
 dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.17.0"))
     implementation("com.google.firebase:firebase-crashlytics")
-    implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics-ndk")
 }
 
