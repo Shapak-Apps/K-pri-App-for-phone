@@ -104,6 +104,7 @@ class LanguageSelector extends StatefulWidget {
   final String from, to;
   final ValueChanged<String> onFromChanged, onToChanged;
   final VoidCallback onSwap;
+  final bool canSwap;
   const LanguageSelector({
     super.key,
     required this.from,
@@ -111,6 +112,7 @@ class LanguageSelector extends StatefulWidget {
     required this.onFromChanged,
     required this.onToChanged,
     required this.onSwap,
+    this.canSwap = true,
   });
 
   @override
@@ -166,7 +168,7 @@ class _LanguageSelectorState extends State<LanguageSelector> {
                 ),
               ),
             ),
-            _Swap(c: c, turns: _turns, onTap: _swap),
+            _Swap(c: c, turns: _turns, onTap: widget.canSwap ? _swap : null),
             Expanded(
               child: _Pill(
                 c: c,
@@ -247,27 +249,30 @@ class _Pill extends StatelessWidget {
 class _Swap extends StatelessWidget {
   final AppColors c;
   final double turns;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   const _Swap({required this.c, required this.turns, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Material(
-        color: c.accent,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
+      child: Opacity(
+        opacity: onTap == null ? 0.4 : 1,
+        child: Material(
+          color: c.accent,
           borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: SizedBox(
-            width: 40,
-            height: 40,
-            child: AnimatedRotation(
-              turns: turns,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-              child: Icon(Icons.swap_horiz_rounded, color: c.bg, size: 20),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onTap,
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: AnimatedRotation(
+                turns: turns,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                child: Icon(Icons.swap_horiz_rounded, color: c.bg, size: 20),
+              ),
             ),
           ),
         ),

@@ -91,6 +91,16 @@ class TranslateController extends ChangeNotifier {
     _ => null,
   };
 
+  /// The language that ⇄ puts into the target. "auto" can not be a target,
+  /// so with "auto" it is the detected language, if the app has it as a target.
+  String? get _swapTarget {
+    if (_from != 'auto') return _from;
+    final d = autoDetected;
+    return d != null && AppLanguages.all.containsKey(d) ? d : null;
+  }
+
+  bool get canSwap => _swapTarget != null;
+
   @override
   void dispose() {
     _disposed = true;
@@ -423,7 +433,8 @@ class TranslateController extends ChangeNotifier {
   }
 
   void swap() {
-    final t = _from;
+    final t = _swapTarget;
+    if (t == null) return;
     _from = _to;
     _to = t;
     if (_state case SuccessState(:final text)) {
