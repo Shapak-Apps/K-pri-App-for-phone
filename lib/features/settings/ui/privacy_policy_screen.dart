@@ -56,10 +56,19 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     _Section(
                       c: c,
+                      icon: Icons.public_rounded,
+                      title: t.secNetTitle,
+                      body: t.secNetBody,
+                      bullets: t.secNetBullets,
+                      index: 3,
+                    ),
+                    const SizedBox(height: 12),
+                    _Section(
+                      c: c,
                       icon: Icons.cloud_off_rounded,
                       title: t.sec4Title,
                       body: t.sec4Body,
-                      index: 3,
+                      index: 4,
                     ),
                     const SizedBox(height: 12),
                     _Section(
@@ -67,7 +76,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                       icon: Icons.child_care_rounded,
                       title: t.sec5Title,
                       body: t.sec5Body,
-                      index: 4,
+                      index: 5,
                     ),
                     const SizedBox(height: 18),
                     _ContactCard(c: c, t: t),
@@ -431,13 +440,13 @@ class _Strings {
 
   String get introBody => switch (lang) {
     'ru' =>
-      'Мы создали Köpri так, чтобы ваши переводы оставались только у вас. Никакой слежки, никакой рекламы, никакой продажи данных. Вот как это работает:',
+      'История, избранное и прогресс хранятся на вашем телефоне. Никакой рекламы, никакой продажи данных. Вот как это работает:',
     'tk' =>
-      'Biz Köpri-ni siziň terjimeleňiziň diňe sizde galar ýaly etdik. Hiç hili göz yzarlamasy, hiç hili mahabat, hiç hili maglumat satuwymy. Ine, nähili işleýär:',
+      'Taryhyňyz, halanlaryňyz we öňegidişligiňiz telefonyňyzda saklanýar. Mahabat ýok, maglumat satuwy ýok. Ine, nähili işleýär:',
     'tr' =>
-      'Köpri\'yi çevirilerinizin yalnızca sizde kalması için tasarladık. Takip yok, reklam yok, veri satışı yok. İşte nasıl çalışıyor:',
+      'Geçmişiniz, favorileriniz ve ilerlemeniz telefonunuzda kalır. Reklam yok, veri satışı yok. İşte nasıl çalışıyor:',
     _ =>
-      'We built Köpri so your translations stay only with you. No tracking, no ads, no data selling. Here\'s how it works:',
+      'Your history, favorites and progress stay on your phone. No ads, no data selling. Here\'s how it works:',
   };
 
   String get sec1Title => switch (lang) {
@@ -548,30 +557,67 @@ class _Strings {
     'ru' => [
       'Камера — для перевода текста с фото (скоро)',
       'Микрофон — для голосового ввода (скоро)',
-      'Интернет — для онлайн-перевода',
+      'Интернет — для онлайн-перевода и отчётов о сбоях',
       'Уведомления — для фоновой работы',
       'Любое разрешение можно отключить в настройках телефона',
     ],
     'tk' => [
       'Kamera — suratlardaky teksti terjime etmek üçin (ýakyn wagtda)',
       'Mikrofon — ses bilen girizmek üçin (ýakyn wagtda)',
-      'Internet — onlaýn terjime üçin',
+      'Internet — onlaýn terjime we näsazlyk hasabatlary üçin',
       'Habarnamalar — arka planda işlemek üçin',
       'Islendik rugsady telefon sazlamalarynda öçürip bolýar',
     ],
     'tr' => [
       'Kamera — fotoğraflardaki metni çevirmek için (yakında)',
       'Mikrofon — sesli giriş için (yakında)',
-      'İnternet — çevrimiçi çeviri için',
+      'İnternet — çevrimiçi çeviri ve çökme raporları için',
       'Bildirimler — arka planda çalışmak için',
       'Herhangi bir izin telefon ayarlarından kapatılabilir',
     ],
     _ => [
       'Camera — for translating text from photos (coming soon)',
       'Microphone — for voice input (coming soon)',
-      'Internet — for online translation',
+      'Internet — for online translation and crash reports',
       'Notifications — for background work',
       'Any permission can be turned off in phone settings',
+    ],
+  };
+
+  String get secNetTitle => switch (lang) {
+    'ru' => 'Что уходит в интернет',
+    'tk' => 'Internete näme gidýär',
+    'tr' => 'İnternete ne gider',
+    _ => 'What goes to the internet',
+  };
+
+  String get secNetBody => switch (lang) {
+    'ru' => 'Часть данных покидает ваш телефон:',
+    'tk' => 'Käbir maglumatlar telefonyňyzdan çykýar:',
+    'tr' => 'Bazı veriler telefonunuzdan çıkar:',
+    _ => 'Some data leaves your phone:',
+  };
+
+  List<String> get secNetBullets => switch (lang) {
+    'ru' => [
+      'Текст, который вы переводите онлайн, уходит в Google Translate, Lingva (три сервера, их держат другие люди) и MyMemory. Приложение отправляет его всем сразу и берёт первый ответ.',
+      'Скопированный текст уходит в те же сервисы, когда его переводит пузырёк буфера обмена.',
+      'Отчёты о сбоях уходят в Firebase Crashlytics (Google): что сломалось, модель телефона, версия Android и версия приложения.',
+    ],
+    'tk' => [
+      'Onlaýn terjime edýän tekstiňiz Google Translate, Lingva (beýleki adamlaryň dolandyrýan üç serweri) we MyMemory hyzmatlaryna gidýär. Programma ony hemmesine birden iberýär we ilkinji jogaby alýar.',
+      'Göçüren tekstiňizi bufer terjime köpügi terjime edende, ol hem şol hyzmatlara gidýär.',
+      'Näsazlyk hasabatlary Firebase Crashlytics-e (Google) gidýär: näme ýalňyş boldy, telefonyňyzyň modeli, Android wersiýasy we programmanyň wersiýasy.',
+    ],
+    'tr' => [
+      'Çevrimiçi çevirdiğiniz metin Google Translate, Lingva (başka kişilerin yönettiği üç sunucu) ve MyMemory\'ye gider. Uygulama metni hepsine aynı anda gönderir ve ilk cevabı kullanır.',
+      'Kopyaladığınız metin, pano çeviri balonu onu çevirdiğinde aynı hizmetlere gider.',
+      'Çökme raporları Firebase Crashlytics\'e (Google) gider: ne yanlış gitti, cihaz modeliniz, Android sürümü ve uygulama sürümü.',
+    ],
+    _ => [
+      'Text you translate online goes to Google Translate, Lingva (three servers run by other people) and MyMemory. The app sends it to all of them at once and uses the first answer.',
+      'Text you copy goes to the same services when the clipboard bubble translates it.',
+      'Crash reports go to Firebase Crashlytics (Google): what went wrong, your device model, Android version and app version.',
     ],
   };
 
@@ -584,13 +630,13 @@ class _Strings {
 
   String get sec4Body => switch (lang) {
     'ru' =>
-      'Когда вы скачиваете язык для оффлайн-работы, всё переводится прямо на вашем телефоне. Ни одно слово не уходит в интернет. Это самый безопасный способ перевода — даже без связи ваши тексты остаются только у вас.',
+      'Когда оффлайн-модель языка скачана, приложение сначала переводит прямо на телефоне. Если оффлайн-перевод не ответил быстро или ничего не дал, текст уходит в онлайн-сервисы выше. Пузырёк буфера обмена не использует оффлайн-модели: ему всегда нужен интернет.',
     'tk' =>
-      'Offlaýn işlemek üçin dil ýükläniňizde, hemme zat göni telefonyňyzda terjime edilýär. Hiç bir söz internete gitmeýär. Bu terjime etmegiň iň howpsuz usuly — hatda baglanyşyksyz hem tekstleriňiz diňe sizde galýar.',
+      'Diliň oflaýn modeli ýüklenen bolsa, programma ilki göni telefonyňyzda terjime edýär. Eger oflaýn terjime çalt jogap bermese ýa-da hiç zat bermese, tekst ýokardaky onlaýn hyzmatlara gidýär. Bufer terjime köpügi oflaýn modelleri ulanmaýar: oňa elmydama internet gerek.',
     'tr' =>
-      'Çevrimdışı çalışmak için bir dil indirdiğinizde, her şey doğrudan telefonunuzda çevrilir. Hiçbir kelime internete gitmez. Bu çeviri yapmanın en güvenli yoludur — bağlantı olmadan bile metinleriniz yalnızca sizde kalır.',
+      'Bir dilin çevrimdışı modeli hazır olduğunda, uygulama önce doğrudan telefonunuzda çevirir. Çevrimdışı çeviri hızlı cevap vermezse veya bir şey vermezse, metin yukarıdaki çevrimiçi hizmetlere gider. Pano çeviri balonu çevrimdışı modelleri kullanmaz: her zaman internete ihtiyaç duyar.',
     _ =>
-      'When you download a language for offline use, everything is translated right on your phone. Not a single word goes to the internet. This is the safest way to translate — even without connection, your texts stay only with you.',
+      'When the offline model for a language is ready, the app translates right on your phone first. If the offline translation does not answer quickly or gives nothing, the text goes to the online services above. The clipboard bubble does not use offline models: it always needs the internet.',
   };
 
   String get sec5Title => switch (lang) {
@@ -629,9 +675,9 @@ class _Strings {
   };
 
   String get footer => switch (lang) {
-    'ru' => 'Köpri · Обновлено: сентябрь 2026',
-    'tk' => 'Köpri · Täzelendi: sentýabr 2026',
-    'tr' => 'Köpri · Güncellendi: Eylül 2026',
-    _ => 'Köpri · Updated: September 2026',
+    'ru' => 'Köpri · Обновлено: октябрь 2026',
+    'tk' => 'Köpri · Täzelendi: oktýabr 2026',
+    'tr' => 'Köpri · Güncellendi: Ekim 2026',
+    _ => 'Köpri · Updated: October 2026',
   };
 }
