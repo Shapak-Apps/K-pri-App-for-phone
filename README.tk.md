@@ -279,6 +279,20 @@ Aýnazar Sylyýew
 - [Sean Barrett-iň stb kitaphanasy](https://github.com/nothings/stb) — natiw awatar resize üçin single-header kitaphana
 - [flutter_tesseract_ocr](https://pub.dev/packages/flutter_tesseract_ocr) — OCR plagini
 
+- ## 📥 Ýükläp almak
+
+<div align="center">
+
+<a href="https://www.rustore.ru/catalog/app/com.kopri.translator">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/badges/logo-color-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./assets/badges/logo-color-light.svg">
+    <img src="./assets/badges/logo-color-light.svg" alt="RuStore-da elýeterli" height="60">
+  </picture>
+</a>
+
+</div>
+
 <div align="center">
 ❤️, Flutter we C++ bilen ýasaldy
 
