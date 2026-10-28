@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import 'mt_service.dart';
@@ -256,18 +257,26 @@ class OnlineTranslator implements TranslatorService {
         'ara' => 'ar',
         'cjk' => 'zh',
         'dev' => 'hi',
-        _ => _detectLatinLanguage(text, target),
+        _ => detectLatinLanguage(text, target),
       };
     }
     if (text.runes.any((r) => r >= 0x0400 && r <= 0x04FF)) return 'ru';
-    if (RegExp(r'[äçžňöşüýÄÇŽŇÖŞÜÝ]').hasMatch(text)) return 'tk';
+    // Same letters as detect_script() in C++. Turkish has ç, ö, ş, ü.
+    if (RegExp(r'[ňýŇÝ]').hasMatch(text)) return 'tk';
     if (text.runes.any((r) => r >= 0x0600 && r <= 0x06FF)) return 'ar';
     if (text.runes.any((r) => r >= 0x4E00 && r <= 0x9FFF)) return 'zh';
-    return _detectLatinLanguage(text, target);
+    return detectLatinLanguage(text, target);
   }
 
-  String _detectLatinLanguage(String text, String target) {
+  @visibleForTesting
+  static String detectLatinLanguage(String text, String target) {
     final t = text.toLowerCase();
+    // RegExp \b only knows ASCII letters, so split by Unicode letters.
+    final words = t
+        .split(RegExp(r'[^\p{L}]+', unicode: true))
+        .where((w) => w.isNotEmpty)
+        .toSet();
+    final hasTkLetter = RegExp(r'[äžňüý]').hasMatch(t);
 
     final tkWords = {
       'we',
@@ -302,7 +311,6 @@ class OnlineTranslator implements TranslatorService {
       'köne',
       'ýaş',
       'gary',
-      'näme',
       'üçin',
       'sebäbi',
       'emma',
@@ -319,12 +327,12 @@ class OnlineTranslator implements TranslatorService {
       'gördüm',
       'gördi',
     };
-    int tkCount = 0;
-    for (final w in tkWords) {
-      if (t.contains(RegExp('\\b$w\\b'))) tkCount++;
-    }
-    if (tkCount >= 2 || (tkCount == 1 && RegExp(r'[äžňüý]').hasMatch(text)))
-      return 'tk';
+    // "we" and "men" are English words too: count them only next to a Turkmen letter.
+    final tkCount = words
+        .where(tkWords.contains)
+        .where((w) => hasTkLetter || (w != 'we' && w != 'men'))
+        .length;
+    if (tkCount >= 2 || (tkCount == 1 && hasTkLetter)) return 'tk';
 
     final trWords = {
       've',
@@ -369,10 +377,7 @@ class OnlineTranslator implements TranslatorService {
       'geliyorum',
       'yapıyorum',
     };
-    int trCount = 0;
-    for (final w in trWords) {
-      if (t.contains(RegExp('\\b$w\\b'))) trCount++;
-    }
+    final trCount = words.where(trWords.contains).length;
     if (trCount >= 2) return 'tr';
 
     return target == 'en' ? 'ru' : 'en';
