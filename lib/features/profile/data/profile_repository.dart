@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'native/profile_ffi.dart';
 import 'profile_goals_service.dart';
+import 'profile_xp_service.dart';
 
 class ProfileRepository extends ChangeNotifier {
   ProfileRepository._();
@@ -302,7 +303,7 @@ class ProfileRepository extends ChangeNotifier {
     }
 
     // 1. Char-based XP from the C++ engine.
-    final chars = _countChars(resultText);
+    final chars = ProfileXpService.countChars(resultText);
     final base = _ffi.computeTranslationXp(
       charCount: chars,
       isRareLanguage: _isRareLanguage(targetLanguage),
@@ -330,11 +331,6 @@ class ProfileRepository extends ChangeNotifier {
     notifyListeners();
     return awarded + bonus;
   }
-
-  /// Counts letters only (no spaces/punctuation).
-  static int _countChars(String text) => text
-      .replaceAll(RegExp(r'[^a-zA-Zа-яА-ЯёЁçÇöÖüÜşŞğĞıIäÄæÆňŇöÖüÜýÝžŽ]'), '')
-      .length;
 
   static bool _isRareLanguage(String code) {
     const common = {'en', 'ru', 'tk', 'tr'};

@@ -32,10 +32,10 @@ class ProfileXpService {
 
   // ── Helpers ──────────────────────────────────────────────────────────────
   /// Counts letters only (no spaces/punctuation) — "буквы перевода".
-  /// FIXED: replacement '' belongs to replaceAll(), not to RegExp().
-  static int countChars(String text) => text
-      .replaceAll(RegExp(r'[^a-zA-Zа-яА-ЯёЁçÇöÖüÜşŞğĞıIäÄæÆňŇöÖüÜýÝžŽ]'), '')
-      .length;
+  /// \p{L} is a letter in any script: Latin, Cyrillic, Arabic, CJK, Devanagari...
+  static int countChars(String text) => text.replaceAll(_nonLetter, '').length;
+
+  static final _nonLetter = RegExp(r'[^\p{L}]', unicode: true);
 
   // Common languages = native, no bonus.
   // Everything else = rare language, +30% XP.
