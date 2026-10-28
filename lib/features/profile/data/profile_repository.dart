@@ -291,15 +291,15 @@ class ProfileRepository extends ChangeNotifier {
       } else {
         final diff = DateTime.now().difference(DateTime.parse(last)).inDays;
         if (diff == 1) {
-          final ns = streak + 1;
-          await _box!.put('streak', ns);
-          if (ns > bestStreak) await _box!.put('bestStreak', ns);
+          await _box!.put('streak', streak + 1);
         } else if (diff > 1) {
           await _box!.put('streak', 1);
         }
       }
       await _box!.put('lastActiveDate', today);
     }
+    // After every branch above (also the first day and the day after a break).
+    if (streak > bestStreak) await _box!.put('bestStreak', streak);
 
     // 1. Char-based XP from the C++ engine.
     final chars = _countChars(resultText);
