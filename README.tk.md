@@ -70,7 +70,7 @@ Näme üçin gibrid? ML Kit latyn elipbiýinde Tesseract-den 10–20 esse çalt 
 
 | Modul | Maksady |
 | --- | --- |
-| xp_engine | XP, derejeler, öňegidişlik eksponensial kynçylyk bilen (BASE 200, GROWTH 1.25) — Dart-dan 20 esse çalt |
+| xp_engine | XP, derejeler, öňegidişlik eksponensial kynçylyk bilen (BASE 800, GROWTH 1.15) — Dart-dan 20 esse çalt |
 | streak_engine | Häzirki/iň gowy strik — Hinnant-yň raýat günleri algoritmi bilen (aý/ýyl boýunça takyk) |
 | stats_engine | Hepdelik grafik (O(n)), pik sagady, ortaça uzynlyk, iň köp frazalar — hemmesi C++-da |
 | ocr_engine | OCR üçin natiw surat taýýarlamasy we aýlawy — kamera bilen v2.0.0-de çykar |
@@ -89,8 +89,12 @@ Näme üçin gibrid? ML Kit latyn elipbiýinde Tesseract-den 10–20 esse çalt 
 
 Köpri kyn derejeleşme egrisini ulanýar — her dereje gazanylmaly:
 
-- Her tamamlanan terjime üçin +5 XP
-- Eksponensial baha: BASE 200, GROWTH 1.25 — her indiki dereje öňküsinden ~25% köp XP talap edýär
+- Terjimäniň her harpy üçin 1 XP (boşluklar we dyngy belgileri hasaba alynmaýar), bir terjime üçin iň köp 500 XP
+- Terjime dili iňlis, rus, türkmen ýa-da türk dili bolmasa, +30%
+- 24 sagatlyk aralykda ilkinji terjime üçin +50 XP
+- Gündelik XP çägi (24 sagatlyk aralyk): 1-nji derejede 1500 XP, her indiki dereje üçin +100
+- Günlük maksat üçin bonus: 100 XP + strigiň her güni üçin 10 XP, iň köp 300 XP; gündelik çäk oňa degişli däl
+- Eksponensial baha: BASE 800, GROWTH 1.15 — her indiki dereje öňküsinden ~15% köp XP talap edýär
 - 100 dereje, 100-nji dereje = «Terjime efsanesi»
 - Günlik strikler, iň gowy strik, rozetler we günlük maksatlar
 
