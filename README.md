@@ -279,6 +279,20 @@ Aynazar Sylyyew
 - [stb by Sean Barrett](https://github.com/nothings/stb) — single-header image library for native avatar resize
 - [flutter_tesseract_ocr](https://pub.dev/packages/flutter_tesseract_ocr) — OCR plugin
 
+- ## 📥 Download
+
+<div align="center">
+
+<a href="https://www.rustore.ru/catalog/app/com.kopri.translator">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/badges/logo-color-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./assets/badges/logo-color-light.svg">
+    <img src="./assets/badges/logo-color-light.svg" alt="Get it on RuStore" height="60">
+  </picture>
+</a>
+
+</div>
+
 <div align="center">
 Made with ❤️, Flutter and C++
 
