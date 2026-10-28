@@ -279,6 +279,20 @@ flutter build appbundle --release
 - [stb от Sean Barrett](https://github.com/nothings/stb) — single-header библиотека для нативного ресайза аватара
 - [flutter_tesseract_ocr](https://pub.dev/packages/flutter_tesseract_ocr) — плагин OCR
 
+- ## 📥 Скачать
+
+<div align="center">
+
+<a href="https://www.rustore.ru/catalog/app/com.kopri.translator">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/badges/logo-color-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./assets/badges/logo-color-light.svg">
+    <img src="./assets/badges/logo-color-light.svg" alt="Доступно в RuStore" height="60">
+  </picture>
+</a>
+
+</div>
+
 <div align="center">
 Сделано с ❤️, Flutter и C++
 
