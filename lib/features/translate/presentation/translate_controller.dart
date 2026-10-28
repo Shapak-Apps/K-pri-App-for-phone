@@ -39,7 +39,8 @@ class TranslateController extends ChangeNotifier {
       if (!_disposed) _onIncomingText();
     });
 
-    _speech.init();
+    // No _speech.init() here: it asks for the microphone, and voice input is
+    // off (kMicEnabled). toggleMic() calls init() when the user taps the mic.
     _tts.init();
   }
 
