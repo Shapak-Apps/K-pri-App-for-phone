@@ -128,7 +128,18 @@ cd K-pri-App-for-phone
 flutter pub get
 ```
 
-3. **⚠️ WAJYP: OCR modellerini `assets/tessdata/` papkasyna goýuň (v2.0.0 kamera üçin)**
+3. **Firebase sazlama faýllaryny goşuň**
+
+Hakyky Firebase faýllary git-de ýok. Ýasama bahaly mysal faýllaryny nusgalaň (buýruklar bash-da hem, PowerShell-de hem işleýär):
+
+```bash
+cp lib/firebase_options.example.dart lib/firebase_options.dart
+cp android/app/google-services.example.json android/app/google-services.json
+```
+
+Bu bahalar bilen programma ýygnalýar we işleýär, emma Crashlytics işlemeýär.
+
+4. **⚠️ WAJYP: OCR modellerini `assets/tessdata/` papkasyna goýuň (v2.0.0 kamera üçin)**
 
 Latyn elipbiýini Google ML Kit tanaýar (model Google Play Services arkaly awtomatik göçürilýär), şonuň üçin Tesseract diňe kiril, arap, CJK we dewanagari modelleri gerek. `eng.traineddata` we `tur.traineddata` Google Play Services bolmadyk enjamlar üçin ätiýaçlyk hökmünde galdyrylan. Jemi 38 model faýly gerek.
 
@@ -154,7 +165,7 @@ done
 
 Iň gowy hil üçin (uly faýllar) salgylarda `tessdata_fast` ýerine `tessdata` ulanyň.
 
-4. **⚠️ WAJYP: natiw awatar resize üçin stb_image headerlerini göçürip alyň**
+5. **⚠️ WAJYP: natiw awatar resize üçin stb_image headerlerini göçürip alyň**
 
 `image_fast` C++ moduly dessine awatar resize etmek üçin [stb_image](https://github.com/nothings/stb) we [stb_image_write](https://github.com/nothings/stb) single-header kitaphanalaryny ulanýar. Olary `android/app/src/main/cpp/` papkasyna göçürip alyň:
 
@@ -174,7 +185,7 @@ curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h
 
 Eger stb headerleri ýok bolsa, programma awtomatik Dart nusgasyndan peýdalanar — hemme zat işlär, diňe biraz haýalrak.
 
-5. **Android sazlamasy**
+6. **Android sazlamasy**
 
 Programma Android 5.0+ (API 21) talap edýär. ML Kit modeliniň gurnalmanda öňünden göçürilmegi üçin `android/app/src/main/AndroidManifest.xml` faýlynda `<application>` içine goşuň:
 

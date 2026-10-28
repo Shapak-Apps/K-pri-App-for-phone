@@ -128,7 +128,18 @@ cd K-pri-App-for-phone
 flutter pub get
 ```
 
-3. **⚠️ ВАЖНО: добавь OCR-модели в `assets/tessdata/` (для камеры в v2.0.0)**
+3. **Добавь файлы настроек Firebase**
+
+Настоящих файлов Firebase нет в git. Скопируй файлы-примеры с фейковыми значениями (команды работают и в bash, и в PowerShell):
+
+```bash
+cp lib/firebase_options.example.dart lib/firebase_options.dart
+cp android/app/google-services.example.json android/app/google-services.json
+```
+
+С этими значениями приложение собирается и запускается, но Crashlytics не работает.
+
+4. **⚠️ ВАЖНО: добавь OCR-модели в `assets/tessdata/` (для камеры в v2.0.0)**
 
 Латиницу распознаёт Google ML Kit (модель скачивается автоматически через Google Play Services), поэтому для Tesseract нужны только модели кириллицы, арабского, CJK и деванагари. Файлы `eng.traineddata` и `tur.traineddata` оставлены как запасные для устройств без Google Play Services. Всего нужно 38 файлов моделей.
 
@@ -154,7 +165,7 @@ done
 
 Для лучшего качества (файлы больше) замени `tessdata_fast` на `tessdata` в ссылках.
 
-4. **⚠️ ВАЖНО: скачай stb_image-хедеры для нативного ресайза аватара**
+5. **⚠️ ВАЖНО: скачай stb_image-хедеры для нативного ресайза аватара**
 
 C++-модуль `image_fast` использует single-header библиотеки [stb_image](https://github.com/nothings/stb) и [stb_image_write](https://github.com/nothings/stb) для мгновенного ресайза аватара. Скачай их в `android/app/src/main/cpp/`:
 
@@ -174,7 +185,7 @@ curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h
 
 Если stb-хедеры отсутствуют, приложение автоматически переключится на копирование через Dart — всё продолжит работать, просто чуть медленнее.
 
-5. **Настройка Android**
+6. **Настройка Android**
 
 Приложению нужен Android 5.0+ (API 21). Добавь внутрь `<application>` в `android/app/src/main/AndroidManifest.xml`, чтобы модель ML Kit скачивалась заранее при установке:
 
