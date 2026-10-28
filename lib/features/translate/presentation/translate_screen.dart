@@ -153,6 +153,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
             onFromChanged: _c.setFrom,
             onToChanged: _c.setTo,
             onSwap: _c.swap,
+            canSwap: _c.canSwap,
           ),
           Expanded(
             child: ListView(
