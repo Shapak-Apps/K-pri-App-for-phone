@@ -55,11 +55,12 @@ namespace kt {
             const uint32_t cp = next_cp(t, i);
 
             if (cp >= 0x0400 && cp <= 0x04FF) ++cyr;
-            else if ((cp >= 'A' && cp <= 'Z') || (cp >= 'a' && cp <= 'z')) {
+            else if ((cp >= 'A' && cp <= 'Z') || (cp >= 'a' && cp <= 'z')) ++lat;
+            else if (cp == 0x148 || cp == 0x147 || cp == 0xFD || cp == 0xDD) {
+                // ň Ň ý Ý: Turkmen letters that Turkish, German and English do not use.
+                // ä, ş and ž are left out: Turkish has ş, German has ä, Czech has ž.
                 ++lat;
-                if (cp == 0xE4 || cp == 0xC4 || cp == 0x17E || cp == 0x17D ||
-                    cp == 0x148 || cp == 0x147 || cp == 0x15F || cp == 0x15E ||
-                    cp == 0xFD || cp == 0xDD) ++tk;
+                ++tk;
             } else if (cp >= 0x0600 && cp <= 0x06FF) ++ara;
             else if ((cp >= 0x4E00 && cp <= 0x9FFF) || (cp >= 0x3040 && cp <= 0x30FF) ||
                      (cp >= 0xAC00 && cp <= 0xD7AF)) ++cjk;
