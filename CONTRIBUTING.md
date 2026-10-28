@@ -112,6 +112,10 @@ git remote add upstream https://github.com/aynazar-sylyyew-dev/K-pri-App-for-pho
 
 # Install dependencies
 flutter pub get
+
+# Add the Firebase config files (fake values; the real files are not in git)
+cp lib/firebase_options.example.dart lib/firebase_options.dart
+cp android/app/google-services.example.json android/app/google-services.json
 ```
 
 ### OCR Models (Required)

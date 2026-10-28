@@ -124,7 +124,18 @@ cd K-pri-App-for-phone
 flutter pub get
 ```
 
-3. **⚠️ IMPORTANT: add OCR models to `assets/tessdata/` (for v2.0.0 camera)**
+3. **Add the Firebase config files**
+
+The real Firebase files are not in git. Copy the example files with fake values (these commands work in bash and PowerShell):
+
+```bash
+cp lib/firebase_options.example.dart lib/firebase_options.dart
+cp android/app/google-services.example.json android/app/google-services.json
+```
+
+With these values the app builds and runs, but Crashlytics does not work.
+
+4. **⚠️ IMPORTANT: add OCR models to `assets/tessdata/` (for v2.0.0 camera)**
 
 Latin scripts are recognized by Google ML Kit (auto-downloaded by Google Play Services), so you only need Tesseract models for Cyrillic, Arabic, CJK and Devanagari. `eng` and `tur` are kept as fallbacks for devices without Google Play Services. The app needs 38 model files.
 
@@ -150,7 +161,7 @@ done
 
 For best quality (larger files) replace `tessdata_fast` with `tessdata` in the URLs.
 
-4. **⚠️ IMPORTANT: download stb_image headers for native avatar resize**
+5. **⚠️ IMPORTANT: download stb_image headers for native avatar resize**
 
 The C++ module `image_fast` uses the single-header libraries [stb_image](https://github.com/nothings/stb) and [stb_image_write](https://github.com/nothings/stb) for instant avatar resizing. Download them into `android/app/src/main/cpp/`:
 
@@ -170,7 +181,7 @@ curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h
 
 If stb headers are missing, the app falls back to Dart image copy automatically — everything still works, just slightly slower.
 
-5. **Android configuration**
+6. **Android configuration**
 
 The app requires Android 5.0+ (API 21) and uses Google Play Services for ML Kit. Add this inside `<application>` in `android/app/src/main/AndroidManifest.xml` so the OCR model is pre-downloaded on install:
 
