@@ -70,7 +70,7 @@ Why hybrid OCR? ML Kit is 10–20× faster on Latin scripts (signs, menus, docum
 
 | Module | Purpose |
 | --- | --- |
-| xp_engine | XP, levels, progress with exponential difficulty (BASE 200, GROWTH 1.25) — 20× faster than Dart |
+| xp_engine | XP, levels, progress with exponential difficulty (BASE 800, GROWTH 1.15) — 20× faster than Dart |
 | streak_engine | Current/best streak with Hinnant's civil days algorithm (exact across months/years) |
 | stats_engine | Weekly chart (O(n)), peak hour, average length, top phrases — all in C++ |
 | ocr_engine | Native image preprocessing & rotation for OCR — ships with camera in v2.0.0 |
@@ -89,8 +89,12 @@ Why hybrid OCR? ML Kit is 10–20× faster on Latin scripts (signs, menus, docum
 
 Köpri uses a hardcore leveling curve so that every level is earned:
 
-- +5 XP per completed translation
-- Exponential cost: BASE 200, GROWTH 1.25 — each level needs ~25% more XP than the previous one
+- 1 XP for each letter of the translated text (spaces and punctuation do not count), max 500 XP for one translation
+- +30% when the target language is not English, Russian, Turkmen or Turkish
+- +50 XP for the first translation in a 24-hour window
+- Daily XP cap (24-hour window): 1500 XP at level 1, +100 for each next level
+- Daily goal bonus: 100 XP + 10 XP for each streak day, max 300 XP; the daily cap does not apply to it
+- Exponential cost: BASE 800, GROWTH 1.15 — each level needs ~15% more XP than the previous one
 - 100 levels, level 100 = "Translation Legend"
 - Daily streaks, best streak, badges and daily goals
 
