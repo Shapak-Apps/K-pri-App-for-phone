@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -10,7 +11,9 @@ import '../../../core/native/apk_channel.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/linkage_language_picker.dart';
 import '../../camera/data/camera_repository.dart';
+import '../../flashcards/data/srs_scheduler.dart';
 import '../../history/data/history_repository.dart';
+import '../../profile/data/profile_repository.dart';
 
 /// Floating snackbar shared by every settings flow.
 void showSettingsSnack(
@@ -274,8 +277,36 @@ Future<void> clearAllAction(
 ) async {
   final l10n = context.settings.l10n;
   if (!await askSettingsConfirm(context, l10n.t('clear_all'))) return;
-  final n = await repo.clear();
+  final n = await clearAllData(repo);
   if (context.mounted) showSettingsSnack(context, '${l10n.t('cleared')} · $n');
+}
+
+/// Clears the history, the profile (name, avatar, XP, streak, daily goal),
+/// the flashcards progress, the photos and the home screen widget text.
+/// Settings, onboarding and downloaded offline models stay.
+@visibleForTesting
+Future<int> clearAllData(HistoryRepository repo) async {
+  final n = await repo.clear();
+  await ProfileRepository.instance.clearAll();
+  await SrsScheduler.clear();
+  await CameraRepository.instance.clearAll();
+  await _clearHomeWidget();
+  return n;
+}
+
+/// Without these keys the widget shows its empty text again.
+Future<void> _clearHomeWidget() async {
+  try {
+    for (final key in const ['last_source', 'last_result', 'last_pair']) {
+      await HomeWidget.saveWidgetData<String>(key, null);
+    }
+    await HomeWidget.updateWidget(
+      name: 'KopriWidgetProvider',
+      androidName: 'KopriWidgetProvider',
+    );
+  } catch (e) {
+    debugPrint('[widget] clear error: $e');
+  }
 }
 
 Future<void> clearPhotosAction(BuildContext context) async {
