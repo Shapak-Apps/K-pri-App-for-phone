@@ -49,7 +49,7 @@ Köpri is part of the [Shapak-Apps](https://github.com/Shapak-Apps) organization
 
 ## 🌍 Supported languages
 
-🇬 English · 🇷 Russian · 🇲 Turkmen · 🇷 Turkish · 🇿 Kazakh · 🇹🇯 Tajik · 🇺 Uzbek ·  Ukrainian · 🇳 Chinese · 🇵 Japanese ·  Korean · 🇦 Arabic · 🇪 German · 🇷 French ·  Spanish ·  Italian · 🇳 Hindi and more
+🇬🇧 English · 🇷🇺 Russian · 🇹🇲 Turkmen · 🇹🇷 Turkish · 🇰🇿 Kazakh · 🇹🇯 Tajik · 🇺🇿 Uzbek · 🇺🇦 Ukrainian · 🇨🇳 Chinese · 🇯🇵 Japanese · 🇰🇷 Korean · 🇸🇦 Arabic · 🇩🇪 German · 🇫🇷 French · 🇪🇸 Spanish · 🇮🇹 Italian · 🇮🇳 Hindi and more
 
 ## 🛠 Tech Stack
 
@@ -102,8 +102,8 @@ Köpri uses a hardcore leveling curve so that every level is earned:
 
 ### Prerequisites
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.0+
-- [Dart SDK](https://dart.dev/get-dart) (comes with Flutter)
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.44+
+- [Dart SDK](https://dart.dev/get-dart) 3.12+ (comes with Flutter)
 - [Android Studio](https://developer.android.com/studio) or [VS Code](https://code.visualstudio.com)
 - [Git](https://git-scm.com)
 
@@ -150,7 +150,7 @@ Latin scripts are recognized by Google ML Kit (auto-downloaded by Google Play Se
 ```bash
 # PowerShell (Windows) — run in the project root
 New-Item -ItemType Directory -Force -Path "assets\tessdata" | Out-Null
-"eng tur rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya".Split(" ") | ForEach-Object {
+"eng tur aze rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya".Split(" ") | ForEach-Object {
   Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$_.traineddata" -OutFile "assets\tessdata\$_.traineddata"
 }
 ```
@@ -158,42 +158,16 @@ New-Item -ItemType Directory -Force -Path "assets\tessdata" | Out-Null
 ```bash
 # curl (Linux / macOS) — run in the project root
 mkdir -p assets/tessdata
-for c in eng tur rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya; do
+for c in eng tur aze rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya; do
   curl -L "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$c.traineddata" -o "assets/tessdata/$c.traineddata"
 done
 ```
 
 For best quality (larger files) replace `tessdata_fast` with `tessdata` in the URLs.
 
-5. **⚠️ IMPORTANT: download stb_image headers for native avatar resize**
+5. **Android configuration**
 
-The C++ module `image_fast` uses the single-header libraries [stb_image](https://github.com/nothings/stb) and [stb_image_write](https://github.com/nothings/stb) for instant avatar resizing. Download them into `android/app/src/main/cpp/`:
-
-```bash
-# PowerShell (Windows) — run in the project root
-New-Item -ItemType Directory -Force -Path "android\app\src\main\cpp" | Out-Null
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h" -OutFile "android\app\src\main\cpp\stb_image.h"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h" -OutFile "android\app\src\main\cpp\stb_image_write.h"
-```
-
-```bash
-# curl (Linux / macOS) — run in the project root
-mkdir -p android/app/src/main/cpp
-curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h" -o android/app/src/main/cpp/stb_image.h
-curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h" -o android/app/src/main/cpp/stb_image_write.h
-```
-
-If stb headers are missing, the app falls back to Dart image copy automatically — everything still works, just slightly slower.
-
-6. **Android configuration**
-
-The app requires Android 5.0+ (API 21) and uses Google Play Services for ML Kit. Add this inside `<application>` in `android/app/src/main/AndroidManifest.xml` so the OCR model is pre-downloaded on install:
-
-```xml
-<meta-data
-    android:name="com.google.mlkit.vision.DEPENDENCIES"
-    android:value="ocr" />
-```
+The app requires Android 7.0+ (API 24) and uses Google Play Services for ML Kit. The ML Kit `meta-data` line that pre-downloads the OCR model on install is already in `android/app/src/main/AndroidManifest.xml`.
 
 Make sure `pubspec.yaml` contains:
 
@@ -206,7 +180,7 @@ flutter:
     # - assets/tessdata/  # ← uncomment when v2.0.0 is released
 ```
 
-Before running the app, please read `build.gradle` (android) and `build.gradle` (:app).
+Before running the app, please read `android/build.gradle.kts` and `android/app/build.gradle.kts`.
 
 ## 🏃 Running (Debug)
 
@@ -242,7 +216,7 @@ flutter build appbundle --release
 ## 🔧 Troubleshooting
 
 - **"tessdata not found"** — make sure the `.traineddata` files are inside `assets/tessdata/` and the line is uncommented in `pubspec.yaml`, then run `flutter pub get` again.
-- **Camera shows "Coming Soon"** — this is expected in v1.x. Camera translation will be enabled in v2.0.0 (flip `kCameraEnabled` to `true` in `camera_screen.dart` for early testing).
+- **Camera shows "Coming Soon"** — this is expected in v1.x. Camera translation will be enabled in v2.0.0 (flip `kCameraEnabled` to `true` in `lib/features/camera/presentation/camera_constants.dart` for early testing).
 - **First camera OCR run is slow** — Google Play Services downloads the ML Kit model once (~5 MB); after that recognition takes ~0.3s.
 - **Camera not working** — grant the camera permission when Android asks for it on first launch.
 - **Build errors after cloning** — run `flutter clean && flutter pub get`.

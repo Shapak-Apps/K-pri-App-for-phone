@@ -5,7 +5,7 @@
 Offline translator with camera OCR, phrasebook and text-to-text translation
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/aynazar-sylyyew-dev/K-pri-App-for-phone/pulls)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Shapak-Apps/K-pri-App-for-phone/pulls)
 
 </div>
 
@@ -50,14 +50,14 @@ Unacceptable behavior includes harassment, personal attacks, trolling, and publi
 If you have a question, please don't open an issue for it. Instead:
 
 1. Check the [README](./README.md) — it covers setup, OCR models and building.
-2. Search [existing issues](https://github.com/aynazar-sylyyew-dev/K-pri-App-for-phone/issues).
-3. If nothing fits, [open a new issue](https://github.com/aynazar-sylyyew-dev/K-pri-App-for-phone/issues/new) with the `question` label.
+2. Search [existing issues](https://github.com/Shapak-Apps/K-pri-App-for-phone/issues).
+3. If nothing fits, [open a new issue](https://github.com/Shapak-Apps/K-pri-App-for-phone/issues/new) with the `question` label.
 
 ## How Can I Contribute?
 
 ### Reporting Bugs
 
-Bugs are tracked as [GitHub issues](https://github.com/aynazar-sylyyew-dev/K-pri-App-for-phone/issues). Before creating a bug report, please check the existing issues to avoid duplicates. When you create a bug report, include as many details as possible:
+Bugs are tracked as [GitHub issues](https://github.com/Shapak-Apps/K-pri-App-for-phone/issues). Before creating a bug report, please check the existing issues to avoid duplicates. When you create a bug report, include as many details as possible:
 
 - **A clear title and description** of the problem.
 - **Steps to reproduce** — as precise as possible.
@@ -93,8 +93,8 @@ Unsure where to begin? Look for issues labeled `good first issue` — they are s
 
 ### Prerequisites
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.0+
-- [Dart SDK](https://dart.dev/get-dart) (bundled with Flutter)
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.44+
+- [Dart SDK](https://dart.dev/get-dart) 3.12+ (bundled with Flutter)
 - [Android Studio](https://developer.android.com/studio) or [VS Code](https://code.visualstudio.com)
 - [Git](https://git-scm.com)
 
@@ -108,7 +108,7 @@ git clone https://github.com/<your-username>/K-pri-App-for-phone.git
 cd K-pri-App-for-phone
 
 # Keep your fork in sync with the original repository
-git remote add upstream https://github.com/aynazar-sylyyew-dev/K-pri-App-for-phone.git
+git remote add upstream https://github.com/Shapak-Apps/K-pri-App-for-phone.git
 
 # Install dependencies
 flutter pub get

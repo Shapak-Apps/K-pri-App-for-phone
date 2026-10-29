@@ -49,7 +49,7 @@ Köpri — часть организации [Shapak-Apps](https://github.com/Sh
 
 ## 🌍 Поддерживаемые языки
 
-🇬 Английский · 🇷🇺 Русский · 🇹🇲 Туркменский · 🇹 Турецкий · 🇿 Казахский · 🇹 Таджикский · 🇺🇿 Узбекский · 🇺 Украинский · 🇳 Китайский · 🇯🇵 Японский · 🇰🇷 Корейский · 🇸🇦 Арабский · 🇩🇪 Немецкий · 🇫🇷 Французский · 🇪 Испанский · 🇮 Итальянский · 🇮🇳 Хинди и другие
+🇬🇧 Английский · 🇷🇺 Русский · 🇹🇲 Туркменский · 🇹🇷 Турецкий · 🇰🇿 Казахский · 🇹🇯 Таджикский · 🇺🇿 Узбекский · 🇺🇦 Украинский · 🇨🇳 Китайский · 🇯🇵 Японский · 🇰🇷 Корейский · 🇸🇦 Арабский · 🇩🇪 Немецкий · 🇫🇷 Французский · 🇪🇸 Испанский · 🇮🇹 Итальянский · 🇮🇳 Хинди и другие
 
 ## 🛠 Технологии
 
@@ -102,8 +102,8 @@ Köpri — часть организации [Shapak-Apps](https://github.com/Sh
 
 ### Требования
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.0+
-- [Dart SDK](https://dart.dev/get-dart) (идёт в комплекте с Flutter)
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.44+
+- [Dart SDK](https://dart.dev/get-dart) 3.12+ (идёт в комплекте с Flutter)
 - [Android Studio](https://developer.android.com/studio) или [VS Code](https://code.visualstudio.com)
 - [Git](https://git-scm.com)
 
@@ -150,7 +150,7 @@ cp android/app/google-services.example.json android/app/google-services.json
 ```bash
 # PowerShell (Windows) — запусти в корне проекта
 New-Item -ItemType Directory -Force -Path "assets\tessdata" | Out-Null
-"eng tur rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya".Split(" ") | ForEach-Object {
+"eng tur aze rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya".Split(" ") | ForEach-Object {
   Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$_.traineddata" -OutFile "assets\tessdata\$_.traineddata"
 }
 ```
@@ -158,42 +158,16 @@ New-Item -ItemType Directory -Force -Path "assets\tessdata" | Out-Null
 ```bash
 # curl (Linux / macOS) — запусти в корне проекта
 mkdir -p assets/tessdata
-for c in eng tur rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya; do
+for c in eng tur aze rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya; do
   curl -L "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$c.traineddata" -o "assets/tessdata/$c.traineddata"
 done
 ```
 
 Для лучшего качества (файлы больше) замени `tessdata_fast` на `tessdata` в ссылках.
 
-5. **⚠️ ВАЖНО: скачай stb_image-хедеры для нативного ресайза аватара**
+5. **Настройка Android**
 
-C++-модуль `image_fast` использует single-header библиотеки [stb_image](https://github.com/nothings/stb) и [stb_image_write](https://github.com/nothings/stb) для мгновенного ресайза аватара. Скачай их в `android/app/src/main/cpp/`:
-
-```bash
-# PowerShell (Windows) — запусти в корне проекта
-New-Item -ItemType Directory -Force -Path "android\app\src\main\cpp" | Out-Null
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h" -OutFile "android\app\src\main\cpp\stb_image.h"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h" -OutFile "android\app\src\main\cpp\stb_image_write.h"
-```
-
-```bash
-# curl (Linux / macOS) — запусти в корне проекта
-mkdir -p android/app/src/main/cpp
-curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h" -o android/app/src/main/cpp/stb_image.h
-curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h" -o android/app/src/main/cpp/stb_image_write.h
-```
-
-Если stb-хедеры отсутствуют, приложение автоматически переключится на копирование через Dart — всё продолжит работать, просто чуть медленнее.
-
-6. **Настройка Android**
-
-Приложению нужен Android 5.0+ (API 21). Добавь внутрь `<application>` в `android/app/src/main/AndroidManifest.xml`, чтобы модель ML Kit скачивалась заранее при установке:
-
-```xml
-<meta-data
-    android:name="com.google.mlkit.vision.DEPENDENCIES"
-    android:value="ocr" />
-```
+Приложению нужен Android 7.0+ (API 24). Строка `meta-data` для ML Kit (модель OCR скачивается заранее при установке) уже есть в `android/app/src/main/AndroidManifest.xml`.
 
 Убедись, что в `pubspec.yaml` есть:
 
@@ -206,7 +180,7 @@ flutter:
     # - assets/tessdata/  # ← раскомментируй при выпуске v2.0.0
 ```
 
-Перед запуском программы прочитай `build.gradle` (android) и `build.gradle` (:app).
+Перед запуском программы прочитай `android/build.gradle.kts` и `android/app/build.gradle.kts`.
 
 ## 🏃 Запуск (Debug)
 
@@ -242,7 +216,7 @@ flutter build appbundle --release
 ## 🔧 Возможные проблемы
 
 - **«tessdata not found»** — проверь, что файлы `.traineddata` лежат в `assets/tessdata/` и строка раскомментирована в `pubspec.yaml`, затем снова выполни `flutter pub get`.
-- **Камера показывает «Скоро»** — это ожидаемое поведение в v1.x. Перевод через камеру будет включён в v2.0.0 (для раннего тестирования переключи `kCameraEnabled` на `true` в `camera_screen.dart`).
+- **Камера показывает «Скоро»** — это ожидаемое поведение в v1.x. Перевод через камеру будет включён в v2.0.0 (для раннего тестирования переключи `kCameraEnabled` на `true` в `lib/features/camera/presentation/camera_constants.dart`).
 - **Первый запуск OCR медленный** — Google Play Services один раз скачивает модель ML Kit (~5 МБ), дальше распознавание занимает ~0.3 с.
 - **Камера не работает** — разреши доступ к камере, Android сам спросит при первом запуске.
 - **Ошибки сборки после клона** — выполни `flutter clean && flutter pub get`.
