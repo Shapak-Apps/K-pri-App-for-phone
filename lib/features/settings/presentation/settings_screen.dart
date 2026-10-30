@@ -7,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../camera/presentation/camera_screen.dart'
     show kCameraEnabled, showComingSoonAnywhere;
 import '../../history/data/history_repository.dart';
+import '../../translate/data/language_flags.dart';
 import '../../translate/data/languages.dart';
 import '../ui/privacy_policy_screen.dart';
 import '../ui/terms_screen.dart';
@@ -14,7 +15,6 @@ import 'dialogs/feedback_sheet.dart';
 import 'licenses_screen.dart';
 import 'sections/offline_models_section.dart';
 import 'settings_actions.dart';
-import 'settings_constants.dart';
 import 'settings_header.dart';
 import 'widgets/appearance_pickers.dart';
 import 'widgets/clipboard_switch_tile.dart';
