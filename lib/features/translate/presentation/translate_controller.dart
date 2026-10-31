@@ -26,9 +26,11 @@ class TranslateController extends ChangeNotifier {
     required HistoryRepository repo,
     required AppSettingsController settings,
     required ValueListenable<IncomingText?> incomingText,
+    TranslatorService? service, // tests pass a fake translator
   }) : _repo = repo,
         _settings = settings,
-        _incoming = incomingText {
+        _incoming = incomingText,
+        _service = service ?? OnlineTranslator() {
     _from = _settings.defaultFrom;
     _to = _settings.defaultTo;
 
@@ -48,7 +50,7 @@ class TranslateController extends ChangeNotifier {
   final AppSettingsController _settings;
   final ValueListenable<IncomingText?> _incoming;
 
-  final OnlineTranslator _service = OnlineTranslator();
+  final TranslatorService _service;
   final SpeechService _speech = SpeechService();
   final TtsService _tts = TtsService();
   final TextEditingController _ctrl = TextEditingController();
@@ -61,6 +63,7 @@ class TranslateController extends ChangeNotifier {
   TranslationState _state = const IdleState();
   bool _disposed = false;
   bool _loading = false;
+  bool _again = false; // translate() was called while a translation was running
   bool _listening = false;
   bool _suppress = false;
   bool _voiceAnalyzing = false;
@@ -164,7 +167,10 @@ class TranslateController extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    if (_loading) return;
+    if (_loading) {
+      _again = true;
+      return;
+    }
 
     // ── WORD-ONLY GUARD ────────────────────────────────────────────────────
     // Turkmen (and any other word-only language) refuses sentence input.
@@ -176,20 +182,24 @@ class TranslateController extends ChangeNotifier {
       return;
     }
 
+    // History, XP and the widget get the languages of this request, even if
+    // the user picks another language before the answer comes.
+    final from = _from;
+    final to = _to;
     _approx = false;
     _loading = true;
     _state = const LoadingState();
     notifyListeners();
     try {
-      final res = await _service.translate(text, from: _from, to: _to);
+      final res = await _service.translate(text, from: from, to: to);
       if (_disposed) return;
-      final saved = _from == 'auto' ? (res.detected ?? 'auto') : _from;
+      final saved = from == 'auto' ? (res.detected ?? 'auto') : from;
       _loading = false;
       _approx = res.approx;
       _state = SuccessState(res.text, res.detected);
       notifyListeners();
       if (_settings.autoSaveHistory) {
-        _repo.add(source: text, result: res.text, from: saved, to: _to);
+        _repo.add(source: text, result: res.text, from: saved, to: to);
       }
 
       // ── SMART XP: quality-based XP with anti-grind ────────────────────────
@@ -198,13 +208,13 @@ class TranslateController extends ChangeNotifier {
       await ProfileRepository.instance.onTranslationDone(
         sourceText: text,
         resultText: res.text,
-        targetLanguage: _to,
+        targetLanguage: to,
       );
 
       try {
         await HomeWidget.saveWidgetData<String>('last_source', text);
         await HomeWidget.saveWidgetData<String>('last_result', res.text);
-        await HomeWidget.saveWidgetData<String>('last_pair', '$saved → $_to');
+        await HomeWidget.saveWidgetData<String>('last_pair', '$saved → $to');
         await HomeWidget.updateWidget(
           name: 'KopriWidgetProvider',
           androidName: 'KopriWidgetProvider',
@@ -213,7 +223,7 @@ class TranslateController extends ChangeNotifier {
         debugPrint('[widget] update error: $e');
       }
       if (_settings.autoSpeak) {
-        _tts.speak(res.text, _to);
+        _tts.speak(res.text, to);
       }
     } catch (e) {
       debugPrint('[translate] error: $e');
@@ -222,6 +232,15 @@ class TranslateController extends ChangeNotifier {
       _state = ErrorState(_settings.l10n.t('translate_error'));
       notifyListeners();
     }
+    _translateAgainIfChanged(text, from, to);
+  }
+
+  /// Translates again if translate() was called during the last translation
+  /// and the text or the languages are different now.
+  void _translateAgainIfChanged(String text, String from, String to) {
+    if (!_again || _disposed) return;
+    _again = false;
+    if (_ctrl.text.trim() != text || _from != from || _to != to) translate();
   }
 
   /// Localized message shown when a word-only language receives a sentence.
