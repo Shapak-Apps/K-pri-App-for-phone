@@ -49,7 +49,7 @@ Köpri [Shapak-Apps](https://github.com/Shapak-Apps) guramasynyň bir bölegi �
 
 ## 🌍 Goldanylýan diller
 
-🇬 Iňlis · 🇺 Rus · 🇹🇲 Türkmen · 🇹 Türk ·  Gazak · 🇯 Täjik ·  Özbek ·  Ukrain ·  Hytaý ·  Ýapon ·  Koreý ·  Arap · 🇪 Nemes · 🇫🇷 Fransuz · 🇪 Ispan · 🇮 Italýan · 🇮🇳 Hindi we başgalar
+🇬🇧 Iňlis · 🇷🇺 Rus · 🇹🇲 Türkmen · 🇹🇷 Türk · 🇰🇿 Gazak · 🇹🇯 Täjik · 🇺🇿 Özbek · 🇺🇦 Ukrain · 🇨🇳 Hytaý · 🇯🇵 Ýapon · 🇰🇷 Koreý · 🇸🇦 Arap · 🇩🇪 Nemes · 🇫🇷 Fransuz · 🇪🇸 Ispan · 🇮🇹 Italýan · 🇮🇳 Hindi we başgalar
 
 ## 🛠 Tehnologiýalar
 
@@ -102,8 +102,8 @@ Köpri kyn derejeleşme egrisini ulanýar — her dereje gazanylmaly:
 
 ### Zerurlyklar
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.0+
-- [Dart SDK](https://dart.dev/get-dart) (Flutter bilen bile gelýär)
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.44+
+- [Dart SDK](https://dart.dev/get-dart) 3.12+ (Flutter bilen bile gelýär)
 - [Android Studio](https://developer.android.com/studio) ýa-da [VS Code](https://code.visualstudio.com)
 - [Git](https://git-scm.com)
 
@@ -150,7 +150,7 @@ Latyn elipbiýini Google ML Kit tanaýar (model Google Play Services arkaly awto
 ```bash
 # PowerShell (Windows) — proýekt kökünde işlediň
 New-Item -ItemType Directory -Force -Path "assets\tessdata" | Out-Null
-"eng tur rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya".Split(" ") | ForEach-Object {
+"eng tur aze rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya".Split(" ") | ForEach-Object {
   Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$_.traineddata" -OutFile "assets\tessdata\$_.traineddata"
 }
 ```
@@ -158,42 +158,16 @@ New-Item -ItemType Directory -Force -Path "assets\tessdata" | Out-Null
 ```bash
 # curl (Linux / macOS) — proýekt kökünde işlediň
 mkdir -p assets/tessdata
-for c in eng tur rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya; do
+for c in eng tur aze rus ukr bel bul srp mkd kaz uzb_cyrl kir tgk mon ara fas urd heb pus chi_sim chi_tra jpn kor hin tha tam tel ben nep pan guj mar kan mal sin khm lao mya; do
   curl -L "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$c.traineddata" -o "assets/tessdata/$c.traineddata"
 done
 ```
 
 Iň gowy hil üçin (uly faýllar) salgylarda `tessdata_fast` ýerine `tessdata` ulanyň.
 
-5. **⚠️ WAJYP: natiw awatar resize üçin stb_image headerlerini göçürip alyň**
+5. **Android sazlamasy**
 
-`image_fast` C++ moduly dessine awatar resize etmek üçin [stb_image](https://github.com/nothings/stb) we [stb_image_write](https://github.com/nothings/stb) single-header kitaphanalaryny ulanýar. Olary `android/app/src/main/cpp/` papkasyna göçürip alyň:
-
-```bash
-# PowerShell (Windows) — proýekt kökünde işlediň
-New-Item -ItemType Directory -Force -Path "android\app\src\main\cpp" | Out-Null
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h" -OutFile "android\app\src\main\cpp\stb_image.h"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h" -OutFile "android\app\src\main\cpp\stb_image_write.h"
-```
-
-```bash
-# curl (Linux / macOS) — proýekt kökünde işlediň
-mkdir -p android/app/src/main/cpp
-curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h" -o android/app/src/main/cpp/stb_image.h
-curl -L "https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h" -o android/app/src/main/cpp/stb_image_write.h
-```
-
-Eger stb headerleri ýok bolsa, programma awtomatik Dart nusgasyndan peýdalanar — hemme zat işlär, diňe biraz haýalrak.
-
-6. **Android sazlamasy**
-
-Programma Android 5.0+ (API 21) talap edýär. ML Kit modeliniň gurnalmanda öňünden göçürilmegi üçin `android/app/src/main/AndroidManifest.xml` faýlynda `<application>` içine goşuň:
-
-```xml
-<meta-data
-    android:name="com.google.mlkit.vision.DEPENDENCIES"
-    android:value="ocr" />
-```
+Programma Android 7.0+ (API 24) talap edýär. ML Kit modeliniň gurnalanda öňünden göçürilmegi üçin gerek bolan `meta-data` setiri `android/app/src/main/AndroidManifest.xml` faýlynda eýýäm bar.
 
 `pubspec.yaml` faýlynda bardygyny barlaň:
 
@@ -206,7 +180,7 @@ flutter:
     # - assets/tessdata/  # ← v2.0.0 çykanda açyň
 ```
 
-Programmany işletmekden öň `build.gradle` (android) we `build.gradle` (:app) okaň.
+Programmany işletmekden öň `android/build.gradle.kts` we `android/app/build.gradle.kts` faýllaryny okaň.
 
 ## 🏃 Işletmek (Debug)
 
@@ -242,7 +216,7 @@ flutter build appbundle --release
 ## 🔧 Meseleler
 
 - **«tessdata not found»** — `.traineddata` faýllarynyň `assets/tessdata/` papkasyndadygyny we `pubspec.yaml`-da setiriň açykdygyny barlaň, soň `flutter pub get` işlediň.
-- **Kamera «Ýakyn wagtda» görkezýär** — bu v1.x üçin garaşylýan. Kamera terjimesi v2.0.0-de işlediler (irki synag üçin `camera_screen.dart`-da `kCameraEnabled`-y `true`-a üýtgediň).
+- **Kamera «Ýakyn wagtda» görkezýär** — bu v1.x üçin garaşylýan. Kamera terjimesi v2.0.0-de işlediler (irki synag üçin `lib/features/camera/presentation/camera_constants.dart`-da `kCameraEnabled`-y `true`-a üýtgediň).
 - **Ilkinji OCR işledilişi haýal** — Google Play Services ML Kit modelini bir gezek göçürýär (~5 MB), soňra tanamak ~0.3 s alýar.
 - **Kamera işlemese** — ilkinji açylyşda Android kameradan peýdalanmaga rugsat sorar, rugsat beriň.
 - **Klon soňy ýygnama ýalňyşlary** — `flutter clean && flutter pub get` işlediň.
