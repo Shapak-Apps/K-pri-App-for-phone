@@ -56,6 +56,11 @@ class SrsScheduler {
     return _box!;
   }
 
+  static Future<void> clear() async {
+    final box = await _open();
+    await box.clear();
+  }
+
   static SrsData get(String cardId, Box box) =>
       SrsData.fromMap(box.get(cardId) as Map?);
 
