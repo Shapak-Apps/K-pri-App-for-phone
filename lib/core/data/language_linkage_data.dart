@@ -30,7 +30,7 @@ const Map<String, String> kLangTextByCode = {
   'ms': '🇲🇾 Melayu',
   'tl': '🇵🇭 Filipino',
   'km': '🇰🇭 ខ្មែរ',
-  'lo': '🇱🇦 າວ',
+  'lo': '🇱🇦 ລາວ',
   'my': '🇲🇲 မြန်မာ',
   'kk': '🇰🇿 Қазақша',
   'uz': "🇺🇿 O'zbek",

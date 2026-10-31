@@ -27,4 +27,19 @@ void main() {
     ];
     expect(broken, isEmpty);
   });
+
+  test('Dil saýlaýjydaky her dil AppLanguages-de bar we baýdagy bar', () {
+    final missing = [
+      for (final code in kLangTextByCode.keys)
+        if (code != 'auto' &&
+            (!AppLanguages.all.containsKey(code) ||
+                _flagLetters(langFlagFor(code)) != 2))
+          code,
+    ];
+    expect(missing, isEmpty);
+  });
+
+  test('Laos diliniň ady doly: ລາວ', () {
+    expect(kLangTextByCode['lo'], '🇱🇦 ລາວ');
+  });
 }
