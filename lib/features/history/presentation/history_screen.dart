@@ -15,6 +15,24 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   int _tab = 0;
   String _q = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // New entries come also while this tab is open, e.g. shared text.
+    widget.repo.addListener(_onHistoryChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.repo.removeListener(_onHistoryChanged);
+    super.dispose();
+  }
+
+  void _onHistoryChanged() {
+    if (mounted) setState(() {});
+  }
+
   List _list() {
     final src = _tab == 0 ? widget.repo.getAll() : widget.repo.getFavorites();
     if (_q.isEmpty) return src;
