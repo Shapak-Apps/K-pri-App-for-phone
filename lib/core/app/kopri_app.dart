@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_text_scaler.dart';
 import 'incoming_text.dart';
 import '../controllers/app_settings_controller.dart';
 import '../theme/app_theme.dart';
@@ -45,9 +46,12 @@ class KopriApp extends StatelessWidget {
           theme: light,
           darkTheme: dark,
           builder: (ctx, child) => MediaQuery(
-            data: MediaQuery.of(
-              ctx,
-            ).copyWith(textScaler: TextScaler.linear(settings.fontScale)),
+            data: MediaQuery.of(ctx).copyWith(
+              textScaler: AppTextScaler(
+                MediaQuery.textScalerOf(ctx),
+                settings.fontScale,
+              ),
+            ),
             child: child!,
           ),
           home: SplashScreen(
