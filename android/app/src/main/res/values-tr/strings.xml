@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_description">Köpri\'den son çeviri</string>
+    <string name="widget_hint">Bir şey çevir...</string>
+</resources>
