@@ -332,6 +332,51 @@ class ProfileRepository extends ChangeNotifier {
     return awarded + bonus;
   }
 
+  /// The user typed more and the last translation got longer. It is still one
+  /// translation: XP only for the letters the result got, and the daily goal,
+  /// the translation counter and the activity stay the same.
+  Future<int> onTranslationLonger({
+    String oldResult = '',
+    String newResult = '',
+    String targetLanguage = '',
+  }) async {
+    await ensureInit();
+    await evaluateAndRollWindow();
+
+    // XP of the new result minus XP of the old one, so the 500 letter cap and
+    // the rare language bonus work as for one translation.
+    final rare = _isRareLanguage(targetLanguage);
+    int xpOf(String text) => _ffi.computeTranslationXp(
+      charCount: ProfileXpService.countChars(text),
+      isRareLanguage: rare,
+      isFirstInWindow: false,
+    );
+    final chars =
+        ProfileXpService.countChars(newResult) -
+        ProfileXpService.countChars(oldResult);
+    final base = xpOf(newResult) - xpOf(oldResult);
+
+    // The same multiplier as this translation got when it was new.
+    final doneBefore = translationsToday > 0 ? translationsToday - 1 : 0;
+    var awarded = base > 0 ? (base * _ffi.xpMultiplier(doneBefore)).round() : 0;
+
+    final capLeft = dailyXpCap - todayXpEarned;
+    if (capLeft <= 0) {
+      awarded = 0;
+    } else if (awarded > capLeft) {
+      awarded = capLeft;
+    }
+
+    if (awarded > 0) {
+      await _box!.put('xp', xp + awarded);
+      await _box!.put('xpToday', todayXpEarned + awarded);
+    }
+    lastXpAwarded = awarded;
+    lastXpChars = chars > 0 ? chars : 0;
+    notifyListeners();
+    return awarded;
+  }
+
   static bool _isRareLanguage(String code) {
     const common = {'en', 'ru', 'tk', 'tr'};
     return !common.contains(code.toLowerCase());
