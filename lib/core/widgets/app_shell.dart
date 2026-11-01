@@ -53,6 +53,7 @@ class _AppShellState extends State<AppShell> {
     // any InheritedWidget lookups inside initState().
     // Only regular listeners here.
     openScreen.addListener(_onOpenScreen);
+    widget.incomingText.addListener(_onIncomingText);
   }
 
   @override
@@ -78,6 +79,7 @@ class _AppShellState extends State<AppShell> {
   @override
   void dispose() {
     openScreen.removeListener(_onOpenScreen);
+    widget.incomingText.removeListener(_onIncomingText);
     if (_didInitDeps) {
       _settings?.removeListener(_onSettingsChanged);
       _pageController?.dispose();
@@ -128,6 +130,14 @@ class _AppShellState extends State<AppShell> {
     if (!mounted || !_didInitDeps) return;
     if (t == 1 && !_cameraOn) return;
     _navigateTo(_navIndex(t.clamp(0, 5)), animate: true);
+  }
+
+  /// Text from Share or the text selection menu is translated on the
+  /// Translate tab, so show that tab. Jump, do not animate: the app comes
+  /// from another app, and the animation would build all tabs in between.
+  void _onIncomingText() {
+    if (widget.incomingText.value == null) return;
+    _navigateTo(0, animate: false);
   }
 
   void _navigateTo(int index, {required bool animate}) {
