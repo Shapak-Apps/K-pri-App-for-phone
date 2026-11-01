@@ -22,13 +22,14 @@ class HistoryRepository extends ChangeNotifier {
     }
   }
 
-  Future<void> add({
+  /// Adds a new entry and returns its id, or null when nothing was saved.
+  Future<String?> add({
     required String source,
     required String result,
     required String from,
     required String to,
   }) async {
-    if (source.trim().isEmpty || result.trim().isEmpty) return;
+    if (source.trim().isEmpty || result.trim().isEmpty) return null;
     final entry = HistoryEntry(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       source: source.trim(),
@@ -45,6 +46,40 @@ class HistoryRepository extends ChangeNotifier {
       to: entry.to,
     );
     notifyListeners();
+    return entry.id;
+  }
+
+  /// Puts the longer text into the entry [id] when the user typed more.
+  /// Returns false when the entry is not there, e.g. the user deleted it.
+  Future<bool> update(
+    String id, {
+    required String source,
+    required String result,
+    required String from,
+  }) async {
+    final raw = _box.get(id);
+    if (raw == null || source.trim().isEmpty || result.trim().isEmpty) {
+      return false;
+    }
+    final old = HistoryEntry.fromMap(Map<String, dynamic>.from(raw));
+    final entry = HistoryEntry(
+      id: id,
+      source: source.trim(),
+      result: result.trim(),
+      from: from,
+      to: old.to,
+      timestamp: DateTime.now(),
+      isFavorite: old.isFavorite,
+    );
+    await _box.put(id, entry.toMap());
+    TmService.instance.add(
+      src: entry.source,
+      dst: entry.result,
+      from: entry.from,
+      to: entry.to,
+    );
+    notifyListeners();
+    return true;
   }
 
   HistoryEntry _read(dynamic k) =>

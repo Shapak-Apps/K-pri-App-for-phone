@@ -21,6 +21,16 @@ const String kMicComingSoonVersion = '2.0.0';
 
 enum MicToggleOutcome { comingSoon, started, stopped, unavailable }
 
+/// A translation that went to History and XP.
+typedef _Counted = ({
+  String? id,
+  String text,
+  String result,
+  String from,
+  String to,
+  DateTime at,
+});
+
 class TranslateController extends ChangeNotifier {
   TranslateController({
     required HistoryRepository repo,
@@ -58,6 +68,10 @@ class TranslateController extends ChangeNotifier {
 
   static const Duration _idle = Duration(milliseconds: 2000);
 
+  /// Longer text within this time after the last translation is the same
+  /// translation: the user is still typing.
+  static const Duration _stillTyping = Duration(seconds: 10);
+
   String _from = 'auto';
   String _to = 'ru';
   TranslationState _state = const IdleState();
@@ -71,6 +85,8 @@ class TranslateController extends ChangeNotifier {
   Timer? _debounce;
   Timer? _idleT;
   String _base = '';
+  String _lastInput = ''; // the text that _onInput() saw the last time
+  _Counted? _last; // the last translation that went to History and XP
 
   String _recogBuffer = '';
   String _recogPartial = '';
@@ -136,12 +152,16 @@ class TranslateController extends ChangeNotifier {
   }
 
   void _onInput() {
+    // The text controller calls this also when only the cursor moves (a tap
+    // in the field). Then there is nothing new to translate.
+    final textChanged = _ctrl.text != _lastInput;
+    _lastInput = _ctrl.text;
     if (_suppress || _listening || _voiceAnalyzing) {
       _debounce?.cancel();
       _idleT?.cancel();
       return;
     }
-    _debounce?.cancel();
+    if (textChanged) _debounce?.cancel();
     _idleT?.cancel();
     if (_ctrl.text.trim().isEmpty) {
       _state = const IdleState();
@@ -149,10 +169,12 @@ class TranslateController extends ChangeNotifier {
       return;
     }
     if (!_settings.autoTranslate) return;
-    _debounce = Timer(
-      Duration(milliseconds: _settings.translateDelayMs),
-      translate,
-    );
+    if (textChanged) {
+      _debounce = Timer(
+        Duration(milliseconds: _settings.translateDelayMs),
+        translate,
+      );
+    }
     _idleT = Timer(_idle, () {
       if (_disposed) return;
       if (_focus.hasFocus) _focus.unfocus();
@@ -198,18 +220,7 @@ class TranslateController extends ChangeNotifier {
       _approx = res.approx;
       _state = SuccessState(res.text, res.detected);
       notifyListeners();
-      if (_settings.autoSaveHistory) {
-        _repo.add(source: text, result: res.text, from: saved, to: to);
-      }
-
-      // ── SMART XP: quality-based XP with anti-grind ────────────────────────
-      // Pass source text and target language for quality bonuses.
-      // Returns total XP awarded (shown as toast in translate_screen).
-      await ProfileRepository.instance.onTranslationDone(
-        sourceText: text,
-        resultText: res.text,
-        targetLanguage: to,
-      );
+      await _count(text, res.text, from: from, to: to, saved: saved);
 
       try {
         await HomeWidget.saveWidgetData<String>('last_source', text);
@@ -241,6 +252,74 @@ class TranslateController extends ChangeNotifier {
     if (!_again || _disposed) return;
     _again = false;
     if (_ctrl.text.trim() != text || _from != from || _to != to) translate();
+  }
+
+  /// Saves a translation to History and gives XP. The same text again is not
+  /// a new translation, and longer text while the user is still typing
+  /// updates the last translation instead of adding a new one.
+  Future<void> _count(
+    String text,
+    String result, {
+    required String from,
+    required String to,
+    required String saved, // "from" for History: the detected language
+  }) async {
+    final profile = ProfileRepository.instance;
+    final last = _last;
+    final now = DateTime.now();
+
+    if (last != null && last.from == from && last.to == to) {
+      if (text == last.text) {
+        profile.lastXpAwarded = 0; // no "+N XP" toast for the same translation
+        return;
+      }
+      if (text.startsWith(last.text) &&
+          now.difference(last.at) < _stillTyping) {
+        var id = last.id;
+        if (_settings.autoSaveHistory) {
+          final updated =
+              id != null &&
+              await _repo.update(id, source: text, result: result, from: saved);
+          if (!updated) {
+            id = await _repo.add(
+              source: text,
+              result: result,
+              from: saved,
+              to: to,
+            );
+          }
+        }
+        _last = (
+          id: id,
+          text: text,
+          result: result,
+          from: from,
+          to: to,
+          at: now,
+        );
+        await profile.onTranslationLonger(
+          oldResult: last.result,
+          newResult: result,
+          targetLanguage: to,
+        );
+        return;
+      }
+    }
+
+    String? id;
+    if (_settings.autoSaveHistory) {
+      id = await _repo.add(source: text, result: result, from: saved, to: to);
+    }
+    _last = (id: id, text: text, result: result, from: from, to: to, at: now);
+
+    // ── SMART XP: quality-based XP with anti-grind ──────────────────────────
+    // Pass source text and target language for quality bonuses.
+    // Returns total XP awarded (shown as toast in translate_screen).
+    await profile.onTranslationDone(
+      sourceText: text,
+      resultText: result,
+      targetLanguage: to,
+    );
   }
 
   /// Localized message shown when a word-only language receives a sentence.
