@@ -77,6 +77,18 @@ class _PickerSheetState extends State<_PickerSheet> {
   bool get _currentWordOnly =>
       _currentCode != null && AppLanguages.isWordOnly(_currentCode!);
 
+  /// "🌍 Popular": the emoji and the group name in the app language.
+  String _regionLabel(String id) {
+    final name = widget.l10n.t(id == 'auto' ? 'lang_auto' : 'region_$id');
+    return '${kRegionEmoji[id] ?? ''} $name';
+  }
+
+  /// A language row. Only "auto" has a name in the app language, the other
+  /// languages show their own name.
+  String _langLabel(String text) => extractLangCodeFromText(text) == 'auto'
+      ? '🌐 ${widget.l10n.t('lang_auto')}'
+      : text;
+
   void _confirm() {
     final code = _currentCode;
     if (code != null) {
@@ -204,7 +216,7 @@ class _PickerSheetState extends State<_PickerSheet> {
                           for (final r in widget.regions)
                             Center(
                               child: Text(
-                                r,
+                                _regionLabel(r),
                                 style: TextStyle(
                                   color: c.text,
                                   fontSize: 14,
@@ -250,7 +262,7 @@ class _PickerSheetState extends State<_PickerSheet> {
                         children: [
                           for (final lang in _langs)
                             _LangRow(
-                              label: lang,
+                              label: _langLabel(lang),
                               wordOnly: AppLanguages.isWordOnly(
                                 extractLangCodeFromText(lang) ?? '',
                               ),

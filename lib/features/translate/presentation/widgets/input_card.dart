@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/controllers/app_settings_controller.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/languages.dart';
@@ -27,6 +28,10 @@ class InputCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
+    final l10n = context.l10n;
+    final detected = autoDetected == null
+        ? null
+        : AppLanguages.nameOf(autoDetected!, auto: l10n.t('lang_auto'));
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
@@ -42,9 +47,9 @@ class InputCard extends StatelessWidget {
               children: [
                 Icon(Icons.edit_note_rounded, color: c.accent, size: 18),
                 const SizedBox(width: 8),
-                Text('GÖZBAŞY', style: AppTheme.label(color: c.accent)),
+                Text(l10n.t('from'), style: AppTheme.label(color: c.accent)),
                 const Spacer(),
-                if (autoDetected != null)
+                if (detected != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -55,7 +60,7 @@ class InputCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'AWT · ${AppLanguages.nameOf(autoDetected!).toUpperCase()}',
+                      '${l10n.t('lang_auto_short')} · ${detected.toUpperCase()}',
                       style: AppTheme.label(color: c.accent, size: 9),
                     ),
                   ),
@@ -75,9 +80,7 @@ class InputCard extends StatelessWidget {
             decoration: InputDecoration(
               border: InputBorder.none,
               contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              hintText: isListening
-                  ? 'Diňleýäris…'
-                  : 'Terjime etmeli tekstiňizi ýazyň…',
+              hintText: l10n.t(isListening ? 'listening' : 'input_hint'),
               hintStyle: TextStyle(color: c.faint),
             ),
           ),

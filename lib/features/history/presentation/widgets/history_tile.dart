@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/controllers/app_settings_controller.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/history_models.dart';
@@ -17,6 +18,7 @@ class HistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
+    final auto = context.l10n.t('lang_auto');
     return Material(
       color: c.surface,
       borderRadius: BorderRadius.circular(16),
@@ -35,7 +37,7 @@ class HistoryTile extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  _chip(c, AppLanguages.nameOf(entry.from)),
+                  _chip(c, AppLanguages.nameOf(entry.from, auto: auto)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: Icon(
@@ -44,7 +46,11 @@ class HistoryTile extends StatelessWidget {
                       color: c.faint,
                     ),
                   ),
-                  _chip(c, AppLanguages.nameOf(entry.to), accent: true),
+                  _chip(
+                    c,
+                    AppLanguages.nameOf(entry.to, auto: auto),
+                    accent: true,
+                  ),
                   const Spacer(),
                   IconButton(
                     padding: EdgeInsets.zero,

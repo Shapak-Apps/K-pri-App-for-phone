@@ -72,9 +72,11 @@ final Map<String, String> kLangCodeByText = {
   for (final e in kLangTextByCode.entries) e.value: e.key,
 };
 
+/// Language groups of the picker. The keys are ids: the picker shows
+/// [kRegionEmoji] and the name `l10n.t('region_<id>')`.
 const Map<String, List<String>> kRegionCodes = {
-  '🌍 Популярные': ['tk', 'ru', 'en', 'tr', 'zh', 'ja', 'ko'],
-  '🇪🇺 Европа': [
+  'popular': ['tk', 'ru', 'en', 'tr', 'zh', 'ja', 'ko'],
+  'europe': [
     'fr',
     'de',
     'it',
@@ -92,7 +94,7 @@ const Map<String, List<String>> kRegionCodes = {
     'ro',
     'bg',
   ],
-  '🌏 Азия': [
+  'asia': [
     'hi',
     'th',
     'vi',
@@ -107,9 +109,9 @@ const Map<String, List<String>> kRegionCodes = {
     'ky',
     'tg',
   ],
-  '🕌 Ближний Восток': ['ar', 'he', 'fa', 'az'],
-  '🌍 Африка': ['af', 'zu', 'sw', 'yo'],
-  '🌎 Другие': [
+  'middle_east': ['ar', 'he', 'fa', 'az'],
+  'africa': ['af', 'zu', 'sw', 'yo'],
+  'other': [
     'sq',
     'hy',
     'am',
@@ -135,13 +137,23 @@ const Map<String, List<String>> kRegionCodes = {
   ],
 };
 
+const Map<String, String> kRegionEmoji = {
+  'auto': '🤖',
+  'popular': '🌍',
+  'europe': '🇪🇺',
+  'asia': '🌏',
+  'middle_east': '🕌',
+  'africa': '🌍',
+  'other': '🌎',
+};
+
 List<Map<String, List<String>>> buildLanguageLinkageData({
   bool includeAuto = false,
 }) {
   return [
     if (includeAuto)
       {
-        '🤖 Auto': [kLangTextByCode['auto']!],
+        'auto': [kLangTextByCode['auto']!],
       },
     for (final e in kRegionCodes.entries)
       {

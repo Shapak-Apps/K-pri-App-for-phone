@@ -8,8 +8,8 @@ void main() {
   test('Diller sanawy boş däl, Türkmençe we Awtomat bar', () {
     expect(AppLanguages.all.containsKey('tk'), isTrue);
     expect(AppLanguages.sources.containsKey('auto'), isTrue);
-    expect(AppLanguages.nameOf('auto'), 'Awtomat');
-    expect(AppLanguages.nameOf('tk'), 'Türkmençe');
+    expect(AppLanguages.nameOf('auto', auto: 'Awtomat'), 'Awtomat');
+    expect(AppLanguages.nameOf('tk', auto: 'Awtomat'), 'Türkmençe');
   });
 
   test('HistoryEntry toMap/fromMap aýlanýar', () {

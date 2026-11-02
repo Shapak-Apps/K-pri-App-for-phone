@@ -2,4 +2,5 @@
 <resources>
     <string name="widget_description">Köpri\'den son çeviri</string>
     <string name="widget_hint">Bir şey çevir...</string>
+    <string name="clipboard_notif">Pano çevirisi açık</string>
 </resources>

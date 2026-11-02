@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import '../../../../core/controllers/app_settings_controller.dart';
 import '../../../../core/native/bridge_native.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -61,7 +62,10 @@ class _BridgeLoaderState extends State<BridgeLoader>
           ),
         ),
         const SizedBox(height: 6),
-        Text('TERJIME EDILÝÄR', style: AppTheme.label(color: c.sub)),
+        Text(
+          context.l10n.t('translating_label'),
+          style: AppTheme.label(color: c.sub),
+        ),
       ],
     );
   }
