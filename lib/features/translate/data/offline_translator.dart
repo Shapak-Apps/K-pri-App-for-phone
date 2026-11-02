@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_language_id/google_mlkit_language_id.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
@@ -10,6 +12,15 @@ class OfflineTranslator extends ChangeNotifier {
 
   final _models = OnDeviceTranslatorModelManager();
   final _langId = LanguageIdentifier(confidenceThreshold: 0.5);
+
+  /// One translator for each language pair, the last used one at the end.
+  /// ML Kit loads the models when a translator is used the first time, and
+  /// right after the app starts this can take more than a second. So the
+  /// translator is kept and used again.
+  final _translators = <(String, String), OnDeviceTranslator>{};
+
+  /// Each translator keeps its models in memory, so only a few are kept.
+  static const _maxTranslators = 3;
 
   String? downloadingCode;
   String? failedCode;
@@ -103,6 +114,7 @@ class OfflineTranslator extends ChangeNotifier {
   }
 
   Future<bool> deleteModel(String code) async {
+    _closeTranslators((pair) => pair.$1 == code || pair.$2 == code);
     try {
       await _models.deleteModel(code);
       final stillThere = await _models.isModelDownloaded(code);
@@ -131,10 +143,15 @@ class OfflineTranslator extends ChangeNotifier {
     return n;
   }
 
+  /// Translates on the phone, or returns null. If a model still has to be
+  /// downloaded, it waits for the download at most [downloadWait] (the
+  /// download goes on after that). If the models are on the phone, it waits
+  /// for the translation.
   Future<TranslationResult?> translate(
       String text, {
         required String from,
         required String to,
+        Duration? downloadWait,
       }) async {
     var src = from;
     String? detected;
@@ -148,22 +165,51 @@ class OfflineTranslator extends ChangeNotifier {
 
     if (!_supported(src) || !_supported(to)) return null;
     if (src == to) return TranslationResult(text: text, detected: detected);
-    if (!await _ensureModels(src, to)) return null;
 
-    final translator = OnDeviceTranslator(
-      sourceLanguage: _lang(src),
-      targetLanguage: _lang(to),
-    );
+    final onPhone =
+        await _models.isModelDownloaded(src) &&
+        await _models.isModelDownloaded(to);
+    var models = _ensureModels(src, to);
+    if (!onPhone && downloadWait != null) {
+      models = models.timeout(downloadWait, onTimeout: () => false);
+    }
+    if (!await models) return null;
+
+    final translator = _translatorFor(src, to);
     try {
       final out = (await translator.translateText(text)).trim();
       if (out.isEmpty) return null;
       return TranslationResult(text: out, detected: detected);
     } catch (e) {
       debugPrint('[offline] translate error: $e');
+      // Do not keep a broken translator: the next call makes a new one.
+      _closeTranslators((pair) => pair == (src, to));
       return null;
-    } finally {
-      await translator.close();
     }
+  }
+
+  OnDeviceTranslator _translatorFor(String from, String to) {
+    final pair = (from, to);
+    final translator =
+        _translators.remove(pair) ??
+        OnDeviceTranslator(
+          sourceLanguage: _lang(from),
+          targetLanguage: _lang(to),
+        );
+    _translators[pair] = translator; // the last used one at the end
+    if (_translators.length > _maxTranslators) {
+      final oldest = _translators.keys.first;
+      _closeTranslators((p) => p == oldest);
+    }
+    return translator;
+  }
+
+  void _closeTranslators(bool Function((String, String) pair) test) {
+    _translators.removeWhere((pair, translator) {
+      if (!test(pair)) return false;
+      unawaited(translator.close());
+      return true;
+    });
   }
 
   TranslateLanguage _lang(String code) => TranslateLanguage.values.firstWhere(
@@ -173,6 +219,7 @@ class OfflineTranslator extends ChangeNotifier {
 
   @override
   void dispose() {
+    _closeTranslators((_) => true);
     _langId.close();
     super.dispose();
   }
