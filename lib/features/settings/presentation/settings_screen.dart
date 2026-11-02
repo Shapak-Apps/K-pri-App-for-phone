@@ -59,7 +59,10 @@ class SettingsScreen extends StatelessWidget {
                           icon: Icons.input_rounded,
                           iconColor: const Color(0xFF3B82F6),
                           title: l10n.t('default_source'),
-                          value: AppLanguages.nameOf(s.defaultFrom),
+                          value: AppLanguages.nameOf(
+                            s.defaultFrom,
+                            auto: l10n.t('lang_auto'),
+                          ),
                           flag: langFlagFor(s.defaultFrom),
                           onTap: () => pickSettingsLanguage(
                             context,
@@ -74,7 +77,10 @@ class SettingsScreen extends StatelessWidget {
                           icon: Icons.translate_rounded,
                           iconColor: const Color(0xFF8B5CF6),
                           title: l10n.t('default_target'),
-                          value: AppLanguages.nameOf(s.defaultTo),
+                          value: AppLanguages.nameOf(
+                            s.defaultTo,
+                            auto: l10n.t('lang_auto'),
+                          ),
                           flag: langFlagFor(s.defaultTo),
                           onTap: () => pickSettingsLanguage(
                             context,

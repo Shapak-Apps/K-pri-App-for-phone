@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/controllers/app_settings_controller.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/profile_repository.dart';
 import '../../data/profile_streak_service.dart';
@@ -9,7 +10,10 @@ class StreakCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
+    final l10n = context.l10n;
     final p = ProfileRepository.instance;
+    String days(int n) =>
+        '$n ${l10n.t(ProfileStreakService.daysKey(n, l10n.lang))}';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -39,7 +43,7 @@ class StreakCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${p.streak} ${_pluralDays(p.streak)}',
+                      days(p.streak),
                       style: TextStyle(
                         color: c.text,
                         fontSize: 20,
@@ -47,7 +51,7 @@ class StreakCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      ProfileStreakService.getMotivationMessage(p.streak),
+                      l10n.t(ProfileStreakService.motivationKey(p.streak)),
                       style: TextStyle(color: c.sub, fontSize: 12),
                     ),
                   ],
@@ -68,7 +72,7 @@ class StreakCard extends StatelessWidget {
                 Icon(Icons.emoji_events_rounded, color: c.accent, size: 18),
                 const SizedBox(width: 8),
                 Text(
-                  'Рекорд: ${p.bestStreak} ${_pluralDays(p.bestStreak)}',
+                  '${l10n.t('streak_record')}: ${days(p.bestStreak)}',
                   style: TextStyle(
                     color: c.text,
                     fontSize: 13,
@@ -81,11 +85,5 @@ class StreakCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _pluralDays(int n) {
-    if (n % 10 == 1 && n % 100 != 11) return 'день';
-    if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) return 'дня';
-    return 'дней';
   }
 }

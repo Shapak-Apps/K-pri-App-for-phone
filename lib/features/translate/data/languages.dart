@@ -101,6 +101,7 @@ abstract final class AppLanguages {
 
   static Map<String, String> get sources => {'auto': 'Awtomat', ...all};
 
-  static String nameOf(String code) =>
-      code == 'auto' ? 'Awtomat' : (all[code] ?? code.toUpperCase());
+  /// [auto] is the name of "auto" in the app language: `l10n.t('lang_auto')`.
+  static String nameOf(String code, {required String auto}) =>
+      code == 'auto' ? auto : (all[code] ?? code.toUpperCase());
 }

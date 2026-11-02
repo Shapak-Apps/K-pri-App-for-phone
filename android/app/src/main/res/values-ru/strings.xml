@@ -2,4 +2,5 @@
 <resources>
     <string name="widget_description">Последний перевод из Köpri</string>
     <string name="widget_hint">Переведи что-нибудь...</string>
+    <string name="clipboard_notif">Перевод из буфера включён</string>
 </resources>

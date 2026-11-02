@@ -2,7 +2,7 @@
 <resources>
     <string name="widget_description">The last translation from Köpri</string>
     <string name="widget_hint">Translate something...</string>
-    <string name="clipboard_notif">Bufer terjimesi işleýär</string>
+    <string name="clipboard_notif">Clipboard translation is on</string>
     <string name="shortcut_translate">Translate</string>
     <string name="shortcut_translate_long">Open translator</string>
     <string name="shortcut_camera">Camera</string>

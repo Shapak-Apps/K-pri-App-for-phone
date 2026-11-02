@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/controllers/app_settings_controller.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../translation_state.dart';
@@ -12,6 +13,7 @@ class ResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
+    final l10n = context.l10n;
     final isErr = state is ErrorState;
     final text = switch (state) {
       SuccessState(:final text) => text,
@@ -38,7 +40,7 @@ class ResultCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                isErr ? 'ERROR' : 'TERJIME',
+                l10n.t(isErr ? 'error_label' : 'translation_section'),
                 style: AppTheme.label(color: isErr ? c.warn : c.accent),
               ),
               const Spacer(),
@@ -57,7 +59,7 @@ class ResultCard extends StatelessWidget {
           const SizedBox(height: 12),
           if (!has)
             Text(
-              'Terjime netijesi şu ýerde görner.',
+              l10n.t('result_placeholder'),
               style: AppTheme.caption(color: c.faint),
             )
           else

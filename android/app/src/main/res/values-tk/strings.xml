@@ -2,4 +2,5 @@
 <resources>
     <string name="widget_description">Köpriden soňky terjime</string>
     <string name="widget_hint">Bir zat terjime et...</string>
+    <string name="clipboard_notif">Bufer terjimesi işleýär</string>
 </resources>

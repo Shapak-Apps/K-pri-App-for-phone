@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/controllers/app_settings_controller.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/language_flags.dart';
@@ -49,6 +50,7 @@ class _LanguageSelectorState extends State<LanguageSelector> {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
       child: Container(
@@ -64,7 +66,7 @@ class _LanguageSelectorState extends State<LanguageSelector> {
               child: _Pill(
                 c: c,
                 code: widget.from,
-                hint: 'GÖZBAŞY',
+                hint: l10n.t('from'),
                 onTap: () => _openPicker(
                   context,
                   widget.from,
@@ -78,7 +80,7 @@ class _LanguageSelectorState extends State<LanguageSelector> {
               child: _Pill(
                 c: c,
                 code: widget.to,
-                hint: 'TERJIME',
+                hint: l10n.t('to'),
                 onTap: () => _openPicker(
                   context,
                   widget.to,
@@ -131,7 +133,10 @@ class _Pill extends StatelessWidget {
                     Text(hint, style: AppTheme.label(color: c.faint, size: 9)),
                     const SizedBox(height: 2),
                     Text(
-                      AppLanguages.nameOf(code),
+                      AppLanguages.nameOf(
+                        code,
+                        auto: context.l10n.t('lang_auto'),
+                      ),
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
