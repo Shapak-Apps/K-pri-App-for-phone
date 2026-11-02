@@ -83,8 +83,9 @@ void main() {
     expect(find.byType(HistoryScreen), findsNothing);
 
     // The Translate tab starts a real translation of the text (here it fails,
-    // there is no network). Let its timers end before the test ends.
-    await tester.pump(const Duration(seconds: 5));
+    // there is no network). Let its timers end before the test ends: the
+    // offline try can take up to 10 s.
+    await tester.pump(const Duration(seconds: 11));
     await tester.pumpWidget(const SizedBox()); // dispose the screens
   });
 }

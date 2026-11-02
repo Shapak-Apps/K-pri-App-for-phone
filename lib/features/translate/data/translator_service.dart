@@ -229,9 +229,18 @@ class OnlineTranslator implements TranslatorService {
     String to,
   ) async {
     try {
+      // A model download can take minutes, so wait for it only 800 ms and
+      // go online (the download goes on). If the models are on the phone,
+      // wait for the offline result: the first one after the app starts
+      // can take more than a second. 10 s only in case ML Kit never answers.
       final off = await OfflineTranslator.instance
-          .translate(src, from: from, to: to)
-          .timeout(const Duration(milliseconds: 800));
+          .translate(
+            src,
+            from: from,
+            to: to,
+            downloadWait: const Duration(milliseconds: 800),
+          )
+          .timeout(const Duration(seconds: 10));
       if (off != null && off.text.isNotEmpty) return off;
     } catch (_) {}
 
