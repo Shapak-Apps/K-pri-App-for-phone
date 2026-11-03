@@ -165,6 +165,7 @@ class TranslateController extends ChangeNotifier {
     _idleT?.cancel();
     if (_ctrl.text.trim().isEmpty) {
       _state = const IdleState();
+      _approx = false;
       notifyListeners();
       return;
     }
@@ -548,6 +549,7 @@ class TranslateController extends ChangeNotifier {
   void clearInput() {
     _ctrl.clear();
     _state = const IdleState();
+    _approx = false; // no translation, so no "≈ Approximate" badge
     notifyListeners();
   }
 
