@@ -193,6 +193,8 @@ flutter run
 
 ## 📦 Сборка (Release)
 
+Без `android/key.properties` release-сборка подписывается debug-ключом. Такой APK — только для проверки; для публикации нужен настоящий ключ.
+
 APK:
 
 ```bash
