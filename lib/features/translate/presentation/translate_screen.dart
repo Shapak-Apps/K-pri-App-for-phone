@@ -212,11 +212,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            switch (context.settings.lang.name) {
-                              'ru' => '≈ Приблизительный перевод',
-                              'tk' => '≈ Takmyny terjime',
-                              _ => '≈ Approximate translation',
-                            },
+                            context.l10n.t('approx_badge'),
                             style: TextStyle(
                               color: c.warn,
                               fontSize: 11,
