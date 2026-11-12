@@ -44,12 +44,13 @@ class _ClipboardSwitchTileState extends State<ClipboardSwitchTile> {
 
   String get _desc => switch (context.settings.lang) {
     AppLang.ru =>
-      'Копируй текст в любом приложении — Köpri покажет перевод поверх экрана',
-    AppLang.en => 'Copy text in any app — Köpri shows the translation on top',
+      'Скопируй текст и нажми на пузырь. Или выдели текст и выбери Köpri в меню',
+    AppLang.en =>
+      'Copy text, then tap the bubble. Or select text and pick Köpri in the menu',
     AppLang.tk =>
-      'Islendik programmada tekst göçür — Köpri terjimäni ekranyň üstünde görkezer',
+      'Teksti göçür, soň köpüge bas. Ýa-da teksti belle we menýudan Köpri-ni saýla',
     AppLang.tr =>
-      'Herhangi bir uygulamada metni kopyala — Köpri çeviriyi ekranın üstünde gösterir',
+      "Metni kopyala, sonra baloncuğa dokun. Ya da metni seç ve menüden Köpri'yi seç",
   };
 
   Future<void> _toggle(bool v) async {

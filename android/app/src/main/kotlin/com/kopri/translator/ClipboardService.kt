@@ -21,6 +21,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
@@ -245,9 +246,81 @@ class ClipboardService :
             .apply()
     }
 
-    private fun onBubbleTap() {
-        val text = readClipboard() ?: return
-        if (text.isEmpty()) return
+    private fun onBubbleTap(
+        view: View,
+        params: WindowManager.LayoutParams,
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            readClipboardWithFocus(view, params) { translateTapped(it) }
+        } else {
+            translateTapped(readClipboard())
+        }
+    }
+
+    /**
+     * Android 10+ lets an app read the clipboard only when a window of the app
+     * has focus. The bubble window is not focusable, so make it focusable for a
+     * moment, read the clipboard when it gets focus, and make it not focusable
+     * again.
+     */
+    private fun readClipboardWithFocus(
+        view: View,
+        params: WindowManager.LayoutParams,
+        onText: (String?) -> Unit,
+    ) {
+        var done = false
+        var listener: ViewTreeObserver.OnWindowFocusChangeListener? = null
+        var giveUp: Runnable? = null
+        val finish = { text: String? ->
+            if (!done) {
+                done = true
+                giveUp?.let { handler.removeCallbacks(it) }
+                listener?.let {
+                    if (view.viewTreeObserver.isAlive) {
+                        view.viewTreeObserver.removeOnWindowFocusChangeListener(it)
+                    }
+                }
+                setBubbleFocusable(view, params, false)
+                onText(text)
+            }
+        }
+        val onFocus =
+            ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
+                if (hasFocus) finish(readClipboard())
+            }
+        listener = onFocus
+        view.viewTreeObserver.addOnWindowFocusChangeListener(onFocus)
+        val noFocus =
+            Runnable {
+                Log.w(TAG, "bubble tap: the bubble did not get focus, clipboard not read")
+                finish(null)
+            }
+        giveUp = noFocus
+        setBubbleFocusable(view, params, true)
+        handler.postDelayed(noFocus, 1000)
+    }
+
+    private fun setBubbleFocusable(
+        view: View,
+        params: WindowManager.LayoutParams,
+        focusable: Boolean,
+    ) {
+        params.flags =
+            if (focusable) {
+                // NOT_TOUCH_MODAL: touches outside the bubble still go to the app below.
+                (params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()) or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+            } else {
+                params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+            }
+        try {
+            wm.updateViewLayout(view, params)
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun translateTapped(text: String?) {
+        if (isDestroyed || text.isNullOrEmpty()) return
 
         Log.w(TAG, "bubble tap, clipboard: ${text.take(30)}")
 
@@ -320,7 +393,7 @@ class ClipboardService :
         hideBubble()
         val view = LayoutInflater.from(this).inflate(R.layout.bubble_collapsed, null)
         val params = wmParams(dp(56), dp(56))
-        attachDrag(view, params) { onBubbleTap() }
+        attachDrag(view, params) { onBubbleTap(view, params) }
 
         view.scaleX = 0f
         view.scaleY = 0f
