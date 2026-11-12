@@ -66,8 +66,6 @@ class TranslateController extends ChangeNotifier {
   final TextEditingController _ctrl = TextEditingController();
   final FocusNode _focus = FocusNode();
 
-  static const Duration _idle = Duration(milliseconds: 2000);
-
   /// Longer text within this time after the last translation is the same
   /// translation: the user is still typing.
   static const Duration _stillTyping = Duration(seconds: 10);
@@ -83,7 +81,6 @@ class TranslateController extends ChangeNotifier {
   bool _voiceAnalyzing = false;
   bool _approx = false;
   Timer? _debounce;
-  Timer? _idleT;
   String _base = '';
   String _lastInput = ''; // the text that _onInput() saw the last time
   _Counted? _last; // the last translation that went to History and XP
@@ -126,7 +123,6 @@ class TranslateController extends ChangeNotifier {
     _disposed = true;
     _incoming.removeListener(_onIncomingText);
     _debounce?.cancel();
-    _idleT?.cancel();
     _speech.cancel();
     _ctrl.dispose();
     _focus.dispose();
@@ -158,11 +154,9 @@ class TranslateController extends ChangeNotifier {
     _lastInput = _ctrl.text;
     if (_suppress || _listening || _voiceAnalyzing) {
       _debounce?.cancel();
-      _idleT?.cancel();
       return;
     }
     if (textChanged) _debounce?.cancel();
-    _idleT?.cancel();
     if (_ctrl.text.trim().isEmpty) {
       _state = const IdleState();
       _approx = false;
@@ -176,10 +170,6 @@ class TranslateController extends ChangeNotifier {
         translate,
       );
     }
-    _idleT = Timer(_idle, () {
-      if (_disposed) return;
-      if (_focus.hasFocus) _focus.unfocus();
-    });
   }
 
   Future<void> translate() async {
