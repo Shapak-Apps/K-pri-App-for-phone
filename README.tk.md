@@ -193,6 +193,8 @@ flutter run
 
 ## 📦 Ýygnamak (Release)
 
+`android/key.properties` bolmasa, release ýygnamasy debug açary bilen gol çekilýär. Beýle APK diňe synag üçin; programmany çap etmek üçin hakyky açar gerek.
+
 APK:
 
 ```bash

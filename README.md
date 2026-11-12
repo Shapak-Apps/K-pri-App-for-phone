@@ -193,6 +193,8 @@ flutter run
 
 ## 📦 Building (Release)
 
+Without `android/key.properties`, the release build is signed with the debug key. Such an APK is only for testing; to publish the app you need the real key.
+
 APK:
 
 ```bash
