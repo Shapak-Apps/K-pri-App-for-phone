@@ -144,6 +144,7 @@ void main() {
       'result_placeholder',
       'translating_label',
       'error_label',
+      'approx_badge',
       'region_popular',
       'region_europe',
       'region_asia',
