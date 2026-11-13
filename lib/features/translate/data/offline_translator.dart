@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_language_id/google_mlkit_language_id.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 
+import '../../../core/controllers/app_settings_controller.dart';
+import '../../../core/native/apk_channel.dart';
 import 'translator_service.dart';
 
 class OfflineTranslator extends ChangeNotifier {
@@ -24,6 +26,9 @@ class OfflineTranslator extends ChangeNotifier {
 
   String? downloadingCode;
   String? failedCode;
+
+  /// The "Download models" setting. main.dart connects it to the settings.
+  ModelDownload Function() downloadMode = () => ModelDownload.wifiOnly;
 
   static const Set<String> supported = {
     'af', 'sq', 'ar', 'be', 'bn', 'bg', 'ca', 'zh', 'hr', 'cs',
@@ -51,6 +56,30 @@ class OfflineTranslator extends ChangeNotifier {
     }
   }
 
+  /// Whether the "Download models" setting allows a download now. ML Kit's
+  /// own `isWifiRequired: true` is not used: on mobile data its download
+  /// waits for Wi-Fi and does not end, and the banner would stay.
+  Future<bool> _mayDownload() async {
+    switch (downloadMode()) {
+      case ModelDownload.never:
+        return false;
+      case ModelDownload.wifiAndMobile:
+        return true;
+      case ModelDownload.wifiOnly:
+        // The check is in MainActivity, so only on Android.
+        if (defaultTargetPlatform != TargetPlatform.android) return true;
+        try {
+          final metered = await kApkChannel.invokeMethod<bool>(
+            'isNetworkMetered',
+          );
+          return metered == false;
+        } catch (e) {
+          debugPrint('[offline] network check failed: $e');
+          return false;
+        }
+    }
+  }
+
   Future<bool> _ensureModels(String from, String to) async {
     if (failedCode != null) {
       failedCode = null;
@@ -65,6 +94,14 @@ class OfflineTranslator extends ChangeNotifier {
         if (await _models.isModelDownloaded(code)) {
           debugPrint('[offline] model already present: $code');
           continue;
+        }
+
+        if (!await _mayDownload()) {
+          debugPrint(
+            '[offline] not downloading $code: setting ${downloadMode().name}',
+          );
+          if (changed) notifyListeners();
+          return false;
         }
 
         downloadingCode = code;

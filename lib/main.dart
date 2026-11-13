@@ -7,6 +7,7 @@ import 'core/app/intent_channel.dart';
 import 'core/controllers/app_settings_controller.dart';
 import 'features/history/data/history_repository.dart';
 import 'features/onboarding/onboarding_gate.dart';
+import 'features/translate/data/offline_translator.dart';
 
 export 'core/app/incoming_text.dart';
 
@@ -27,6 +28,7 @@ Future<void> main() async {
   final settings = AppSettingsController();
   await Future.wait([repo.init(), settings.init()]);
   await repo.purgeOlderThan(settings.autoCleanDays);
+  OfflineTranslator.instance.downloadMode = () => settings.modelDownload;
 
   runApp(
     AppProviders(

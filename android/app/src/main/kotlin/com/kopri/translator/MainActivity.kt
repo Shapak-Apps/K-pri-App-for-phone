@@ -1,6 +1,7 @@
 package com.kopri.translator
 
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -97,6 +98,11 @@ class MainActivity : FlutterActivity() {
                     "setIgnoreNextClipboard" -> {
                         ClipboardService.ignoreNextClipboard = true
                         result.success(true)
+                    }
+                    // Mobile data is metered, Wi-Fi usually is not.
+                    "isNetworkMetered" -> {
+                        val cm = getSystemService(ConnectivityManager::class.java)
+                        result.success(cm.isActiveNetworkMetered)
                     }
                     else -> result.notImplemented()
                 }
