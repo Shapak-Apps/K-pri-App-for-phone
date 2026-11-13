@@ -6,6 +6,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../translate/data/languages.dart';
 import '../../../translate/data/offline_translator.dart';
 import '../settings_actions.dart';
+import '../widgets/settings_controls.dart';
 import '../widgets/settings_tiles.dart';
 
 /// Section listing downloaded offline translation models with
@@ -135,6 +136,20 @@ class _OfflineModelsSectionState extends State<OfflineModelsSection>
       Text(
         l10n.t('offline_models_desc2'),
         style: AppTheme.caption(color: c.faint, size: 11),
+      ),
+      const SizedBox(height: 4),
+      PillSegment<ModelDownload>(
+        c: c,
+        isDark: isDark,
+        label: l10n.t('model_download'),
+        icon: Icons.download_rounded,
+        value: context.settings.modelDownload,
+        options: [
+          (ModelDownload.wifiOnly, l10n.t('model_download_wifi')),
+          (ModelDownload.wifiAndMobile, l10n.t('model_download_mobile')),
+          (ModelDownload.never, l10n.t('model_download_never')),
+        ],
+        onChanged: context.settings.setModelDownload,
       ),
       const SizedBox(height: 12),
       Container(
