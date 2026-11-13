@@ -24,7 +24,8 @@ class TmService {
     if (!_n.available) return;
     await compute(_rebuildWork, {
       'n': entries.length,
-      'srcs': entries.map((e) => e.source).toList(),
+      // Lower case here, as in lookup(): C++ lowers only a–z, not ň or Я.
+      'srcs': entries.map((e) => e.source.toLowerCase()).toList(),
       'dsts': entries.map((e) => e.result).toList(),
       'froms': entries.map((e) => e.from).toList(),
       'tos': entries.map((e) => e.to).toList(),
@@ -40,7 +41,7 @@ class TmService {
     if (!_n.available) return;
     if (src.trim().isEmpty || dst.trim().isEmpty) return;
 
-    final pSrc = src.toNativeUtf8();
+    final pSrc = src.toLowerCase().toNativeUtf8(); // as in lookup()
     final pDst = dst.toNativeUtf8();
     final pFrom = from.toNativeUtf8();
     final pTo = to.toNativeUtf8();

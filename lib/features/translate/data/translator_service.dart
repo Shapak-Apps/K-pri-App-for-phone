@@ -6,6 +6,11 @@ import 'package:http/http.dart' as http;
 import 'mt_service.dart';
 import 'native/translate_ffi.dart';
 import 'offline_translator.dart';
+import 'tm_service.dart';
+
+/// Finds a translation of [src] in the translation memory (texts from History).
+typedef TmLookup =
+    TmHit? Function(String src, {required String from, required String to});
 
 class TranslationResult {
   final String text;
@@ -38,12 +43,15 @@ abstract interface class TranslatorService {
 class OnlineTranslator implements TranslatorService {
   final Duration timeout;
   final http.Client _client;
+  final TmLookup _tmLookup;
   static final TranslateFFI _nffi = TranslateFFI();
 
   OnlineTranslator({
     this.timeout = const Duration(seconds: 7),
     http.Client? client,
-  }) : _client = client ?? http.Client();
+    TmLookup? tmLookup,
+  }) : _client = client ?? http.Client(),
+       _tmLookup = tmLookup ?? TmService.instance.lookup;
 
   /// Releases the underlying HTTP client (socket pool).
   /// Must be called by the owner (screen / controller) in `dispose()`,
@@ -82,6 +90,42 @@ class OnlineTranslator implements TranslatorService {
       return TranslationResult(text: src, detected: srcLang, offline: true);
     }
 
+    // The translation memory has the texts from History. The same text gets
+    // its old translation at once, also without internet.
+    final memory = src.length > 1800
+        ? null
+        : _tmLookup(src, from: srcLang, to: to);
+    if (memory != null && memory.isExact) {
+      return TranslationResult(
+        text: memory.dst,
+        detected: srcLang,
+        offline: true,
+      );
+    }
+
+    try {
+      return await _translate(src, srcLang, from, to);
+    } on TranslationFailedException {
+      // Nothing worked (no internet, no offline model). The translation of a
+      // similar text is better than an error, so show it as approximate.
+      if (memory != null && memory.isFuzzy) {
+        return TranslationResult(
+          text: memory.dst,
+          detected: srcLang,
+          approx: true,
+          offline: true,
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<TranslationResult> _translate(
+    String src,
+    String srcLang,
+    String from,
+    String to,
+  ) async {
     if (_tkOfflineSupported.contains(srcLang) && _tkOfflineSupported.contains(to)) {
       final hit = MtService.instance.translate(src, srcLang, to: to);
       if (hit != null && hit.text.trim().isNotEmpty) {
