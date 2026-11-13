@@ -18,4 +18,5 @@ import 'package:flutter/services.dart';
 ///  - `stopClipboard`          → stops ClipboardService
 ///  - `isClipboardRunning`     → current service state
 ///  - `setIgnoreNextClipboard` → makes the bubble skip the next copy
+///  - `isNetworkMetered`       → true on mobile data (offline model downloads)
 const MethodChannel kApkChannel = MethodChannel('kopri/apk');

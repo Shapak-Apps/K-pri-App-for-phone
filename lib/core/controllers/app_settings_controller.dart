@@ -6,6 +6,9 @@ import '../l10n/app_strings.dart';
 
 enum PhraseSpeakMode { iface, english, both }
 
+/// When the app may download a missing offline model by itself.
+enum ModelDownload { wifiOnly, wifiAndMobile, never }
+
 class AppSettingsController extends ChangeNotifier {
   static const _boxName = 'settings';
   late final Box _box;
@@ -25,6 +28,7 @@ class AppSettingsController extends ChangeNotifier {
   String _defaultTo = 'ru';
   bool _autoTranslate = true;
   int _translateDelayMs = 700;
+  ModelDownload _modelDownload = ModelDownload.wifiOnly;
 
   PhraseSpeakMode _phraseSpeak = PhraseSpeakMode.both;
   int _flashcardSession = 20;
@@ -52,6 +56,7 @@ class AppSettingsController extends ChangeNotifier {
   String get defaultTo => _defaultTo;
   bool get autoTranslate => _autoTranslate;
   int get translateDelayMs => _translateDelayMs;
+  ModelDownload get modelDownload => _modelDownload;
   PhraseSpeakMode get phraseSpeak => _phraseSpeak;
   int get flashcardSession => _flashcardSession;
   bool get spacedRep => _spacedRep;
@@ -78,6 +83,11 @@ class AppSettingsController extends ChangeNotifier {
     _defaultTo = _box.get('defaultTo', defaultValue: 'ru') as String;
     _autoTranslate = _box.get('autoTranslate', defaultValue: true) as bool;
     _translateDelayMs = _box.get('translateDelayMs', defaultValue: 700) as int;
+    _modelDownload =
+        ModelDownload.values[_box.get(
+          'modelDownload',
+          defaultValue: ModelDownload.wifiOnly.index,
+        ) as int];
     _phraseSpeak =
     PhraseSpeakMode.values[_box.get(
       'phraseSpeak',
@@ -188,6 +198,12 @@ class AppSettingsController extends ChangeNotifier {
   Future<void> setTranslateDelayMs(int v) async {
     _translateDelayMs = v;
     await _box.put('translateDelayMs', v);
+    notifyListeners();
+  }
+
+  Future<void> setModelDownload(ModelDownload v) async {
+    _modelDownload = v;
+    await _box.put('modelDownload', v.index);
     notifyListeners();
   }
 

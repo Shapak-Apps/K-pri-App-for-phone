@@ -125,7 +125,11 @@ const Map<AppLang, Map<String, String>> appStrings = {
     'offline_models_desc':
         'Bu modeller — terjime faýllary. Olar internetsiz işlemek üçin telefonyňyza bir gezek ýüklenýär. Soňra terjime Wi‑Fi bolmasa‑da işleýär. Bu wirus ýa‑da artykmaç zat däl — diňe ulanýan dilleriňiz üçin terjime motorydyr.',
     'offline_models_desc2':
-        'Modeller programma maglumatlaryndan aýratyn saklanýar: keşi arassalamak olara degmeýär. Pozsaňyzam gorkmaň — indiki terjimede ýene awtomatiki ýüklenýär. Ýüklemek üçin VPN gerek däl.',
+        'Modeller programma maglumatlaryndan aýratyn saklanýar: keşi arassalamak olara degmeýär. Pozsaňyzam gorkmaň — "Modelleri ýüklemek" sazlamasy rugsat berse, indiki terjimede ýene ýüklenýär. Ýüklemek üçin VPN gerek däl.',
+    'model_download': 'Modelleri ýüklemek',
+    'model_download_wifi': 'Diňe Wi-Fi',
+    'model_download_mobile': 'Wi-Fi + mobil',
+    'model_download_never': 'Hiç haçan',
     'offline_models_downloaded': 'Ýüklenen',
     'offline_models_empty':
         'Entek model ýüklenmedi. Ilkinji terjimäňizde awtomatiki ýüklenýär.',
@@ -521,7 +525,11 @@ const Map<AppLang, Map<String, String>> appStrings = {
     'offline_models_desc':
         'Эти модели — файлы перевода. Они один раз скачиваются на телефон, чтобы перевод работал без интернета. Это не вирус и не лишний мусор — это движок перевода для тех языков, которыми вы пользуетесь.',
     'offline_models_desc2':
-        'Модели хранятся отдельно от данных приложения: очистка кеша их не тронет. Если удалите — не пугайтесь, при следующем переводе они скачаются заново автоматически. Для загрузки VPN не нужен.',
+        'Модели хранятся отдельно от данных приложения: очистка кеша их не тронет. Если удалите — не пугайтесь, при следующем переводе они скачаются заново, если это разрешает настройка «Загрузка моделей». Для загрузки VPN не нужен.',
+    'model_download': 'Загрузка моделей',
+    'model_download_wifi': 'Только Wi-Fi',
+    'model_download_mobile': 'Wi-Fi + моб.',
+    'model_download_never': 'Никогда',
     'offline_models_downloaded': 'Скачано',
     'offline_models_empty':
         'Пока моделей нет. Они скачаются автоматически при первом переводе.',
@@ -918,7 +926,11 @@ const Map<AppLang, Map<String, String>> appStrings = {
     'offline_models_desc':
         'These models are translation files. They download to your phone once so translation works without internet. This is not a virus or junk — it is the translation engine for the languages you use.',
     'offline_models_desc2':
-        'Models are stored separately from app data: clearing the cache will not touch them. If you delete them, don\'t worry — they download again automatically on the next translation. No VPN is needed to download.',
+        'Models are stored separately from app data: clearing the cache will not touch them. If you delete them, don\'t worry — they download again on the next translation, when the "Download models" setting allows it. No VPN is needed to download.',
+    'model_download': 'Download models',
+    'model_download_wifi': 'Wi-Fi only',
+    'model_download_mobile': 'Wi-Fi + mobile',
+    'model_download_never': 'Never',
     'offline_models_downloaded': 'Downloaded',
     'offline_models_empty':
         'No models yet. They download automatically on your first translation.',
@@ -1314,7 +1326,11 @@ const Map<AppLang, Map<String, String>> appStrings = {
     'offline_models_desc':
         'Bu modeller çeviri dosyalarıdır. Çevirinin internetsiz çalışması için telefonunuza bir kez indirilir. Virüs veya gereksiz dosya değildir — kullandığınız diller için çeviri motorudur.',
     'offline_models_desc2':
-        'Modeller uygulama verilerinden ayrı saklanır: önbelleği temizlemek onlara dokunmaz. Silerseniz endişelenmeyin — sonraki çeviride otomatik olarak tekrar indirilir. İndirmek için VPN gerekmez.',
+        'Modeller uygulama verilerinden ayrı saklanır: önbelleği temizlemek onlara dokunmaz. Silerseniz endişelenmeyin — "Model indirme" ayarı izin verirse sonraki çeviride tekrar indirilir. İndirmek için VPN gerekmez.',
+    'model_download': 'Model indirme',
+    'model_download_wifi': 'Yalnızca Wi-Fi',
+    'model_download_mobile': 'Wi-Fi + mobil',
+    'model_download_never': 'Asla',
     'offline_models_downloaded': 'İndirildi',
     'offline_models_empty':
         'Henüz model yok. İlk çevirinizde otomatik indirilir.',
