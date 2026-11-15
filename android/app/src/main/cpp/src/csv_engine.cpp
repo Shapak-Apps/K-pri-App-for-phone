@@ -29,16 +29,15 @@ namespace kp {
                 }
 
                 out.append(v, start, adv);
-
-                if (v[start + adv] == '"') out += "\"\"";
-                else out += '\\';
+                const char stop = v[start + adv];
+                if (stop == '"') out += "\"\"";
+                else out += stop;
 
                 start += adv + 1;
             }
 #else
             for (char c : v) {
                 if (c == '"') out += "\"\"";
-                else if (c == '\n' || c == '\r') out += '\\';
                 else out += c;
             }
 #endif

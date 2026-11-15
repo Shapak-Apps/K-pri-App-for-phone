@@ -2,6 +2,7 @@
 #include "translate_engine.h"
 #include <cctype>
 #include <cstring>
+#include <algorithm>
 #include <string>
 
 #if defined(KP_HAS_ASM_KERNELS)
@@ -117,13 +118,18 @@ namespace kp {
 #if defined(KP_HAS_ASM_KERNELS)
                     size_t j = i;
                     while (j < n && static_cast<unsigned char>(s[j]) < 0x80) ++j;
-                    const int32_t run = static_cast<int32_t>(j - i);
+                    constexpr size_t kChunk = 32 * 1024;
                     uint32_t cnt[4] = {0, 0, 0, 0};
-                    kp_asm_clip_stats(reinterpret_cast<const uint8_t*>(s.data()) + i, run, cnt);
-                    st.total_cp += static_cast<size_t>(run);
-                    st.letters += cnt[0];
-                    st.digits += cnt[1];
-                    st.spaces += cnt[2];
+                    for (size_t p = i; p < j; p += kChunk) {
+                        const size_t len = std::min(kChunk, j - p);
+                        kp_asm_clip_stats(reinterpret_cast<const uint8_t*>(s.data()) + p,
+                                          static_cast<int32_t>(len), cnt);
+                    }
+
+                    st.total_cp   += j - i;
+                    st.letters    += cnt[0];
+                    st.digits     += cnt[1];
+                    st.spaces     += cnt[2];
                     st.code_chars += cnt[3];
                     i = j;
 #else

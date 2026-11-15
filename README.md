@@ -16,7 +16,6 @@ Offline translator with hybrid camera OCR (coming soon), huge phrasebook and tex
 ![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg?logo=android)
 ![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
-[🇷🇺 По-русски](./README.ru.md) · [🇹🇲 Türkmençe](./README.tk.md)
 </div>
 
 Köpri is a free, offline-first translator built with Flutter. The phrasebook, history, favourites, XP and statistics work fully offline. Russian → Turkmen and English → Turkmen text translation works offline via a built-in dictionary. For all other language pairs the app uses online services (Google Translate, Lingva, MyMemory) — text is sent to them. Camera translation is under active development and will ship in v2.0.0.

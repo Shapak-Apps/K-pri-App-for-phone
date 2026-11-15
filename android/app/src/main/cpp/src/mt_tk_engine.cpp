@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <cstdlib>
+#include "utf8_util.h"
 #include <cstdint>
 #include <cctype>
 #include <initializer_list>
@@ -598,25 +600,9 @@ namespace kp {
             return false;
         }
 
-        int lev_cap(const std::string& a, const std::string& b, int cap) {
-            const int m = static_cast<int>(a.size()), n = static_cast<int>(b.size());
-            if (m - n > cap || n - m > cap || n > 255) return cap + 1;
-            int prev[256], cur[256];
-            for (int j = 0; j <= n; ++j) prev[j] = j;
-            for (int i = 1; i <= m; ++i) {
-                cur[0] = i;
-                int rowmin = cur[0];
-                for (int j = 1; j <= n; ++j) {
-                    int cost = a[i - 1] == b[j - 1] ? 0 : 1;
-                    int v = std::min({prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost});
-                    cur[j] = v;
-                    rowmin = std::min(rowmin, v);
-                }
-                if (rowmin > cap) return cap + 1;
-                std::swap_ranges(prev, prev + n + 1, cur);
-            }
-            return prev[n];
-        }
+int lev_cap(const std::string& a, const std::string& b, int cap) {
+    return kp::utf8::lev_cps_cap(kp::utf8::to_cps(a), kp::utf8::to_cps(b), cap);
+}
 
         void build_candidates(
                 const std::unordered_map<std::string, std::unordered_map<std::string, int32_t>>& cooc,
@@ -1518,16 +1504,17 @@ namespace kp {
             }
 
             if (tok.size() >= 4) {
+                const int tl = static_cast<int>(kp::utf8::cp_len(tok));
                 int best = 0;
                 const std::string* bk = nullptr;
                 for (const auto& kv : wd) {
-                    size_t d1 = kv.first.size() > tok.size() ? kv.first.size() - tok.size() : tok.size() - kv.first.size();
-                    if (d1 > 2) continue;
-                    int d = lev_cap(tok, kv.first, 2);
+                    const int kl = static_cast<int>(kp::utf8::cp_len(kv.first));
+                    if (std::abs(kl - tl) > 2) continue;
+                    const int d = lev_cap(tok, kv.first, 2);
                     if (d > 2) continue;
-                    int mx = static_cast<int>(std::max(tok.size(), kv.first.size()));
+                    const int mx = std::max(tl, kl);
                     if (!mx) continue;
-                    int sc = 1000 - d * 1000 / mx;
+                    const int sc = 1000 - d * 1000 / mx;
                     if (sc > best) {
                         best = sc;
                         bk = &kv.first;
@@ -2180,18 +2167,19 @@ namespace kp {
             return static_cast<int32_t>(exact.size());
         }
 
-        const int cap = std::min(4, static_cast<int>(k.size() / 5) + 2);
+        const int kl = static_cast<int>(kp::utf8::cp_len(k));
+        const int cap = std::min(4, kl / 5 + 2);
         int best = 0;
         const std::string* best_key = nullptr;
 
         for (const auto& key : *keys) {
-            size_t d1 = key.size() > k.size() ? key.size() - k.size() : k.size() - key.size();
-            if (static_cast<int>(d1) > cap) continue;
-            int d = lev_cap(k, key, cap);
+            const int keyl = static_cast<int>(kp::utf8::cp_len(key));
+            if (std::abs(keyl - kl) > cap) continue;
+            const int d = lev_cap(k, key, cap);
             if (d > cap) continue;
-            int mx = static_cast<int>(std::max(key.size(), k.size()));
+            const int mx = std::max(kl, keyl);
             if (!mx) continue;
-            int score = 1000 - d * 1000 / mx;
+            const int score = 1000 - d * 1000 / mx;
             if (score > best) {
                 best = score;
                 best_key = &key;

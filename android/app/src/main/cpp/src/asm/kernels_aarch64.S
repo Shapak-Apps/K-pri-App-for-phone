@@ -1,4 +1,5 @@
 .text
+#if 0
 .p2align 4
 .globl kp_asm_gray_rgb888
 .type  kp_asm_gray_rgb888, %function
@@ -90,6 +91,7 @@ b.gt    .Lc_tail_loop
 .Lc_done:
 ret
 .size kp_asm_contrast_u8, .-kp_asm_contrast_u8
+#endif
 
 .p2align 4
 .globl kp_asm_median3_row
@@ -545,6 +547,7 @@ add     x0, x0, x6
 ret
 .size kp_asm_sum_i32, .-kp_asm_sum_i32
 
+#if 0
 .p2align 4
 .globl kp_asm_sin_f4
 .type  kp_asm_sin_f4, %function
@@ -573,6 +576,7 @@ b       .Lsin_loop
 .Lsin_done:
 ret
 .size kp_asm_sin_f4, .-kp_asm_sin_f4
+#endif
 
 .p2align 4
 .Lclip_tbl:

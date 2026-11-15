@@ -11,6 +11,10 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <chrono>
+#include <cstdlib>
+#include <string_view>
+#include "utf8_util.h"
 
 #define TM_TAG "KOPRI_TM"
 #define TM_LOG(fmt, ...) __android_log_print(ANDROID_LOG_INFO, TM_TAG, fmt, ##__VA_ARGS__)
@@ -59,30 +63,6 @@ namespace kp {
             return k;
         }
 
-        static int levenshtein(const std::string& a, const std::string& b) {
-            const size_t m = a.size();
-            const size_t n = b.size();
-
-            if (m == 0) return static_cast<int>(n);
-            if (n == 0) return static_cast<int>(m);
-
-            std::vector<int> prev(n + 1), cur(n + 1);
-
-            for (size_t j = 0; j <= n; ++j) prev[j] = static_cast<int>(j);
-
-            for (size_t i = 1; i <= m; ++i) {
-                cur[0] = static_cast<int>(i);
-
-                for (size_t j = 1; j <= n; ++j) {
-                    const int cost = (a[i - 1] == b[j - 1]) ? 0 : 1;
-                    cur[j] = std::min({prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost});
-                }
-
-                std::swap(prev, cur);
-            }
-
-            return prev[n];
-        }
 
     } // namespace
 
@@ -172,55 +152,51 @@ namespace kp {
                       char* out_dst, int32_t out_sz) {
         if (!src || !from || !to || !out_dst || out_sz <= 0) return 0;
 
-        auto t0 = std::chrono::steady_clock::now();
+        const auto t0 = std::chrono::steady_clock::now();
 
-        std::string src_norm = to_lower_ascii(kt::normalize(src));
+        const std::string src_norm = to_lower_ascii(kt::normalize(src));
         if (src_norm.empty()) return 0;
 
-        std::string key = make_key(src_norm, from, to);
-        std::string pair = std::string(from) + ">" + to;
+        const std::string key  = make_key(src_norm, from, to);
+        const std::string pair = std::string(from) + ">" + to;
 
-        // FIX (use-after-free): the matched string is now COPIED while the
-        // mutex is held. Previously a raw pointer into g_state was used
-        // after unlocking, so a concurrent tm_add (vector reallocation) or
-        // tm_rebuild (state swap) could free the memory under the pointer
-        // and crash the process.
         std::string result;
         int32_t score = 0;
 
         {
             std::lock_guard<std::mutex> lk(g_mu);
 
-            auto it = g_state->exact.find(key);
-
+            const auto it = g_state->exact.find(key);
             if (it != g_state->exact.end()) {
                 result = it->second;
-                score = 1000;
+                score  = 1000;
             } else {
-                const size_t slen = src_norm.size();
-                const size_t max_delta = (slen * 25) / 100 + 2;
+                const size_t prefix = pair.size() + 1;
+
+                const std::u32string q = kp::utf8::to_cps(src_norm);
+                const int qlen = static_cast<int>(q.size());
 
                 int32_t best = 0;
                 const std::string* best_dst = nullptr;
 
                 for (const auto& e : g_state->fuzzy) {
                     if (e.pair != pair) continue;
+                    if (e.key.size() <= prefix) continue;
 
-                    const size_t prefix = pair.size() + 1;
-                    if (e.key.size() < prefix) continue;
+                    const std::string_view e_src(e.key.data() + prefix,
+                                                 e.key.size() - prefix);
+                    const std::u32string ec = kp::utf8::to_cps(e_src);
+                    const int elen = static_cast<int>(ec.size());
+                    if (elen == 0) continue;
 
-                    const size_t e_slen = e.key.size() - prefix;
-                    if (e_slen > slen + max_delta || slen > e_slen + max_delta) continue;
-                    if (e_slen == 0) continue;
+                    const int mx = std::max(qlen, elen);
+                    const int cap = mx / 5;
+                    if (std::abs(qlen - elen) > cap) continue;
 
-                    const std::string e_src = e.key.substr(prefix);
-                    const int dist = levenshtein(src_norm, e_src);
-                    const int mx = static_cast<int>(std::max(e_src.size(), slen));
-
-                    if (mx == 0) continue;
+                    const int dist = kp::utf8::lev_cps_cap(q, ec, cap);
+                    if (dist > cap) continue;
 
                     const int32_t s = 1000 - (dist * 1000) / mx;
-
                     if (s > best) {
                         best = s;
                         best_dst = &e.dst;
@@ -229,8 +205,8 @@ namespace kp {
                 }
 
                 if (best >= 800 && best_dst) {
-                    score = best;
-                    result = *best_dst; // copy under lock
+                    score  = best;
+                    result = *best_dst;
                 }
             }
         }
@@ -240,15 +216,16 @@ namespace kp {
             return 0;
         }
 
-        std::strncpy(out_dst, result.c_str(), static_cast<size_t>(out_sz - 1));
-        out_dst[out_sz - 1] = '\0';
+        if (kp::utf8::copy_checked(result, out_dst, out_sz) < 0) {
+            TM_LOG("lookup(pair=%s) -> result does not fit buffer, miss", pair.c_str());
+            return 0;
+        }
 
-        auto us = std::chrono::duration_cast<std::chrono::microseconds>(
+        const auto us = std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::steady_clock::now() - t0).count();
-
         TM_LOG("lookup(pair=%s, len=%zu) -> score=%d, %lld us",
-               pair.c_str(), src_norm.size(), static_cast<int>(score), static_cast<long long>(us));
-
+               pair.c_str(), src_norm.size(), static_cast<int>(score),
+               static_cast<long long>(us));
         return score;
     }
 
